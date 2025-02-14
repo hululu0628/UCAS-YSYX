@@ -2,6 +2,8 @@ BUILD_DIR = ./build
 
 PRJ = playground
 
+VERILOG_CODE = vcode
+
 test:
 	mill -i $(PRJ).test
 
