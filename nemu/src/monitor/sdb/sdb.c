@@ -17,6 +17,7 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include "memory/paddr.h"
 #include "sdb.h"
 
 static int is_batch_mode = false;
@@ -25,32 +26,100 @@ void init_regex();
 void init_wp_pool();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
-static char* rl_gets() {
-  static char *line_read = NULL;
+static char* rl_gets() 
+{
+	static char *line_read = NULL;
 
-  if (line_read) {
-    free(line_read);
-    line_read = NULL;
-  }
+	if (line_read) 
+	{
+		free(line_read);
+		line_read = NULL;
+	}
 
-  line_read = readline("(nemu) ");
+	line_read = readline("(nemu) ");
 
-  if (line_read && *line_read) {
-    add_history(line_read);
-  }
+	if (line_read && *line_read) 
+	{
+		add_history(line_read);
+	}
 
-  return line_read;
+	return line_read;
 }
 
-static int cmd_c(char *args) {
-  cpu_exec(-1);
-  return 0;
+static int cmd_c(char *args)
+{
+	cpu_exec(-1);
+	return 0;
 }
 
+static int cmd_si(char *args)
+{
+	char *steps = strtok(NULL, " ");
+	uint64_t n = steps ? atoi(steps) : 1;
+	cpu_exec(n);
+	return 0;
+}
 
-static int cmd_q(char *args) {
-  nemu_state.state = NEMU_QUIT;
-  return -1;
+static int cmd_info(char *args)
+{
+	char * arg = strtok(NULL, " ");
+	if(arg == NULL)
+	{
+		printf("INFO: missing subcommand\n");
+	}
+	else if(strcmp(arg, "r") == 0)
+	{
+		isa_reg_display();
+	}
+	else
+	{
+		printf("INFO: unknown subcommand \"%s\"\n", arg);
+	}
+	return 0;
+}
+
+static int cmd_x(char *args)
+{
+	char * arg;
+	arg = strtok(NULL, " ");
+	if(arg == NULL)
+	{
+		printf("X: missing N\n");
+		return 0;
+	}
+	else
+	{
+		int n = atoi(arg);
+		arg = strtok(NULL, " ");
+		if(arg == NULL)
+		{
+			printf("X: missing EXPR\n");
+			return 0;
+		}
+		else
+		{
+			uint64_t addr = strtol(arg, NULL, 0);
+			for(int i = 0; i < n; i += 4)
+			{
+				printf(ANSI_FG_BLUE "0x%lx" ANSI_NONE ":        ", addr);
+				for(int j = 0; j < 4; j++)
+				{
+					if(j + i >= n)
+						break;
+					printf("0x%08x    ", (*(uint32_t *)(guest_to_host(addr))));
+					addr += 4;
+				}
+				printf("\n");
+			}
+		}
+	}
+	return 0;
+}
+
+static int cmd_q(char *args) 
+{
+	nemu_state.state = NEMU_QUIT;
+	return -1;
 }
 
 static int cmd_help(char *args);
@@ -62,6 +131,9 @@ static struct {
 } cmd_table [] = {
   { "help", "Display information about all supported commands", cmd_help },
   { "c", "Continue the execution of the program", cmd_c },
+  { "si", "Single step the program", cmd_si },
+  { "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
+  { "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
   { "q", "Exit NEMU", cmd_q },
 
   /* TODO: Add more commands */
@@ -78,13 +150,13 @@ static int cmd_help(char *args) {
   if (arg == NULL) {
     /* no argument given */
     for (i = 0; i < NR_CMD; i ++) {
-      printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+      printf("  %-6s - %s\n", cmd_table[i].name, cmd_table[i].description);
     }
   }
   else {
     for (i = 0; i < NR_CMD; i ++) {
       if (strcmp(arg, cmd_table[i].name) == 0) {
-        printf("%s - %s\n", cmd_table[i].name, cmd_table[i].description);
+        printf("  %-6s - %s\n", cmd_table[i].name, cmd_table[i].description);
         return 0;
       }
     }
