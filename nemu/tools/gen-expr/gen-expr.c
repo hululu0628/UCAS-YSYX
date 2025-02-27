@@ -21,8 +21,10 @@
 #include <string.h>
 
 // this should be enough
-static char buf[65536] = {};
-static char code_buf[65536 + 128] = {}; // a little larger than `buf`
+#define BUF_LEN 65535
+
+static char buf[BUF_LEN] = {};
+static char code_buf[BUF_LEN + 128] = {}; // a little larger than `buf`
 static char *code_format =
 "#include <stdio.h>\n"
 "int main() { "
@@ -31,8 +33,78 @@ static char *code_format =
 "  return 0; "
 "}";
 
-static void gen_rand_expr() {
-  buf[0] = '\0';
+uint32_t buf_len = 0;
+uint32_t success = 1;
+
+static uint32_t choose(uint32_t n)
+{
+	return rand() % n;
+}
+static void gen(char c)
+{
+	if(buf_len >= BUF_LEN / 2 || !success)
+	{
+		success = 0;
+		return;
+	}
+	buf[buf_len] = c;
+	buf[buf_len + 1] = '\0';
+	buf_len++;
+}
+static void gen_rand_whitespace()
+{
+	int length = choose(5);
+	while(length--)
+	{
+		gen(' ');
+	}
+}
+static void gen_rand_op()
+{
+	gen_rand_whitespace();
+	switch(choose(4))
+	{
+		case 0: gen('+'); break;
+		case 1: gen('-'); break;
+		case 2: gen('*'); break;
+		case 3: gen('/'); break;
+	}
+	gen_rand_whitespace();
+}
+static void gen_rand_num()
+{
+	gen_rand_whitespace();
+	int length = choose(3) + 1;
+	int n = choose(10);
+	if(n == 0)
+	{
+		gen('1');
+	}
+	else
+	{
+		gen('0' + n);
+	}
+	length--;
+	while(length--)
+	{
+		gen('0' + choose(10));
+	}
+	gen_rand_whitespace();
+}
+
+static void gen_rand_expr()
+{
+	if(buf_len >= BUF_LEN / 2 || !success)
+	{
+		success = 0;
+		return;
+	}
+	switch (choose(3))
+	{
+		case 0: gen_rand_num(); break;
+		case 1: gen('('); gen_rand_expr(); gen(')'); break;
+		case 2: gen_rand_expr(); gen_rand_op(); gen_rand_expr(); break;
+	}
 }
 
 int main(int argc, char *argv[]) {
@@ -44,17 +116,52 @@ int main(int argc, char *argv[]) {
   }
   int i;
   for (i = 0; i < loop; i ++) {
+    buf_len = 0;
+    success = 1;
     gen_rand_expr();
+    //printf("test\n");
+    if(!success)
+    {
+    	i--;
+    	continue;
+    }
+    //printf("test\n");
+    FILE *fp = fopen("./expression1", "w");
+    fputs(buf,fp);
+    fclose(fp);
+    int ret = system("python3 ./add_U.py");
+    if (ret != 0)
+    {
+      i--;
+      continue;
+    }
+    
+    fp = fopen("./expression2", "r");
+    assert(fp != NULL);
+    char *c = fgets(buf, BUF_LEN, fp);
+    if(c == NULL)
+    {
+    	i--;
+    	continue;
+    }
+    fclose(fp);
+
 
     sprintf(code_buf, code_format, buf);
 
-    FILE *fp = fopen("/tmp/.code.c", "w");
+    fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
 
-    int ret = system("gcc /tmp/.code.c -o /tmp/.expr");
-    if (ret != 0) continue;
+
+    ret = system("gcc /tmp/.code.c -o /tmp/.expr -Werror");
+    if (ret != 0)
+    {
+      i--;
+      continue;
+    }
+
 
     fp = popen("/tmp/.expr", "r");
     assert(fp != NULL);
@@ -63,6 +170,16 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
+
+    fp = fopen("./expression1", "r");
+    assert(fp != NULL);
+    char *c2 = fgets(buf, BUF_LEN, fp);
+    if(c2 == NULL)
+    {
+    	i--;
+    	continue;
+    }
+    fclose(fp);
     printf("%u %s\n", result, buf);
   }
   return 0;

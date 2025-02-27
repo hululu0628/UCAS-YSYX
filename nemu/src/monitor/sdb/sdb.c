@@ -19,6 +19,7 @@
 #include <readline/history.h>
 #include "memory/paddr.h"
 #include "sdb.h"
+#include "utils.h"
 
 static int is_batch_mode = false;
 
@@ -116,6 +117,29 @@ static int cmd_x(char *args)
 	return 0;
 }
 
+static int cmd_p(char *args)
+{
+	char *arg = strtok(NULL, " ");
+	bool success = true;
+	uint32_t result;
+	if(arg == NULL)
+	{
+		printf("P: missing EXPR\n");
+		return 0;
+	}
+	result = expr(args, &success);
+
+	if(success)
+	{
+		printf("0x%x\n", result);
+	}
+	else
+	{
+		printf(ANSI_FG_YELLOW"Invalid expression!\n"ANSI_NONE);
+	}
+	return 0;
+}
+
 static int cmd_q(char *args) 
 {
 	nemu_state.state = NEMU_QUIT;
@@ -134,6 +158,7 @@ static struct {
   { "si", "Single step the program", cmd_si },
   { "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
   { "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
+  { "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
   { "q", "Exit NEMU", cmd_q },
 
   /* TODO: Add more commands */

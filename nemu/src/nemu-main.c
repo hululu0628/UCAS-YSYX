@@ -15,6 +15,9 @@
 
 #include <common.h>
 
+// test expr
+// #include "../tools/gen-expr/expr_test.h"
+
 void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
@@ -25,11 +28,13 @@ int main(int argc, char *argv[]) {
 #ifdef CONFIG_TARGET_AM
   am_init_monitor();
 #else
-  init_monitor(argc, argv);
+	init_monitor(argc, argv);
 #endif
+	// test expr
+	// expr_test_main(1,1000);
 
-  /* Start engine. */
-  engine_start();
+	/* Start engine. */
+	engine_start();
 
-  return is_exit_status_bad();
+	return is_exit_status_bad();
 }
