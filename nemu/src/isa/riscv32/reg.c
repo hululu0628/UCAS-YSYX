@@ -25,13 +25,27 @@ const char *regs[] = {
 
 void isa_reg_display() 
 {
-	printf("pc   = 0x%lx\n", cpu.pc);
+	printf("pc              0x%-20lx%lu\n", cpu.pc, cpu.pc);
 	for (int i = 0; i < 32; i++) 
 	{
-		printf("%-4s = 0x%lx\n", regs[i], cpu.gpr[i]);
+		printf("%-16s0x%-20lx%lu\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
 	}
 }
 
-word_t isa_reg_str2val(const char *s, bool *success) {
-  return 0;
+word_t isa_reg_str2val(const char *s, bool *success) 
+{
+	if (strcmp(s + 1, "pc") == 0) 
+	{
+		return cpu.pc;
+	}
+	for (int i = 0; i < 32; i++) 
+	{
+		if (strcmp(s + 1, regs[i]) == 0) 
+		{
+			*success = true;
+			return cpu.gpr[i];
+		}
+	}
+	*success = false;
+	return 0;
 }

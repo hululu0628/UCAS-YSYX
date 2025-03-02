@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "memory/paddr.h"
 #include "utils.h"
 #include <isa.h>
 
@@ -23,11 +24,11 @@
 #include <stdbool.h>
 
 #define MAX_TOKEN_LEN 31
-#define MAX_TOKEN_NUM 65535 //32
+#define MAX_TOKEN_NUM 64 //32
 
 typedef enum TK_TYPE{
-  TK_NOTYPE, TK_EQ, TK_DEC, TK_PLUS, 
-  TK_SUB, TK_MUL, TK_DIV, TK_LBRACKET, TK_RBRACKET
+  TK_NOTYPE, TK_DEC, TK_HEX, TK_REG, TK_LBRACKET, TK_RBRACKET, TK_PLUS, 
+  TK_SUB, TK_MUL, TK_DIV, TK_EQ, TK_NEQ, TK_DEREF
   /* TODO: Add more token types */
 } TK_TYPE;
 
@@ -39,16 +40,18 @@ static struct rule {
   /* TODO: Add more rules.
    * Pay attention to the precedence level of different rules.
    */
-
-  {" +", TK_NOTYPE},    // spaces
-  {"\\+", TK_PLUS},         // plus
-  {"-", TK_SUB},          // sub
-  {"\\*", TK_MUL},         // mul
-  {"/", TK_DIV},          // div
-  {"\\(", TK_LBRACKET},          // left bracket
-  {"\\)", TK_RBRACKET},          // right bracket
-  {"[0-9]+", TK_DEC},      // decimal
-  {"==", TK_EQ},        // equal
+	{" +", TK_NOTYPE},    // spaces
+	{"-? *((0x)|(0X))[0-9a-fA-F]+", TK_HEX},      // hex
+	{"-? *[0-9]+", TK_DEC},      // decimal
+	{"\\$[a-z0-9]+", TK_REG},      // register
+	{"\\(", TK_LBRACKET},          // left bracket
+	{"\\)", TK_RBRACKET},          // right bracket
+	{"\\+", TK_PLUS},         // plus
+	{"-", TK_SUB},          // sub
+	{"\\*", TK_MUL},         // mul
+	{"/", TK_DIV},          // div
+	{"==", TK_EQ},        // equal
+	{"!=", TK_NEQ}        // not equal
 };
 
 #define NR_REGEX ARRLEN(rules)
@@ -91,10 +94,20 @@ static bool make_token(char *e) {
     /* Try all rules one by one. */
     for (i = 0; i < NR_REGEX; i ++) {
       if (regexec(&re[i], e + position, 1, &pmatch, 0) == 0 && pmatch.rm_so == 0) {
-        char *substr_start = e + position;
+        
+	if(( nr_token != 0 && 
+	    (tokens[nr_token - 1].type == TK_DEC || tokens[nr_token - 1].type == TK_HEX || 
+	     tokens[nr_token - 1].type == TK_RBRACKET || tokens[nr_token - 1].type == TK_REG)) 
+	     && (rules[i].token_type == TK_DEC || rules[i].token_type == TK_HEX || rules[i].token_type == TK_REG))
+	{
+		continue;
+	}
+	
+
+	char *substr_start = e + position;
         int substr_len = pmatch.rm_eo;
 
-        Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
+	Log("match rules[%d] = \"%s\" at position %d with len %d: %.*s",
             i, rules[i].regex, position, substr_len, substr_len, substr_start);
 
         position += substr_len;
@@ -111,11 +124,27 @@ static bool make_token(char *e) {
 			printf(ANSI_FG_YELLOW"The length of the token is too long!\n"ANSI_NONE);
 			return false;
 		}
+
+		
 		tokens[nr_token].type = rules[i].token_type;
-		if(rules[i].token_type == TK_DEC)
+		
+		if(( nr_token == 0 || 
+		    (tokens[nr_token - 1].type != TK_DEC && tokens[nr_token - 1].type != TK_HEX && 
+		     tokens[nr_token - 1].type != TK_RBRACKET && tokens[nr_token - 1].type != TK_REG)) && 
+		     (rules[i].token_type == TK_MUL))
 		{
-			strncpy(tokens[nr_token].str, substr_start, substr_len);
-			tokens[nr_token].str[substr_len] = '\0';
+			tokens[nr_token].type = TK_DEREF;
+		}
+		
+		if(rules[i].token_type == TK_DEC || rules[i].token_type == TK_HEX || rules[i].token_type == TK_REG)
+		{
+			int i, j;
+			for(i = 0, j = 0; i < substr_len; i++)
+			{
+				if(substr_start[i] != ' ')
+					tokens[nr_token].str[j++] = substr_start[i];
+			}
+			tokens[nr_token].str[j] = '\0';
 		}
 		nr_token++;
 	}
@@ -167,7 +196,7 @@ static bool check_parentheses(int l, int r, bool *success)
 	return ret;
 }
 
-static uint32_t eval(int l, int r, bool *success)
+static long eval(int l, int r, bool *success)
 {
 	if(l > r)
 	{
@@ -176,7 +205,12 @@ static uint32_t eval(int l, int r, bool *success)
 		return 0;
 	}
 	else if(l == r)
-		return strtol(tokens[l].str, NULL, 0);
+	{
+		if(tokens[l].type == TK_REG)
+			return isa_reg_str2val(tokens[l].str, success);
+		else
+			return strtol(tokens[l].str, NULL, 0);
+	}
 	else if(check_parentheses(l, r, success))
 		return eval(l + 1, r - 1, success);
 	else
@@ -186,7 +220,7 @@ static uint32_t eval(int l, int r, bool *success)
 		int cnt = 0;
 		int op_pos = -1;
 		TK_TYPE op_type = TK_NOTYPE;
-		uint32_t val1, val2;
+		long val1, val2;
 		for(int i = l; i <= r; i++)
 		{
 			if(tokens[i].type == TK_LBRACKET)
@@ -195,14 +229,33 @@ static uint32_t eval(int l, int r, bool *success)
 				cnt--;
 			else if(cnt == 0)
 			{
-				if(tokens[i].type == TK_PLUS || tokens[i].type == TK_SUB)
+				if(tokens[i].type == TK_EQ || tokens[i].type == TK_NEQ)
 				{
 					op_type = tokens[i].type;
 					op_pos = i;
 				}
+				else if(tokens[i].type == TK_PLUS || tokens[i].type == TK_SUB)
+				{
+					if(op_type != TK_EQ && op_type != TK_NEQ)
+					{
+						op_type = tokens[i].type;
+						op_pos = i;
+					}
+				}
 				else if(tokens[i].type == TK_MUL || tokens[i].type == TK_DIV)
 				{
-					if(op_type != TK_PLUS && op_type != TK_SUB)
+					if(op_type != TK_PLUS && op_type != TK_SUB &&
+					   op_type != TK_EQ && op_type != TK_NEQ)
+					{
+						op_type = tokens[i].type;
+						op_pos = i;
+					}
+				}
+				else if(tokens[i].type == TK_DEREF)
+				{
+					if(op_type != TK_PLUS && op_type != TK_SUB &&
+					   op_type != TK_MUL && op_type != TK_DIV && 
+					   op_type != TK_EQ && op_type != TK_NEQ)
 					{
 						op_type = tokens[i].type;
 						op_pos = i;
@@ -216,8 +269,8 @@ static uint32_t eval(int l, int r, bool *success)
 			*success = false;
 			return 0;
 		}
-		
-		val1 = eval(l, op_pos - 1, success);
+		if(op_type != TK_DEREF)
+			val1 = eval(l, op_pos - 1, success);
 		val2 = eval(op_pos + 1, r, success);
 		switch (op_type)
 		{
@@ -225,6 +278,9 @@ static uint32_t eval(int l, int r, bool *success)
 			case TK_SUB: return val1 - val2;
 			case TK_MUL: return val1 * val2;
 			case TK_DIV: return val1 / val2;
+			case TK_EQ: return val1 == val2;
+			case TK_NEQ: return val1 != val2;
+			case TK_DEREF: return *((uint64_t *)guest_to_host(val2));
 			default: break;
 		}
 	}
@@ -242,7 +298,6 @@ word_t expr(char *e, bool *success) {
 	}
 
 	/* TODO: Insert codes to evaluate the expression. */
-	uint32_t result = eval(0, nr_token - 1, success);
-	printf("eval: %u\n", result);
+	uint64_t result = eval(0, nr_token - 1, success);
 	return result;
 }

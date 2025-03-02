@@ -24,7 +24,6 @@
 static int is_batch_mode = false;
 
 void init_regex();
-void init_wp_pool();
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
 static char* rl_gets() 
@@ -68,9 +67,13 @@ static int cmd_info(char *args)
 	{
 		printf("INFO: missing subcommand\n");
 	}
-	else if(strcmp(arg, "r") == 0)
+	else if(strcmp(arg, "r") == 0 || strcmp(arg, "reg") == 0)
 	{
 		isa_reg_display();
+	}
+	else if(strcmp(arg, "w") == 0 || strcmp(arg, "watchpoints") == 0)
+	{
+		print_watchpoints();
 	}
 	else
 	{
@@ -119,10 +122,9 @@ static int cmd_x(char *args)
 
 static int cmd_p(char *args)
 {
-	char *arg = strtok(NULL, " ");
 	bool success = true;
 	uint32_t result;
-	if(arg == NULL)
+	if(args == NULL)
 	{
 		printf("P: missing EXPR\n");
 		return 0;
@@ -135,8 +137,67 @@ static int cmd_p(char *args)
 	}
 	else
 	{
-		printf(ANSI_FG_YELLOW"Invalid expression!\n"ANSI_NONE);
+		printf("P: invalid expression\n");
 	}
+	return 0;
+}
+
+static int cmd_w(char *args)
+{
+	bool success = true;
+	WP *wp = new_wp(WATCH_POINT);
+	strcpy(wp->expr, args);
+	wp->old_val = expr(wp->expr, &success);
+	if(!success)
+	{
+		free_wp(wp);
+		printf("W: invalid expression\n");
+		return 0;
+	}
+	printf("Set watchpoint %d\n", wp->NO);
+	return 0;
+}
+
+static int cmd_d(char *args)
+{
+	char * arg = strtok(NULL, " ");
+	if(arg == NULL)
+	{
+		printf("D: missing N\n");
+	}
+	else
+	{
+		int n = atoi(arg);
+		if(n >= 0 && n < NR_WP)
+		{
+			if(free_wp(&wp_pool[n]))
+			{
+				printf("Watchpoint %d deleted\n", n);
+			}
+			else
+			{
+				printf("D: failed to delete the watchpoint\n");
+			}
+		}
+	}
+	return 0;
+}
+
+static int cmd_b(char *args)
+{
+	bool success = true;
+	WP *wp = new_wp(BREAK_POINT);
+	strcpy(wp->expr, args);
+	strcat(wp->expr, " == $pc");
+	wp->old_val = expr(wp->expr, &success);
+	wp->old_val = 0;
+	if(!success)
+	{
+		free_wp(wp);
+		printf("W: invalid expression\n");
+		return 0;
+	}
+	printf("Set breakpoint %d\n", wp->NO);
 	return 0;
 }
 
@@ -153,15 +214,18 @@ static struct {
   const char *description;
   int (*handler) (char *);
 } cmd_table [] = {
-  { "help", "Display information about all supported commands", cmd_help },
-  { "c", "Continue the execution of the program", cmd_c },
-  { "si", "Single step the program", cmd_si },
-  { "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
-  { "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
-  { "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
-  { "q", "Exit NEMU", cmd_q },
+	{ "help", "Display information about all supported commands", cmd_help },
+	{ "c", "Continue the execution of the program", cmd_c },
+	{ "si", "Single step the program", cmd_si },
+	{ "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
+	{ "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
+	{ "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
+	{ "w", "Set a watchpoint for the expression EXPR", cmd_w },
+	{ "d", "Delete the watchpoint with the number N", cmd_d },
+	{ "b", "Set a breakpoint at the address ADDR", cmd_b },
+	{ "q", "Exit NEMU", cmd_q },
 
-  /* TODO: Add more commands */
+	/* TODO: Add more commands */
 
 };
 
