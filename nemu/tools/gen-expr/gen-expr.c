@@ -126,36 +126,17 @@ int main(int argc, char *argv[]) {
     	continue;
     }
     //printf("test\n");
-    FILE *fp = fopen("./expression1", "w");
-    fputs(buf,fp);
-    fclose(fp);
-    int ret = system("python3 ./add_U.py");
-    if (ret != 0)
-    {
-      i--;
-      continue;
-    }
-    
-    fp = fopen("./expression2", "r");
-    assert(fp != NULL);
-    char *c = fgets(buf, BUF_LEN, fp);
-    if(c == NULL)
-    {
-    	i--;
-    	continue;
-    }
-    fclose(fp);
 
 
     sprintf(code_buf, code_format, buf);
 
-    fp = fopen("/tmp/.code.c", "w");
+    FILE *fp = fopen("/tmp/.code.c", "w");
     assert(fp != NULL);
     fputs(code_buf, fp);
     fclose(fp);
 
 
-    ret = system("gcc /tmp/.code.c -o /tmp/.expr -Werror");
+    int ret = system("gcc /tmp/.code.c -o /tmp/.expr -Werror");
     if (ret != 0)
     {
       i--;
@@ -170,16 +151,6 @@ int main(int argc, char *argv[]) {
     ret = fscanf(fp, "%d", &result);
     pclose(fp);
 
-
-    fp = fopen("./expression1", "r");
-    assert(fp != NULL);
-    char *c2 = fgets(buf, BUF_LEN, fp);
-    if(c2 == NULL)
-    {
-    	i--;
-    	continue;
-    }
-    fclose(fp);
     printf("%u %s\n", result, buf);
   }
   return 0;
