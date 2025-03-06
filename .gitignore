@@ -11,4 +11,4 @@
 !.gitignore
 !init.sh
 /nvboard
-/test
+/test/am-kernels
