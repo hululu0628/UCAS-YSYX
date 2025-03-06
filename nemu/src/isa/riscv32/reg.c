@@ -25,10 +25,10 @@ const char *regs[] = {
 
 void isa_reg_display() 
 {
-	printf("pc              0x%-20lx%lu\n", cpu.pc, cpu.pc);
+	printf("pc              0x%-20x%u\n", cpu.pc, cpu.pc);
 	for (int i = 0; i < 32; i++) 
 	{
-		printf("%-16s0x%-20lx%lu\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
+		printf("%-16s0x%-20x%u\n", regs[i], cpu.gpr[i], cpu.gpr[i]);
 	}
 }
 

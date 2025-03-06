@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include "sdb.h"
 #include "utils.h"
 
@@ -84,7 +85,7 @@ void check_watchpoints()
 	bool success = true;
 	while(p != NULL)
 	{
-		uint64_t new_val = expr(p->expr, &success);
+		word_t new_val = expr(p->expr, &success);
 		if(!success)
 		{
 			printf("Invalid expression!\n");
@@ -96,8 +97,8 @@ void check_watchpoints()
 			{
 				printf("------------------------------------------------\n");
 				printf("Hit watchpoint %d: %s\n", p->NO, p->expr);
-				printf("Old value = 0x%lx\n", p->old_val);
-				printf("New value = 0x%lx\n", new_val);
+				printf("Old value = 0x%x\n", p->old_val);
+				printf("New value = 0x%x\n", new_val);
 				printf("------------------------------------------------\n");
 				p->old_val = new_val;
 			}

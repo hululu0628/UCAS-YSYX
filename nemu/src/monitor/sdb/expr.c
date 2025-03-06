@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include "memory/paddr.h"
 #include "utils.h"
 #include <isa.h>
@@ -196,7 +197,7 @@ static bool check_parentheses(int l, int r, bool *success)
 	return ret;
 }
 
-static long eval(int l, int r, bool *success)
+static sword_t eval(int l, int r, bool *success)
 {
 	if(l > r)
 	{
@@ -220,7 +221,7 @@ static long eval(int l, int r, bool *success)
 		int cnt = 0;
 		int op_pos = -1;
 		TK_TYPE op_type = TK_NOTYPE;
-		long val1, val2;
+		sword_t val1, val2;
 		for(int i = l; i <= r; i++)
 		{
 			if(tokens[i].type == TK_LBRACKET)
@@ -280,7 +281,7 @@ static long eval(int l, int r, bool *success)
 			case TK_DIV: return val1 / val2;
 			case TK_EQ: return val1 == val2;
 			case TK_NEQ: return val1 != val2;
-			case TK_DEREF: return *((uint64_t *)guest_to_host(val2));
+			case TK_DEREF: return *((word_t *)guest_to_host(val2));
 			default: break;
 		}
 	}
@@ -298,6 +299,6 @@ word_t expr(char *e, bool *success) {
 	}
 
 	/* TODO: Insert codes to evaluate the expression. */
-	uint64_t result = eval(0, nr_token - 1, success);
+	word_t result = eval(0, nr_token - 1, success);
 	return result;
 }

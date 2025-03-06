@@ -17,6 +17,7 @@
 #include <cpu/cpu.h>
 #include <readline/readline.h>
 #include <readline/history.h>
+#include "common.h"
 #include "memory/paddr.h"
 #include "sdb.h"
 #include "utils.h"
@@ -102,10 +103,10 @@ static int cmd_x(char *args)
 		}
 		else
 		{
-			uint64_t addr = strtol(arg, NULL, 0);
+			word_t addr = strtol(arg, NULL, 0);
 			for(int i = 0; i < n; i += 4)
 			{
-				printf(ANSI_FG_BLUE "0x%lx" ANSI_NONE ":        ", addr);
+				printf(ANSI_FG_BLUE "0x%x" ANSI_NONE ":        ", addr);
 				for(int j = 0; j < 4; j++)
 				{
 					if(j + i >= n)
