@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <utils.h>
 
+/* 可以把log分一下等级，配上不同颜色 */
 #define Log(format, ...) \
     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
         __FILE__, __LINE__, __func__, ## __VA_ARGS__)

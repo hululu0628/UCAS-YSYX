@@ -48,9 +48,10 @@ endif
 ### Create the destination directory (`build/$ARCH`)
 WORK_DIR  = $(shell pwd)
 DST_DIR   = $(WORK_DIR)/build/$(ARCH)
-$(shell mkdir -p $(DST_DIR))
+$(shell mkdir -p $(DST_DIR) build/disasm_file)
 
 ### Compilation targets (a binary image or archive)
+DISASM	  = $(abspath build/disasm_file/$(NAME)-$(ARCH))    # put disassembly file into a separate directory(modified by hululu)
 IMAGE_REL = build/$(NAME)-$(ARCH)
 IMAGE     = $(abspath $(IMAGE_REL))
 ARCHIVE   = $(WORK_DIR)/build/$(NAME)-$(ARCH).a
