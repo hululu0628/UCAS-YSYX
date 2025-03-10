@@ -38,6 +38,10 @@ endef
 .clean_index:
 	rm -f $(WORK_INDEX)
 
+watch_line:
+	@git ls-files | xargs wc -l
+	@echo "Print all"
+
 _default:
 	@echo "Please run 'make' under subprojects."
 

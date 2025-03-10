@@ -2,11 +2,17 @@
 
 # usage: addenv env_name path
 function addenv() {
-  sed -i -e "/^export $1=.*/d" ~/.bashrc
-  echo "export $1=`readlink -f $2`" >> ~/.bashrc
-  echo "By default this script will add environment variables into ~/.bashrc."
-  echo "After that, please run 'source ~/.bashrc' to let these variables take effect."
-  echo "If you use shell other than bash, please add these environment variables manually."
+	if [ ! -f .envrc ]; then
+		sed -i -e "/^export $1=.*/d" ~/.bashrc
+		echo "export $1=`readlink -f $2`" >> ~/.bashrc
+	else
+		sed -i -e "/^export $1=.*/d" .envrc
+		echo "export $1=`readlink -f $2`" >> .envrc
+		direnv allow
+	fi
+	echo "By default this script will add environment variables into ~/.bashrc if there's no .envrc under this directory."
+	echo "After that, please run 'source ~/.bashrc' to let these variables take effect."
+	echo "If you use shell other than bash, please add these environment variables manually."
 }
 
 # usage: init repo branch directory trace [env]
