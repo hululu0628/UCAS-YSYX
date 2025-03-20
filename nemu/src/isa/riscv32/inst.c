@@ -80,6 +80,7 @@ static int decode_exec(Decode *s)
 	INSTPAT_START();
 	// INSTPAT(pattern, name, type, function)
 	// lb, blt, slti haven't been checked in PA2's cpu-tests
+	// ebreak means the end of the program
 	INSTPAT("??????? ????? ????? ??? ????? 01101 11", lui    , U, R(rd) = imm);
 	INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
 
@@ -140,6 +141,6 @@ static int decode_exec(Decode *s)
 }
 
 int isa_exec_once(Decode *s) {
-  s->isa.inst = inst_fetch(&s->snpc, 4);
+  s->isa.inst = inst_fetch(&s->snpc, 4);	// snpc modified in this function
   return decode_exec(s);
 }

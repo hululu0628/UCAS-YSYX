@@ -17,7 +17,6 @@
 #include <cpu/decode.h>
 #include <cpu/difftest.h>
 #include <locale.h>
-#include "../monitor/sdb/sdb.h"
 
 /* The assembly code of instructions executed is only output to the screen
  * when the number of instructions executed is less than this value.
@@ -39,7 +38,11 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 #endif
 	if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
 	IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
-	IFDEF(CONFIG_WATCHPOINT, check_watchpoints());
+
+#ifdef CONFIG_WATCHPOINT
+	void check_watchpoints();
+	check_watchpoints();
+#endif
 }
 
 static void exec_once(Decode *s, vaddr_t pc) {
@@ -48,28 +51,14 @@ static void exec_once(Decode *s, vaddr_t pc) {
 	isa_exec_once(s);
 	cpu.pc = s->dnpc;
 #ifdef CONFIG_ITRACE
-	char *p = s->logbuf;
-	p += snprintf(p, sizeof(s->logbuf), FMT_WORD ":", s->pc);
-	int ilen = s->snpc - s->pc;
-	int i;
-	uint8_t *inst = (uint8_t *)&s->isa.inst;
-#ifdef CONFIG_ISA_x86
-	for (i = 0; i < ilen; i ++) {
-#else
-	for (i = ilen - 1; i >= 0; i --) {
-#endif
-	p += snprintf(p, 4, " %02x", inst[i]);
-	}
-	int ilen_max = MUXDEF(CONFIG_ISA_x86, 8, 4);
-	int space_len = ilen_max - ilen;
-	if (space_len < 0) space_len = 0;
-	space_len = space_len * 3 + 1;
-	memset(p, ' ', space_len);
-	p += space_len;
+	void inst_log(Decode *s);
+	inst_log(s);
 
-	void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
-	disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
-		MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
+#ifdef CONFIG_IRINGBUF
+	void insert_instr(Decode *s);
+	insert_instr(s);
+#endif
+
 #endif
 }
 
@@ -130,5 +119,9 @@ void cpu_exec(uint64_t n)
 			nemu_state.halt_pc);
 		// fall through
 		case NEMU_QUIT: statistic();
+		#ifdef CONFIG_IRINGBUF
+			void print_ringbuf();
+			print_ringbuf();
+		#endif
 	}
 }

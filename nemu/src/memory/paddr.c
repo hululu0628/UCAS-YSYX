@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "common.h"
 #include <memory/host.h>
 #include <memory/paddr.h>
 #include <device/mmio.h>
@@ -42,23 +43,41 @@ static void out_of_bound(paddr_t addr) {
 }
 
 void init_mem() {
-#if   defined(CONFIG_PMEM_MALLOC)
-  pmem = malloc(CONFIG_MSIZE);
-  assert(pmem);
-#endif
-  IFDEF(CONFIG_MEM_RANDOM, memset(pmem, rand(), CONFIG_MSIZE));
-  Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
+	#if   defined(CONFIG_PMEM_MALLOC)
+		pmem = malloc(CONFIG_MSIZE);
+		assert(pmem);
+	#endif
+	IFDEF(CONFIG_MEM_RANDOM, memset(pmem, rand(), CONFIG_MSIZE));
+	Log("physical memory area [" FMT_PADDR ", " FMT_PADDR "]", PMEM_LEFT, PMEM_RIGHT);
 }
 
-word_t paddr_read(paddr_t addr, int len) {
-  if (likely(in_pmem(addr))) return pmem_read(addr, len);
-  IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
-  out_of_bound(addr);
-  return 0;
+word_t paddr_read(paddr_t addr, int len) 
+{
+	if (likely(in_pmem(addr))) 
+	{
+		word_t ret = pmem_read(addr, len);
+		#ifdef CONFIG_MTRACE
+		void trace_mem(mtrace_t op, paddr_t addr, int len, word_t data);
+		trace_mem(MEM_READ, addr, len, ret);
+		#endif
+		return ret;
+	}
+	IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+	out_of_bound(addr);
+	return 0;
 }
 
-void paddr_write(paddr_t addr, int len, word_t data) {
-  if (likely(in_pmem(addr))) { pmem_write(addr, len, data); return; }
-  IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
-  out_of_bound(addr);
+void paddr_write(paddr_t addr, int len, word_t data) 
+{
+	if (likely(in_pmem(addr)))
+	{ 
+		pmem_write(addr, len, data);
+		#ifdef CONFIG_MTRACE
+		void trace_mem(mtrace_t op, paddr_t addr, int len, word_t data);
+		trace_mem(MEM_WRITE, addr, len, data);
+		#endif
+		return; 
+	}
+	IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
+	out_of_bound(addr);
 }
