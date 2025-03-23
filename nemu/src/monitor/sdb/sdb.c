@@ -265,6 +265,7 @@ void sdb_mainloop() {
     return;
   }
 
+  // get conmandlines
   for (char *str; (str = rl_gets()) != NULL; ) {
     char *str_end = str + strlen(str);
 

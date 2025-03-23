@@ -40,6 +40,8 @@ static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
 	IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
 
 #ifdef CONFIG_WATCHPOINT
+/*** That is annoying, I think I should move the definition of these functions to sdb.h
+     then move sdb.h to include directory later. ***/
 	void check_watchpoints();
 	check_watchpoints();
 #endif

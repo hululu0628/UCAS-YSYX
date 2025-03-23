@@ -122,7 +122,7 @@ static bool make_token(char *e) {
 	{
 		if(substr_len > MAX_TOKEN_LEN)
 		{
-			printf(ANSI_FG_YELLOW"The length of the token is too long!\n"ANSI_NONE);
+			printf(ANSI_FG_YELLOW"The length of the token is out of range!\n"ANSI_NONE);
 			return false;
 		}
 
@@ -163,12 +163,17 @@ static bool make_token(char *e) {
   return true;
 }
 
+/* Check if the expression is surrounded by a pair of parentheses 
+   (which means a left bracket and a right bracket, and the two brackets are matched)
+   */
 static bool check_parentheses(int l, int r, bool *success)
 {
+	// Two brackets?
 	if(tokens[l].type != TK_LBRACKET || tokens[r].type != TK_RBRACKET)
 		return false;
 	int cnt = 0;
 	bool ret = true;
+	// Are they matched?
 	for(int i = l + 1; i < r; i++)
 	{
 		if(tokens[i].type == TK_LBRACKET)
@@ -188,6 +193,7 @@ static bool check_parentheses(int l, int r, bool *success)
 
 	}
 	
+	// check if the number of left brackets is equal to the number of right brackets
 	if(cnt != 0)
 	{
 		printf("Invalid expression at %s(line %d)!\n", __func__, __LINE__);
@@ -218,7 +224,7 @@ static sword_t eval(int l, int r, bool *success)
 	{
 		if(*success == false)
 			return 0;
-		int cnt = 0;
+		int cnt = 0;	// +1 for left bracket, -1 for right bracket, 
 		int op_pos = -1;
 		TK_TYPE op_type = TK_NOTYPE;
 		sword_t val1, val2;
@@ -230,6 +236,7 @@ static sword_t eval(int l, int r, bool *success)
 				cnt--;
 			else if(cnt == 0)
 			{
+				// Find the operator with the lowest precedence
 				if(tokens[i].type == TK_EQ || tokens[i].type == TK_NEQ)
 				{
 					op_type = tokens[i].type;
@@ -263,6 +270,12 @@ static sword_t eval(int l, int r, bool *success)
 					}
 				}
 			}
+			else
+			{
+				Log("Number of left brackets is not equal to right brackets!\n");
+				*success = false;
+				return 0;
+			}
 		}
 		if(op_pos == -1)
 		{
@@ -270,6 +283,7 @@ static sword_t eval(int l, int r, bool *success)
 			*success = false;
 			return 0;
 		}
+		// Calculate the value of the expression
 		if(op_type != TK_DEREF)
 			val1 = eval(l, op_pos - 1, success);
 		val2 = eval(op_pos + 1, r, success);

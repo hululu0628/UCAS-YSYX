@@ -43,6 +43,7 @@ void inst_log(Decode * s)
 	static int error_ptr = -1;
 	static const int inst_after_error = 10;
 
+// called after the excution of an instruction
 void insert_instr(Decode * s)
 {
 	if(error_ptr != -1 && (error_ptr + inst_after_error) % 32 == iringbuf_idx)
@@ -50,6 +51,7 @@ void insert_instr(Decode * s)
 
 	memcpy(iringbuf[iringbuf_idx], s->logbuf, LOGBUF_SIZE);
 
+	// mark the error instruction, this may take effect difftest enabled
 	if(nemu_state.state == NEMU_ABORT || nemu_state.halt_ret != 0)
 		error_ptr = iringbuf_idx;
 
@@ -84,6 +86,7 @@ void print_ringbuf()
 #define MEM_READ 0
 #define MEM_WRITE 1
 
+// called in paddr.c
 void trace_mem(int op, paddr_t addr, int len, word_t data)
 {
 	if(addr < CONFIG_MTRACE_END && addr >= CONFIG_MTRACE_START)
@@ -142,6 +145,7 @@ void init_ftrace(const char * elf_file)
 	
 }
 
+// called in inst.c
 void trace_func(paddr_t addr, int op)
 {
 	unsigned long ret;
@@ -152,11 +156,12 @@ void trace_func(paddr_t addr, int op)
 	ret = fseek(elf_fp, strtab_shdr.sh_offset, SEEK_SET);
 	assert(ret == 0);
 
-	char * strtab = malloc(strtab_shdr.sh_size);
+	char * strtab = malloc(strtab_shdr.sh_size);	// get the string table
 	
 	ret = fread(strtab, strtab_shdr.sh_size, 1, elf_fp);
 
 	ret = fseek(elf_fp, sym_shdr.sh_offset, SEEK_SET);
+	
 	
 	for(int i = 0; i < sym_shdr.sh_size; i += sizeof(sym))
 	{

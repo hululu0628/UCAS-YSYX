@@ -16,6 +16,8 @@
 #include <isa.h>
 #include <memory/paddr.h>
 
+extern const char nemu_logo[];
+
 void init_rand();
 void init_log(const char *log_file);
 void init_mem();
@@ -32,6 +34,7 @@ static void welcome() {
         "If it is not necessary, you can disable it in menuconfig"));
   Log("Build time: %s, %s", __TIME__, __DATE__);
   printf("Welcome to %s-NEMU!\n", ANSI_FMT(str(__GUEST_ISA__), ANSI_FG_YELLOW ANSI_BG_RED));
+  printf("%s\n", nemu_logo);
   printf("For help, type \"help\"\n");
 }
 
@@ -131,8 +134,10 @@ void init_monitor(int argc, char *argv[]) {
   /* Initialize the simple debugger. */
   init_sdb();
 
+  /* Initialize the disassembler. */
   IFDEF(CONFIG_ITRACE, init_disasm());
 
+  /* Initialize the function tracer. ᗜˬᗜ */
   IFDEF(CONFIG_FTRACE, init_ftrace(elf_file));
 
   /* Display welcome message. */
