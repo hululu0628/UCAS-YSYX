@@ -163,15 +163,20 @@ config MTRACE
 
 config MTRACE_START
   depends on MTRACE
-  int "When memory tracing is enabled"
+  hex "When memory tracing is enabled"
   range 0x80000000 0x88000000
   default 0x80000000
 
 config MTRACE_END
   depends on MTRACE
-  int "When memory tracing is disabled"
+  hex "When memory tracing is disabled"
   range 0x80000000 0x88000000
   default 0x88000000
+
+config FTRACE
+  depends on TRACE
+  bool "Enable function tracer"
+  default n
 
 
 config DIFFTEST

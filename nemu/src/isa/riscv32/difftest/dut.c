@@ -17,8 +17,25 @@
 #include <cpu/difftest.h>
 #include "../local-include/reg.h"
 
-bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) {
-  return false;
+bool isa_difftest_checkregs(CPU_state *ref_r, vaddr_t pc) 
+{
+	// after a single step, does ref.pc update?
+	if(ref_r->pc != cpu.pc)
+	{
+		Log("pc is different");
+		return false;
+	}
+	for(int i = 0; i < NR_GPR; i++)
+	{
+		if(ref_r->gpr[i] != cpu.gpr[i])
+		{
+			Log("reg[%d] is different after executing instruction at pc = " FMT_WORD, i, pc);
+
+			// need value of ref_r?
+
+			return false;
+		}
+	}
 }
 
 void isa_difftest_attach() {

@@ -57,8 +57,8 @@ word_t paddr_read(paddr_t addr, int len)
 	{
 		word_t ret = pmem_read(addr, len);
 		#ifdef CONFIG_MTRACE
-		void trace_mem(mtrace_t op, paddr_t addr, int len, word_t data);
-		trace_mem(MEM_READ, addr, len, ret);
+		void trace_mem(int op, paddr_t addr, int len, word_t data);
+		trace_mem(0, addr, len, ret);
 		#endif
 		return ret;
 	}
@@ -73,8 +73,8 @@ void paddr_write(paddr_t addr, int len, word_t data)
 	{ 
 		pmem_write(addr, len, data);
 		#ifdef CONFIG_MTRACE
-		void trace_mem(mtrace_t op, paddr_t addr, int len, word_t data);
-		trace_mem(MEM_WRITE, addr, len, data);
+		void trace_mem(int op, paddr_t addr, int len, word_t data);
+		trace_mem(1, addr, len, data);
 		#endif
 		return; 
 	}
