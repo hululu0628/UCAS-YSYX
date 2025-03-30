@@ -55,5 +55,5 @@ bool ioe_init() {
   return true;
 }
 
-void ioe_read (int reg, void *buf) { ((handler_t)lut[reg])(buf); }
-void ioe_write(int reg, void *buf) { ((handler_t)lut[reg])(buf); }
+void ioe_read (int reg, void *buf) { ((handler_t)lut[reg])(buf); }	// what will happen if I can both read and write a register?
+void ioe_write(int reg, void *buf) { ((handler_t)lut[reg])(buf); }	// or someone just call io_write and io_read at the same time?

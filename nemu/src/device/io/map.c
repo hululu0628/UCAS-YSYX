@@ -23,6 +23,7 @@
 static uint8_t *io_space = NULL;
 static uint8_t *p_space = NULL;
 
+// why the data type of size is int
 uint8_t* new_space(int size) {
   uint8_t *p = p_space;
   // page aligned;
@@ -42,6 +43,8 @@ static void check_bound(IOMap *map, paddr_t addr) {
   }
 }
 
+// offset: offset from the start of the space
+// len: byte, half-word, word, double-word(if ISA64);
 static void invoke_callback(io_callback_t c, paddr_t offset, int len, bool is_write) {
   if (c != NULL) { c(offset, len, is_write); }
 }

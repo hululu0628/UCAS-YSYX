@@ -28,6 +28,7 @@ static void serial_putc(char ch) {
   MUXDEF(CONFIG_TARGET_AM, putch(ch), putc(ch, stderr));
 }
 
+// only support write
 static void serial_io_handler(uint32_t offset, int len, bool is_write) {
   assert(len == 1);
   switch (offset) {

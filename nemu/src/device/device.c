@@ -74,7 +74,7 @@ void sdl_clear_event_queue() {
 }
 
 void init_device() {
-  IFDEF(CONFIG_TARGET_AM, ioe_init());
+  IFDEF(CONFIG_TARGET_AM, ioe_init());	// I can't find the declaration of this function
   init_map();
 
   IFDEF(CONFIG_HAS_SERIAL, init_serial());
