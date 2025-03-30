@@ -206,6 +206,7 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
 
 	char *s;
 	unsigned long long num;
+	char c;
 
 	// to avoid buffer address overflow
 	if (end < str - 1) 
@@ -293,7 +294,28 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
 		{
 			case 'd': flags |= SIGN;
 			case 'u': break;
-			case 's':	// cannot handle error input
+			case 'X': flags |= LARGE;
+			case 'x': base = 16; break;
+			case 'o': base = 8; break;
+			case 'c':
+				if (!(flags & LEFT)) {
+					while (--field_width > 0) {
+						if (str <= end)
+							*str = ' ';
+						str++;
+					}
+				}
+				c = (unsigned char) va_arg(ap, int);
+				if (str <= end)
+					*str = c;
+				str++;
+				while (--field_width > 0) {
+					if (str <= end)
+						*str = ' ';
+					str++;
+				}
+				continue;
+			case 's':  // cannot handle error input
 				s = va_arg(ap, char *);
 				if(!(flags & LEFT))
 				{

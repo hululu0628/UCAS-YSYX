@@ -33,6 +33,7 @@ f(UP) f(DOWN) f(LEFT) f(RIGHT) f(INSERT) f(DELETE) f(HOME) f(END) f(PAGEUP) f(PA
 
 #define NEMU_KEY_NAME(k) NEMU_KEY_ ## k,
 
+// All you need to know is that NEMU_KEY_ESCAPE ~ NEMU_KEY_PAGEDOWN -> 1 ~ ???
 enum {
   NEMU_KEY_NONE = 0,
   MAP(NEMU_KEYS, NEMU_KEY_NAME)
@@ -79,7 +80,7 @@ static uint32_t key_dequeue() {
   return am_scancode;
 }
 #endif
-
+/* in the i8042 register, the highest bit shows whether the key is pressed or not */
 static uint32_t *i8042_data_port_base = NULL;
 
 static void i8042_data_io_handler(uint32_t offset, int len, bool is_write) {
