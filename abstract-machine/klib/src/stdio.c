@@ -15,7 +15,9 @@
 #define SPECIAL	0x20		/* 0x */
 #define LARGE	0x40		/* use 'ABCDEF' instead of 'abcdef' */
 
-// make sure that there precision is -1 if not specified,
+
+static char input_buffer[1024];
+
 
 static int skip_atoi(const char **s)
 {
@@ -28,6 +30,7 @@ static int skip_atoi(const char **s)
 	return num;
 }
 
+// make sure that there precision is -1 if not specified,
 static char * number(char * buf, char * end, unsigned long long num, int base, int size, int precision, int type)
 {
 	char padding_c,sign,tmp[66];
@@ -160,7 +163,13 @@ static char * number(char * buf, char * end, unsigned long long num, int base, i
 
 int printf(const char *fmt, ...)
 {
-	return 0;
+	int ret;
+	va_list ap;
+	va_start(ap, fmt);
+	ret = vsnprintf(input_buffer, sizeof(input_buffer), fmt, ap);
+	va_end(ap);
+	putstr(input_buffer);
+	return ret;
 }
 
 int vsprintf(char *out, const char *fmt, va_list ap)
