@@ -24,8 +24,15 @@ char *strcpy(char *dst, const char *src)
 	return ret;
 }
 
-char *strncpy(char *dst, const char *src, size_t n) {
-  panic("Not implemented");
+// copied from Linux Programmer's Manual
+char *strncpy(char *dst, const char *src, size_t n)
+{
+        size_t i;
+        for (i = 0; i < n && src[i] != '\0'; i++)
+                dst[i] = src[i];
+        for ( ; i < n; i++)
+                dst[i] = '\0';
+	return dst;
 }
 
 char *strcat(char *dst, const char *src)
@@ -91,9 +98,7 @@ void *memcpy(void *out, const void *in, size_t n)
 {
 	uint8_t *p = out;
 	const uint8_t *q = in;
-	// avoid memory overlap
-	if(p + n > q || q + n > p)
-		return NULL;
+	// memory overlap: UB
 	while(n--)
 		*p++ = *q++;
 	return out;
