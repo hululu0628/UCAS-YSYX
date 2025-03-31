@@ -55,7 +55,7 @@ void audio_play(void *userdata, uint8_t *stream, int len)
 static void audio_io_handler(uint32_t offset, int len, bool is_write)
 {
 	// check reg_init and init
-	if(is_write && audio_base[reg_init] == 0)
+	if(!is_write || offset != reg_init * sizeof(uint32_t) || audio_base[reg_init] == 0)
 		return;
 
 	SDL_AudioSpec s;
@@ -67,8 +67,14 @@ static void audio_io_handler(uint32_t offset, int len, bool is_write)
 	s.userdata = NULL;
 
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
-	Assert(SDL_OpenAudio(&s, NULL) < 0, "Failed to open audio\n");
+	Assert(SDL_OpenAudio(&s, NULL) >= 0, "Failed to open audio\n");
 	SDL_PauseAudio(0);
+}
+
+void clean_sdl_audio()
+{
+	SDL_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void init_audio() {

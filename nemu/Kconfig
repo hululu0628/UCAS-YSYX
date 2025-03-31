@@ -178,6 +178,11 @@ config FTRACE
   bool "Enable function tracer"
   default n
 
+config DTRACE
+  depends on TRACE
+  bool "Enable data tracer"
+  default n
+
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

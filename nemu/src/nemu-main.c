@@ -21,6 +21,7 @@
 void init_monitor(int, char *[]);
 void am_init_monitor();
 void engine_start();
+void close_device();
 int is_exit_status_bad();
 
 int main(int argc, char *argv[]) {
@@ -35,6 +36,8 @@ int main(int argc, char *argv[]) {
 
 	/* Start engine. */
 	engine_start();
+
+	close_device();
 
 	return is_exit_status_bad();
 }

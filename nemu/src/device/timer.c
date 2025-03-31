@@ -20,12 +20,23 @@
 static uint32_t *rtc_port_base = NULL;
 
 static void rtc_io_handler(uint32_t offset, int len, bool is_write) {
-  assert(offset == 0 || offset == 4);
-  if (!is_write && offset == 4) {
-    uint64_t us = get_time();
-    rtc_port_base[0] = (uint32_t)us;
-    rtc_port_base[1] = us >> 32;
-  }
+	static int read_flag = 0;
+	assert(offset == 0 || offset == 4);
+	
+	// AM should read the high 32 bits firstly, then the low 32 bits.
+	// Otherwise, program would get the old low 32 bits
+	if (!is_write) 
+	{
+		if(read_flag == 0)
+		{			
+			read_flag = 1;
+			uint64_t us = get_time();
+			rtc_port_base[0] = (uint32_t)us;
+			rtc_port_base[1] = us >> 32;
+		}
+		read_flag ^= 1;
+	}
+	
 }
 
 #ifndef CONFIG_TARGET_AM
