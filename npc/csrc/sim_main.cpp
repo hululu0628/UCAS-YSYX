@@ -1,31 +1,23 @@
-#include <Vtop.h>
-#include <nvboard.h>
+#include <VGCD.h>
 
-void nvboard_bind_all_pins(Vtop* top);
-
-static Vtop top;
-
-void single_cycle() {
-	top.clk = 0; top.eval();
-	top.clk = 1; top.eval();
-}
-
-void reset(int n) {
-	top.rst = 1;
-	while (n-- > 0) single_cycle();
-	top.rst = 0;
-}
+static VGCD top;
 
 int main()
 {
-	nvboard_bind_all_pins(&top);
-	nvboard_init();
-	reset(10);
-	while(1) {
-		nvboard_update();
-		single_cycle();
-	}
-	nvboard_quit();
+	top.reset = 1;
+	top.clk = 0;
+	top.eval();
+	top.reset = 0;
+	top.clk = 1;
+	top.io_value1 = 0x12345678;
+	top.io_value2 = 0x87654321;
+	top.io_loadingValues = 1;
+	top.eval();
 
+	while(1)
+	{
+		top.clk = !top.clk;
+		top.eval();
+	}
 	return 0;
 }
