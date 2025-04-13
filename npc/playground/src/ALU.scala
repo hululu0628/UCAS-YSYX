@@ -8,36 +8,45 @@ import chisel3.util._
   */
 class ALU extends Module {
 	val io = IO(new Bundle{
+		val A = Input(UInt(32.W))
+		val B = Input(UInt(32.W))
 		val aluop = Input(UInt(3.W))
+		val overflow = Output(Bool())
+		val carryout = Output(Bool())
+		val zero = Output(Bool())
 		val result = Output(UInt(32.W))
-		val test = Output(UInt(32.W))
 	})
 
-	val one_hot = Wire(Vec(6, Bool()))
-	one_hot(0) := io.aluop === 0.U
-	one_hot(1) := io.aluop === 1.U
-	one_hot(2) := io.aluop === 2.U
-	one_hot(3) := io.aluop === 3.U
-	one_hot(4) := io.aluop === 4.U
-	one_hot(5) := io.aluop === 5.U
+	val issub = ~io.aluop(2) & (io.aluop(1) | ~io.aluop(0))
 
-	io.test := Mux1H(Seq(
-		one_hot(0) -> 5.U,
-		one_hot(1) -> 13.U,
-		one_hot(2) -> 22.U,
-		one_hot(3) -> 31.U,
-		one_hot(4) -> 42.U,
-		one_hot(5) -> 52.U,
-	))
-	
+	val complement = io.B ^ Fill(32, issub)
 
-	io.result := MuxLookup(io.aluop, 0.U(32.W))(Seq(
-		0.U -> 8.U,
-		1.U -> 4.U,
-		2.U -> 1.U,
-		3.U -> 1.U,
-		4.U -> 9.U,
-		5.U -> 7.U,
-	))
+	val sum = Cat(0.U, io.A) + Cat(0.U, complement) + issub
+
+	val isand = io.aluop.andR
+	val isor = io.aluop(2) & io.aluop(1) & ~io.aluop(0)
+	val isxor = io.aluop(2) & ~io.aluop(1) & ~io.aluop(0)
+	val iscomp = ~io.aluop(2) & io.aluop(1)
+	val issum = ~io.aluop(2) & ~io.aluop(1)
+
+	val temp_res = Vec(6, Wire(UInt(32.W)))
+	temp_res(0) := io.A & io.B
+	temp_res(1) := io.A | io.B
+	temp_res(2) := io.A ^ io.B
+	temp_res(3) := ~(io.A | io.B)
+	temp_res(4) := sum(31,0)
+	temp_res(5) := Cat(0.U(31.W), ((sum(31) ^ io.overflow) & ~io.aluop(0)) | (io.carryout & io.aluop(0)))
+	io.result := 	((Fill(32, isand) & temp_res(0)) 	|
+			(Fill(32, isor) & temp_res(1)) 		|
+			(Fill(32, isxor) & temp_res(2)) 	|
+			(Fill(32, iscomp) & temp_res(3)) 	|
+			(Fill(32, issum) & temp_res(4)) 	|
+			(Fill(32, issub) & temp_res(5)))
+
+	io.overflow := (~io.A(31) & ~complement(31) & sum(31)) || (io.A(31) & complement(31) & ~sum(31))
+
+	io.carryout := sum(33) ^ issub
+
+	io.zero := io.result === 0.U
 
 }
