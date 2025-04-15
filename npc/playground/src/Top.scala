@@ -36,15 +36,17 @@ class CPU extends Module{
 	val Rtype = opcode(5) & opcode(4) & ~opcode(2)
 	val Itype_C = ~opcode(5) & opcode(4) & ~opcode(2)
 
-	val inst_ebreak = 	opcode === 0b1110011.U(7.W) && 
-				funct3 === 0b000.U(3.W) && 
-				funct7 === 0b0000000.U(7.W) && 
-				rd === 0b00000.U(5.W) && 
-				rs2 === 0b00001.U(5.W)
+
+	val inst_ebreak = WireInit(0.B)
+	inst_ebreak := 	opcode === 0b1110011.U(7.W) && 
+			funct3 === 0b000.U(3.W) && 
+			funct7 === 0b0000000.U(7.W) && 
+			rd === 0b00000.U(5.W) && 
+			rs2 === 0b00001.U(5.W)
 
 	/* regfile */
 
-	val regfile = new Regfile()
+	val regfile = Module(new Regfile())
 
 	regfile.io.wen := ~inst_ebreak
 	regfile.io.waddr := rd
@@ -65,4 +67,30 @@ class CPU extends Module{
 	alu.io.A := rdata1
 	alu.io.B := imm
 
+	/* ebreak */
+	val ebreak_handler = Module(new EbreakHandler())
+	ebreak_handler.io.inst_ebreak := inst_ebreak
+
+}
+
+class EbreakHandler extends BlackBox with HasBlackBoxInline{
+	val io = IO(new Bundle {
+		val inst_ebreak = Input(Bool())
+	})
+	
+	setInline(
+		"EbreakHandler.v",
+		s"""
+		module EbreakHandler(
+		|	input inst_ebreak
+		|);
+		|	import "DPI-C" function void ebreak_handler(svBit inst_ebreak);
+		|
+		|	always @(*) begin
+		|		ebreak_handler(inst_ebreak);
+		|	end
+		|
+		|endmodule
+		""".stripMargin
+	)
 }
