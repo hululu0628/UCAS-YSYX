@@ -14,6 +14,7 @@
 build/
 
 # mill
+!*.sc
 !*.mill
 !.mill-version
 out/

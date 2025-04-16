@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # usage: addenv env_name path
+# replace .bashrc into other shell config file if you are not using bash
 function addenv() {
 	if [ ! -f .envrc ]; then
 		sed -i -e "/^export $1=.*/d" ~/.bashrc
