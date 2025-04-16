@@ -10,7 +10,7 @@
 !README.md
 !.gitignore
 !init.sh
-/nvboard
 /test
-/am-kernels
 /fceux-am
+/nvboard
+/am-kernels
