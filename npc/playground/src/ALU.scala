@@ -29,7 +29,7 @@ class ALU extends Module {
 	val iscomp = ~io.aluop(2) & io.aluop(1)
 	val issum = ~io.aluop(2) & ~io.aluop(1)
 
-	val temp_res = Vec(6, Wire(UInt(32.W)))
+	val temp_res = Wire(Vec(6, UInt(32.W)))
 	temp_res(0) := io.A & io.B
 	temp_res(1) := io.A | io.B
 	temp_res(2) := io.A ^ io.B
@@ -45,7 +45,7 @@ class ALU extends Module {
 
 	io.overflow := (~io.A(31) & ~complement(31) & sum(31)) || (io.A(31) & complement(31) & ~sum(31))
 
-	io.carryout := sum(33) ^ issub
+	io.carryout := sum(32) ^ issub
 
 	io.zero := io.result === 0.U
 

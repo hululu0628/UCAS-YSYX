@@ -13,8 +13,18 @@ class CPUIO extends Bundle {
 	//val mem_rdata 	= Input(UInt(32.W))
 }
 
-class CPU extends Module{
+class Top extends Module{
 	val io = IO(new CPUIO)
+
+	/**
+	  * Modules of CPU
+	  */
+	val regfile = Module(new Regfile())
+	val alu = Module(new ALU())
+	val ebreak_handler = Module(new EbreakHandler())
+
+	dontTouch(regfile.io)
+	dontTouch(alu.io)
 
 	val pc = RegInit(0x80000000L.U(32.W))
 
@@ -22,8 +32,7 @@ class CPU extends Module{
 	io.pc := pc
 
 	/* decode */
-	val instr = Wire(UInt(32.W))
-	instr := io.instr
+	val instr = io.instr
 
 	val opcode = instr(6, 0)
 	val rd = instr(11, 7)
@@ -44,9 +53,10 @@ class CPU extends Module{
 			rd === 0b00000.U(5.W) && 
 			rs2 === 0b00001.U(5.W)
 
+
 	/* regfile */
 
-	val regfile = Module(new Regfile())
+	
 
 	regfile.io.wen := ~inst_ebreak
 	regfile.io.waddr := rd
@@ -57,18 +67,15 @@ class CPU extends Module{
 	val rdata1 = regfile.io.rdata1
 	val rdata2 = regfile.io.rdata2
 
+
 	/* ALU */
-
 	val imm = Cat(Fill(20, instr(31)), instr(31, 20)) // I-type immediate
-
-	val alu = Module(new ALU())
 
 	alu.io.aluop := 0.U(3.W)
 	alu.io.A := rdata1
 	alu.io.B := imm
 
 	/* ebreak */
-	val ebreak_handler = Module(new EbreakHandler())
 	ebreak_handler.io.inst_ebreak := inst_ebreak
 
 }
@@ -79,12 +86,12 @@ class EbreakHandler extends BlackBox with HasBlackBoxInline{
 	})
 	
 	setInline(
-		"EbreakHandler.v",
+		"Top.v",
 		s"""
 		module EbreakHandler(
 		|	input inst_ebreak
 		|);
-		|	import "DPI-C" function void ebreak_handler(svBit inst_ebreak);
+		|	import "DPI-C" function void ebreak_handler(bit inst_ebreak);
 		|
 		|	always @(*) begin
 		|		ebreak_handler(inst_ebreak);

@@ -1,4 +1,4 @@
-TOP ?= top
+TOP ?= Top
 
 PLATFORM ?= verilator
 
@@ -28,7 +28,6 @@ CSRCS = $(shell find $(abspath $(CSRC)) -name "*.c" -or -name "*.cc" -or -name "
 
 $(shell mkdir -p $(BUILD_DIR))
 
-default: nvbuild
 
 test:
 	mill -i $(PRJ).test
