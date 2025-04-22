@@ -35,25 +35,27 @@ class Top extends Module{
 	/**
 	  * Alias
 	  */
-	
+	val instr = io.instr
 	val wen = regfile.io.wen
+	val waddr = regfile.io.waddr
 	val wdata = regfile.io.wdata
+	val rdata1 = regfile.io.rdata1
+	val rdata2 = regfile.io.rdata2
 
+	/**
+	  * PC
+	  */
 	val pc = RegInit(0x80000000L.U(32.W))
 
 	pc := pc + 4.U
 	io.pc := pc
 
-	/* decode */
-	val instr = io.instr
-
-	val opcode = instr(6, 0)
-	val rd = instr(11, 7)
-	val rs1 = instr(19, 15)
-	val rs2 = instr(24, 20)
-	val funct3 = instr(14, 12)
-	val funct7 = instr(31, 25)
-	val shamt = instr(24, 20)
+	/**
+	  * Decoder
+	  */
+	val decoder = Module(new Decoder)
+	decoder.io.instr := instr
+	
 
 	val Rtype = opcode(5) & opcode(4) & ~opcode(2)
 	val Itype_C = ~opcode(5) & opcode(4) & ~opcode(2)
@@ -66,22 +68,20 @@ class Top extends Module{
 			rd === 0b00000.U(5.W) && 
 			rs2 === 0b00001.U(5.W)
 
-
-	/* regfile */
-
-	
-
+	/**
+	  * RegFile
+	  */
 	regfile.io.wen := ~inst_ebreak
 	regfile.io.waddr := rd
 	regfile.io.wdata := alu.io.result
 	regfile.io.raddr1 := rs1
 	regfile.io.raddr2 := rs2
-
-	val rdata1 = regfile.io.rdata1
-	val rdata2 = regfile.io.rdata2
+	
 
 
-	/* ALU */
+	/**
+	  * ALU
+	  */
 	val imm = Cat(Fill(20, instr(31)), instr(31, 20)) // I-type immediate
 
 	alu.io.aluop := 0.U(3.W)
@@ -99,7 +99,4 @@ class Top extends Module{
 	io.debug.pc := pc
 	io.debug.wen := wen
 	io.debug.data := wdata
-
-
 }
-
