@@ -11,6 +11,12 @@ class CPUIO extends Bundle {
 	//val mem_addr 	= Output(UInt(32.W))
 	//val mem_wdata 	= Output(UInt(32.W))
 	//val mem_rdata 	= Input(UInt(32.W))
+
+	val debug = new Bundle {
+		val pc = Output(UInt(32.W))
+		val wen = Output(Bool())
+		val data = Output(UInt(32.W))
+	}
 }
 
 class Top extends Module{
@@ -25,6 +31,13 @@ class Top extends Module{
 
 	dontTouch(regfile.io)
 	dontTouch(alu.io)
+
+	/**
+	  * Alias
+	  */
+	
+	val wen = regfile.io.wen
+	val wdata = regfile.io.wdata
 
 	val pc = RegInit(0x80000000L.U(32.W))
 
@@ -78,26 +91,15 @@ class Top extends Module{
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := inst_ebreak
 
+
+	/**
+	  * Debug Module
+	  */
+
+	io.debug.pc := pc
+	io.debug.wen := wen
+	io.debug.data := wdata
+
+
 }
 
-class EbreakHandler extends BlackBox with HasBlackBoxInline{
-	val io = IO(new Bundle {
-		val inst_ebreak = Input(Bool())
-	})
-	
-	setInline(
-		"Top.v",
-		s"""
-		module EbreakHandler(
-		|	input inst_ebreak
-		|);
-		|	import "DPI-C" function void ebreak_handler(bit inst_ebreak);
-		|
-		|	always @(*) begin
-		|		ebreak_handler(inst_ebreak);
-		|	end
-		|
-		|endmodule
-		""".stripMargin
-	)
-}

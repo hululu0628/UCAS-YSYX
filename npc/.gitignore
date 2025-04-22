@@ -6,12 +6,14 @@
 !*.scala
 !*.[cSh]
 !*.v
+!*.sv
 !*.cpp
 !*.cc
 !.gitignore
 !.scalafmt.conf
 !README.md
 build/
+vsrc/
 
 # mill
 !*.sc

@@ -9,4 +9,7 @@
 typedef uint32_t word_t;
 typedef int32_t sword_t;
 
+word_t InstFetch(int index);
+int InstAddressTrans(word_t addr)
+
 #endif

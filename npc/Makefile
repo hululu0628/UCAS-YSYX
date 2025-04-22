@@ -34,7 +34,7 @@ test:
 
 verilog:
 # $(call git_commit, "generate verilog")
-	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) 
+	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) --split-verilog
 
 help:
 	mill -i $(PRJ).runMain Elaborate --help
