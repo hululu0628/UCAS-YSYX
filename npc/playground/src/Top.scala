@@ -2,6 +2,7 @@ package cpu
 
 import chisel3._
 import chisel3.util._
+import cpu.{ImmType, ExType}
 
 class CPUIO extends Bundle {
 	val instr 	= Input(UInt(32.W))
@@ -21,7 +22,6 @@ class CPUIO extends Bundle {
 
 class Top extends Module{
 	val io = IO(new CPUIO)
-
 	/**
 	  * Modules of CPU
 	  */
