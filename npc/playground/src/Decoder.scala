@@ -4,6 +4,11 @@ import chisel3._
 import chisel3.util._
 import cpu.AluType.{None => None}
 
+object StaticInst {
+	def apply() = UInt(32.W)
+
+	def opcode
+}
 
 class DecoderBase extends Module{
 	val instr = Wire(UInt(32.W))
@@ -17,48 +22,54 @@ class DecoderBase extends Module{
 	def shamt = instr(24, 20)
 }
 
-object SrcFrom extends ChiselEnum{
-	val Rs1 = Value(0.U)
-	val Imm = Value(1.U)
-	val Rs2 = Value(2.U)
-	val PC = Value(3.U)
+object SrcFrom {
+	def RS1 = "b00".U
+	def RS2 = "b01".U
+	def Imm = "b10".U
+	def PC = "b11".U
+
+	def apply() = UInt(2.W)
 }
 
-object ImmType extends ChiselEnum{
-	val IType = Value(0.U)
-	val SType = Value(1.U)
-	val BType = Value(2.U)
-	val UType = Value(3.U)
-	val JType = Value(4.U)
-	val RType = Value(5.U)
+object ImmType {
+	def IType = "b000".U
+	def SType = "b001".U
+	def BType = "b010".U
+	def UType = "b011".U
+	def JType = "b100".U
+	def RType = "b101".U
+
+	def apply() = UInt(3.W)
 }
 
-object ExType extends ChiselEnum{
-	val AluR = Value(0.U)
-	val AluI = Value(1.U)
-	val Load = Value(2.U)
-	val Store = Value(3.U)
-	val Branch = Value(4.U)
-	val Lui = Value(5.U)
-	val Auipc = Value(6.U)
-	val Jal = Value(7.U)
-	val Jalr = Value(8.U)
-	val Ebreak = Value(9.U)
+object ExType {
+	def AluR = "b0000".U
+	def AluI = "b0001".U
+	def Load = "b0010".U
+	def Store = "b0011".U
+	def Branch = "b0100".U
+	def Lui = "b0101".U
+	def Auipc = "b0110".U
+	def Jal = "b0111".U
+	def Jalr = "b1000".U
+	def Ebreak = "b1001".U
+
+	def apply() = UInt(4.W)
 }
 
-object AluType extends ChiselEnum{
-	val None = Value(0.U)
-	val Add = Value(1.U)
-	val Sub = Value(2.U)
-	val Slt = Value(3.U)
-	val Sltu = Value(4.U)
-	val And = Value(5.U)
-	val Or = Value(6.U)
-	val Xor = Value(7.U)
-	val Sll = Value(9.U)
-	val Srl = Value(10.U)
-	val Sra = Value(11.U)
+object AluType {
+	def add = "b0000".U
+	def sub = "b0001".U
+	def and = "b0010".U
+	def or = "b0011".U
+	def xor = "b0100".U
+	def slt = "b0101".U
+	def sltu = "b0110".U
+	def sll = "b0111".U
+	def srl = "b1000".U
+	def sra = "b1001".U
 
+	def apply() = UInt(4.W)
 }
 
 trait OpType {
@@ -73,10 +84,12 @@ trait OpType {
 	def jalr = BitPat("b1100111")
 }
 
-trait LSLen {
-	def byte = BitPat("b?00")
-	def half = BitPat("b?01")
-	def word = BitPat("b?10")
+object LSLen {
+	def byte = "b?00".U
+	def half = "b?01".U
+	def word = "b?10".U
+
+	def apply() = UInt(2.W)
 }
 
 trait AluOp {
@@ -113,12 +126,12 @@ trait InstJudge extends DecoderBase with OpType with LSLen with AluOp with Ebrea
 }
 
 class DecodedInst extends Bundle {
-	val exType = Output(UInt(6.W))
-	val immType = Output(UInt(3.W))
+	val rs1From = SrcFrom() // rs1 source
+	val rs2From = SrcFrom() // rs2 source
+	val exType = ExType()
+	val immType = ImmType()
 	val aluType = Output(UInt(4.W))
-	val lsLength = Output(UInt(2.W)) // length of load/store data
-	val rs1From = Output(UInt(2.W)) // rs1 source
-	val rs2From = Output(UInt(2.W)) // rs2 source
+	val lsLength = LSLen() // length of load/store data
 
 	val inst = Output(UInt(32.W))
 }
@@ -132,110 +145,7 @@ class Decoder extends InstJudge {
 	val io = IO(new DecoderIO)
 	instr := io.instr
 
-	io.out.inst := instr
+	def InstDecode(inst: UInt): DecodedInst = {
 
-	val PriorityOH = Cat(
-		isAluI,
-		isAluR,
-		isLoad,
-		isStore,
-		isBranch,
-		isLui,
-		isAuipc,
-		isJal,
-		isJalr,
-		isEbreak
-	)
-	
-	io.out.rs1From := Mux1H(
-		PriorityOH,
-		Seq(
-			SrcFrom.Rs1,
-			SrcFrom.Rs1,
-			SrcFrom.Rs1,
-			SrcFrom.Rs2,
-			SrcFrom.Rs1,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm
-		)
-	)
-	io.out.rs2From := Mux1H(
-		PriorityOH,
-		Seq(
-			SrcFrom.Rs2,
-			SrcFrom.Rs2,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Rs2,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm,
-			SrcFrom.Imm
-		)
-	)
-	io.out.exType := Mux1H(
-		PriorityOH,
-		Seq(
-			ExType.AluI,
-			ExType.AluR,
-			ExType.Load,
-			ExType.Store,
-			ExType.Branch,
-			ExType.Lui,
-			ExType.Auipc,
-			ExType.Jal,
-			ExType.Jalr,
-			ExType.Ebreak
-		)
-	)
-	io.out.immType := Mux1H(
-		PriorityOH,
-		Seq(
-			ImmType.IType,
-			ImmType.IType,
-			ImmType.IType,
-			ImmType.SType,
-			ImmType.BType,
-			ImmType.UType,
-			ImmType.UType,
-			ImmType.JType,
-			ImmType.IType,
-			ImmType.IType
-		)
-	)
-	io.out.aluType := Mux1H(
-		PriorityOH,
-		Seq(
-			AluType.None,
-			AluType.Add,
-			AluType.Add,
-			AluType.Slt,
-			AluType.None,
-			AluType.None,
-			AluType.None,
-			AluType.None,
-			AluType.None,
-			AluType.None
-		)
-	)
-
-	// TODO
-	when(isAluI){
-		io.out.aluType := MuxCase(AluType.None, Array(
-			(funct3 === add_funct3) -> AluType.Add
-		))
 	}
-
-	when(isLoad || isStore){
-		io.out.lsLength := MuxCase(3.U, Array(
-			(funct3 === byte) -> 0.U,
-			(funct3 === half) -> 1.U,
-			(funct3 === word) -> 3.U
-		))
-	}
-
 }
