@@ -19,7 +19,9 @@
 #include <common.h>
 
 #define NR_GPR MUXDEF(CONFIG_RVE, 16, 32)
+#define NR_CSR 4 // In PA3.1: mstatus, mtvec, mepc, mcause
 
+/* NOTE: remember to modify diff_context_t in difftest.cc at the same time to enable difftest */
 typedef struct {
   word_t gpr[NR_GPR];
   vaddr_t pc;

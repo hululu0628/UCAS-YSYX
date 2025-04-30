@@ -81,8 +81,8 @@ void close_device()
 {
 	IFDEF(CONFIG_HAS_VGA, clean_sdl_vga());
   	IFDEF(CONFIG_HAS_AUDIO, clean_sdl_audio());
-	IFDEF(CONFIG_DEVICE, free_map());
-	IFDEF(CONFIG_DEVICE, SDL_Quit());
+	free_map();
+	SDL_Quit();
 }
 
 void init_device() {

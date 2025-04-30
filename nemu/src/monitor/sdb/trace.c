@@ -182,7 +182,7 @@ void trace_func(paddr_t addr, int op)
 #endif
 
 #ifdef CONFIG_DTRACE
-void trace_device(paddr_t addr, int len, IOMap * map, int is_write);
+void trace_device(paddr_t addr, int len, IOMap * map, int is_write)
 {
 	Log("SDB: (pc=" FMT_PADDR ") %s %d bytes from device %s at address " FMT_PADDR, cpu.pc, is_write ? "write" : "read", len, map->name, addr);
 }

@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 	/* Start engine. */
 	engine_start();
 
-	close_device();
+	IFDEF(CONFIG_DEVICE, close_device());
 
 	return is_exit_status_bad();
 }
