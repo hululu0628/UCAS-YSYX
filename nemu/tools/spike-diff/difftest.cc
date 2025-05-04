@@ -38,6 +38,7 @@ static debug_module_config_t difftest_dm_config = {
 
 struct diff_context_t {
   word_t gpr[MUXDEF(CONFIG_RVE, 16, 32)];
+  word_t csr[4]; // mstatus, mtvec, mepc, mcause
   word_t pc;
 };
 
@@ -67,6 +68,7 @@ void sim_t::diff_set_regs(void* diff_context) {
   for (int i = 0; i < NR_GPR; i++) {
     state->XPR.write(i, (sword_t)ctx->gpr[i]);
   }
+  state->mstate->write(ctx->csr[0])
   state->pc = ctx->pc;
 }
 

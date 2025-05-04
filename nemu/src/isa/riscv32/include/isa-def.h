@@ -18,12 +18,18 @@
 
 #include <common.h>
 
+#define XLEN MUXDEF(CONFIG_RV64, 64, 32)
+
 #define NR_GPR MUXDEF(CONFIG_RVE, 16, 32)
 #define NR_CSR 4 // In PA3.1: mstatus, mtvec, mepc, mcause
 
 /* NOTE: remember to modify diff_context_t in difftest.cc at the same time to enable difftest */
+/* Notice that different csrs have different width. 
+   In this implementation, we assume all csrs are word_t, 
+   that is, it denpends on the XLEN. */
 typedef struct {
   word_t gpr[NR_GPR];
+  word_t csr[NR_CSR];
   vaddr_t pc;
 } MUXDEF(CONFIG_RV64, riscv64_CPU_state, riscv32_CPU_state);
 

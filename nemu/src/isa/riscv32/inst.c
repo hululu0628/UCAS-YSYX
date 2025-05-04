@@ -13,12 +13,11 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include "common.h"
-#include "local-include/reg.h"
 #include <cpu/cpu.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
 
+static word_t inst;
 static word_t src1, src2, imm;
 static int rs1, rs2, rd;
 
@@ -33,12 +32,14 @@ void trace_func(paddr_t addr, int op);
 	} while(0)
 
 #define R(i) gpr(i)
+#define CSR(i) csr(i)
 #define Mr vaddr_read
 #define Mw vaddr_write
 
 enum {
   TYPE_I, TYPE_R, TYPE_U, TYPE_S, TYPE_B, TYPE_J,
-  TYPE_N, // none
+  TYPE_CSR,
+  TYPE_N // none
 };
 
 #define src1R() do { *src1 = R(rs1); } while (0)
@@ -74,6 +75,7 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
     case TYPE_S: src1R(); src2R(); immS(); break;
     case TYPE_B: src1R(); src2R(); immB(); break;
     case TYPE_J:		   immJ(); break;
+    case TYPE_CSR: src1R(); *imm = ZEXT(BITS(i, 31, 20), 12); break;
     case TYPE_N: break;
     default: panic("unsupported type = %d", type);
   }
@@ -81,13 +83,18 @@ static void decode_operand(Decode *s, int *rd, word_t *src1, word_t *src2, word_
 
 static int decode_exec(Decode *s) 
 {
+	word_t csr_idx;
+	int csr_uimm;
+
 	s->dnpc = s->snpc;
+	inst = s->isa.inst;
 
 #define INSTPAT_INST(s) ((s)->isa.inst)
 #define INSTPAT_MATCH(s, name, type, ... /* execute body */ ) { \
 	rd = 0; \
 	src1 = 0; src2 = 0; imm = 0; \
 	decode_operand(s, &rd, &src1, &src2, &imm, concat(TYPE_, type)); \
+	csr_idx = imm; csr_uimm = rs1; \
 	__VA_ARGS__ ; \
 }
 
@@ -96,6 +103,8 @@ static int decode_exec(Decode *s)
 	// lb, blt, slti haven't been checked in PA2's cpu-tests
 	// ebreak means the end of the program
 	// mulhu, mulhsu haven't been checked in my program
+	
+	/* RV32I */
 	INSTPAT("??????? ????? ????? ??? ????? 01101 11", lui    , U, R(rd) = imm);
 	INSTPAT("??????? ????? ????? ??? ????? 00101 11", auipc  , U, R(rd) = s->pc + imm);
 
@@ -103,6 +112,7 @@ static int decode_exec(Decode *s)
 		s->dnpc = s->pc + imm; R(rd) = s->snpc; IFDEF(CONFIG_FTRACE, FTRACE_JAL()));
 	INSTPAT("??????? ????? ????? ??? ????? 11001 11", jalr   , I, 
 		s->dnpc = (src1 + imm) & ~1; R(rd) = s->snpc; IFDEF(CONFIG_FTRACE, FTRACE_JALR()));
+
 	INSTPAT("??????? ????? ????? 000 ????? 11000 11", beq    , B, (src1 == src2)? (s->dnpc = s->pc + imm ): 0);
 	INSTPAT("??????? ????? ????? 001 ????? 11000 11", bne    , B, (src1 != src2)? (s->dnpc = s->pc + imm ): 0);
 	INSTPAT("??????? ????? ????? 100 ????? 11000 11", blt    , B, ((sword_t)src1 < (sword_t)src2)? (s->dnpc = s->pc + imm ): 0);
@@ -140,6 +150,10 @@ static int decode_exec(Decode *s)
 	INSTPAT("0000000 ????? ????? 110 ????? 01100 11", or     , R, R(rd) = src1 | src2);
 	INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and    , R, R(rd) = src1 & src2);
 
+	INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, isa_raise_intr(EXCP(8), s));
+	INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(REG_A0)));
+
+	/* M Extension */
 	INSTPAT("0000001 ????? ????? 000 ????? 01100 11", mul    , R, R(rd) = src1 * src2);
 	INSTPAT("0000001 ????? ????? 001 ????? 01100 11", mulh   , R, R(rd) = BITS(((sdword_t)(sword_t)src1 * (sdword_t)(sword_t)src2),63,32));
 	INSTPAT("0000001 ????? ????? 010 ????? 01100 11", mulhsu , R, R(rd) = BITS(((sdword_t)src1 * (sdword_t)(sword_t)src2),63,32));
@@ -149,9 +163,20 @@ static int decode_exec(Decode *s)
 	INSTPAT("0000001 ????? ????? 110 ????? 01100 11", rem    , R, R(rd) = (sword_t)src1 % (sword_t)src2);
 	INSTPAT("0000001 ????? ????? 111 ????? 01100 11", remu   , R, R(rd) = (word_t)src1 % (word_t)src2);
 
-	INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(10))); // R(10) is $a0
-	INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
+	/* Zicsr Extension */
+	// TODO: do not considering if the csr bit is writable
+	INSTPAT("??????? ????? ????? 001 ????? 11100 11", csrrw  , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) = src1);
+	INSTPAT("??????? ????? ????? 010 ????? 11100 11", csrrs  , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) |= src1);
+	INSTPAT("??????? ????? ????? 011 ????? 11100 11", csrrc  , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) &= ~src1);
+	INSTPAT("??????? ????? ????? 101 ????? 11100 11", csrrwi , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) = csr_uimm);
+	INSTPAT("??????? ????? ????? 110 ????? 11100 11", csrrsi , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) |= csr_uimm);
+	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) &= ~csr_uimm);
 	
+	/* Trap-Return */
+	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = CSR(CSR_MEPC); CSR(CSR_MSTATUS) = 0); // TODO: no privilege level change
+
+	/* INV */
+	INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));
 	// goto this label once matched
 	INSTPAT_END();
 
