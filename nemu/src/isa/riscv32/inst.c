@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "isa.h"
 #include <cpu/cpu.h>
 #include <cpu/ifetch.h>
 #include <cpu/decode.h>
@@ -150,7 +151,7 @@ static int decode_exec(Decode *s)
 	INSTPAT("0000000 ????? ????? 110 ????? 01100 11", or     , R, R(rd) = src1 | src2);
 	INSTPAT("0000000 ????? ????? 111 ????? 01100 11", and    , R, R(rd) = src1 & src2);
 
-	INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, isa_raise_intr(EXCP(8), s));
+	INSTPAT("0000000 00000 00000 000 00000 11100 11", ecall  , N, isa_raise_intr(EXCP(0xb), s));
 	INSTPAT("0000000 00001 00000 000 00000 11100 11", ebreak , N, NEMUTRAP(s->pc, R(REG_A0)));
 
 	/* M Extension */
@@ -173,7 +174,7 @@ static int decode_exec(Decode *s)
 	INSTPAT("??????? ????? ????? 111 ????? 11100 11", csrrci , CSR, R(rd) = CSR(csr_idx); CSR(csr_idx) &= ~csr_uimm);
 	
 	/* Trap-Return */
-	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, s->dnpc = CSR(CSR_MEPC); CSR(CSR_MSTATUS) = 0); // TODO: no privilege level change
+	INSTPAT("0011000 00010 00000 000 00000 11100 11", mret   , N, isa_ret_intr(s)); // TODO: no privilege level change
 
 	/* INV */
 	INSTPAT("??????? ????? ????? ??? ????? ????? ??", inv    , N, INV(s->pc));

@@ -68,7 +68,7 @@ void sim_t::diff_set_regs(void* diff_context) {
   for (int i = 0; i < NR_GPR; i++) {
     state->XPR.write(i, (sword_t)ctx->gpr[i]);
   }
-  state->mstate->write(ctx->csr[0])
+  state->mstatus->write(ctx->csr[0]);
   state->pc = ctx->pc;
 }
 
