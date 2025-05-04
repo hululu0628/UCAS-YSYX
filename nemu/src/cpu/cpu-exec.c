@@ -33,11 +33,26 @@ static bool g_print_step = false;
 void device_update();
 
 static void trace_and_difftest(Decode *_this, vaddr_t dnpc) {
+	if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
+	IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+#ifdef CONFIG_ITRACE
+	void inst_log(Decode *s);
+	inst_log(_this);
+#ifdef CONFIG_IRINGBUF
+	void insert_instr(Decode *s);
+	insert_instr(_this);
+#endif
+#endif
+
 #ifdef CONFIG_ITRACE_COND
 	if (ITRACE_COND) { log_write("%s\n", _this->logbuf); }
 #endif
-	if (g_print_step) { IFDEF(CONFIG_ITRACE, puts(_this->logbuf)); }
-	IFDEF(CONFIG_DIFFTEST, difftest_step(_this->pc, dnpc));
+
+#ifdef CONFIG_ETRACE
+	void trace_trap(Decode *s);
+	trace_trap(_this);
+#endif
 
 #ifdef CONFIG_WATCHPOINT
 /*** That is annoying, I think I should move the definition of these functions to sdb.h
@@ -52,16 +67,6 @@ static void exec_once(Decode *s, vaddr_t pc) {
 	s->snpc = pc;
 	isa_exec_once(s);
 	cpu.pc = s->dnpc;
-#ifdef CONFIG_ITRACE
-	void inst_log(Decode *s);
-	inst_log(s);
-
-#ifdef CONFIG_IRINGBUF
-	void insert_instr(Decode *s);
-	insert_instr(s);
-#endif
-
-#endif
 }
 
 static void execute(uint64_t n) 
