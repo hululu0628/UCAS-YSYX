@@ -26,7 +26,7 @@ case class DecodeBase(
 	val wenM: Bool = false.B,
 	val loadSignExt: Bool = false.B
 ) {
-	def generate: List[UInt] = List(src1From, rs2From, exType, immType, aluType, lsLength, wenR, wenM, loadSignExt)
+	def generate: List[UInt] = List(src1From, src2From, exType, immType, aluType, lsLength, wenR, wenM, loadSignExt)
 }
 
 object RV32IDecode {
@@ -134,9 +134,9 @@ object AluType {
 }
 
 object LSLen {
-	def byte = "b?00".U
-	def half = "b?01".U
-	def word = "b?10".U
+	def byte = "b00".U
+	def half = "b01".U
+	def word = "b10".U
 
 	def apply() = UInt(2.W)
 }

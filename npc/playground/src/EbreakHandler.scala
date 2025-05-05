@@ -9,12 +9,12 @@ class EbreakHandler extends BlackBox with HasBlackBoxInline{
 	})
 	
 	setInline(
-		"ebreak_handler.sv",
+		"EbreakHandler.sv",
 		"""
 		|module EbreakHandler(
 		|	input inst_ebreak
 		|);
-		|	import "DPI-C" function void ebreak_handler(bit inst_ebreak);
+		|	import "DPI-C" function void ebreak_handler(input bit inst_ebreak);
 		|
 		|	always @(*) begin
 		|		ebreak_handler(inst_ebreak);

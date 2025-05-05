@@ -51,8 +51,10 @@ bsp:
 idea:
 	mill -i mill.idea.GenIdea/idea
 
-clean:
+clean-build:
 	-rm -rf $(BUILD_DIR)
+clean-verilog:
+	-rm -rf $(VSRC)
 
 .PHONY: test verilog help reformat checkformat clean
 

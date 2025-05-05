@@ -2,18 +2,12 @@ package cpu
 
 import chisel3._
 import chisel3.util._
+import cpu.instfetch._
 import cpu.decode._
 import cpu.exu._
+import cpu.mem._
 
 class CPUIO extends Bundle {
-	val inst 	= Input(UInt(32.W))
-	val pc		= Output(UInt(32.W))
-
-	//val mem_wen 	= Output(Bool())
-	//val mem_addr 	= Output(UInt(32.W))
-	//val mem_wdata 	= Output(UInt(32.W))
-	//val mem_rdata 	= Input(UInt(32.W))
-
 	val debug = new Bundle {
 		val pc = Output(UInt(32.W))
 		val wen = Output(Bool())
@@ -24,13 +18,15 @@ class CPUIO extends Bundle {
 class Top extends Module{
 	val io = IO(new CPUIO)
 	/**
-	  * Modules of CPU
+	  * Modules of processor
 	  */
+	val instfetch = Module(new InstFetch())
 	val decoder = Module(new Decoder())
 	val regfile = Module(new Regfile())
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
 	val alu = Module(new ALU())
+	val mem = Module(new ysyxMem())
 	val ebreak_handler = Module(new EbreakHandler())
 
 	dontTouch(regfile.io)
@@ -39,7 +35,7 @@ class Top extends Module{
 	/**
 	  * Alias
 	  */
-	val inst = io.inst
+	val inst = instfetch.io.inst
 	val wen = regfile.io.wen
 	val waddr = regfile.io.waddr
 	val wdata = regfile.io.wdata
@@ -47,7 +43,7 @@ class Top extends Module{
 	val rdata2 = regfile.io.rdata2
 
 	/**
-	  * Wire
+	  * Wires
 	  */
 	val result = Wire(UInt(32.W))
 	val alu_A = Wire(UInt(32.W))
@@ -64,7 +60,7 @@ class Top extends Module{
 		pc := pc + 4.U
 	}
 
-	io.pc := pc
+	instfetch.io.pc := pc
 
 	/**
 	  * Decoder
@@ -110,12 +106,35 @@ class Top extends Module{
 	bru.io.exType := decoder.io.out.exType
 
 	/**
+	  * Memory
+	  */
+	/* Select data because memory only support 4byte-algined mem access */
+	def getldata(memdata: UInt, ltype: UInt, sign: Bool, offset: UInt): UInt = {
+		MuxLookup(ltype, 0.U(32.W))(Seq(
+			LSLen.word -> memdata,
+			LSLen.half -> Cat(Fill(16, sign && memdata((offset(0) << 4)+15.U)), (memdata >> (offset(0) << 4))(15, 0)),
+			LSLen.byte -> Cat(Fill(24, sign && memdata(7)), (memdata >> (offset << 3))(7, 0))
+		))
+	}
+	mem.io.valid := decoder.io.out.exType === ExType.Load || decoder.io.out.exType === ExType.Store
+	mem.io.addr := MuxLookup(decoder.io.out.lsLength, 0.U(32.W))(Seq(
+		LSLen.word -> (alu.io.result(31, 0) ^ "b11".U),
+		LSLen.half -> (alu.io.result(31, 0) ^ "b1".U),
+		LSLen.byte -> (alu.io.result(31, 0))
+	))
+	mem.io.wen := decoder.io.out.wenM
+	mem.io.wdata := rdata2
+	mem.io.wmask := Cat(0.U(6.W), decoder.io.out.lsLength)
+	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem.io.addr(1, 0))
+
+	/**
 	  * Write Back
 	  */
 	result := MuxLookup(decoder.io.out.exType, alu.io.result)(Seq(
 		ExType.Lui -> immgen.io.imm,
 		ExType.Jal -> (pc + 4.U),
-		ExType.Jalr -> (pc + 4.U)
+		ExType.Jalr -> (pc + 4.U),
+		ExType.Load -> ldata
 	))
 
 	/* ebreak */
