@@ -9,7 +9,7 @@ class ALU extends Module {
 	val io = IO(new Bundle{
 		val A = Input(UInt(32.W))
 		val B = Input(UInt(32.W))
-		val aluType = AluType()
+		val aluType = Input(AluType())
 		val overflow = Output(Bool())
 		val carryout = Output(Bool())
 		val zero = Output(Bool())
@@ -25,7 +25,7 @@ class ALU extends Module {
 	val sum = Cat(0.U, io.A) + Cat(0.U, complement) + issub
 	val comp = ((sum(31)^io.overflow) & isslt) | (io.carryout & issltu);
 
-	io.result := MuxCase(sum(31, 0), Array(
+	io.result := MuxCase(sum(31, 0), Seq(
 		(aluop === AluType.and) -> (io.A & io.B),
 		(aluop === AluType.or) -> (io.A | io.B),
 		(aluop === AluType.xor) -> (io.A ^ io.B),

@@ -3,28 +3,30 @@ package cpu.decode
 import chisel3._
 import chisel3.util._
 
-class StaticInst {
-	val inst = Wire(UInt(32.W))
+class StaticInst extends Bundle {
+	val code = UInt(32.W)
 
-	def opcode = inst(6, 0)
-	def rd = inst(11, 7)
-	def rs1 = inst(19, 15)
-	def rs2 = inst(24, 20)
-	def funct3 = inst(14, 12)
-	def funct7 = inst(31, 25)
-	def shamt = inst(24, 20)
+	def opcode = code(6, 0)
+	def rd = code(11, 7)
+	def rs1 = code(19, 15)
+	def rs2 = code(24, 20)
+	def funct3 = code(14, 12)
+	def funct7 = code(31, 25)
+	def shamt = code(24, 20)
 }
 
 case class DecodeBase(
-	val rs1From: UInt = 0.U,
-	val rs2From: UInt = 0.U,
+	val src1From: UInt = 0.U,
+	val src2From: UInt = 0.U,
 	val exType: UInt = 0.U,
 	val immType: UInt = 0.U,
 	val aluType: UInt = 0.U,
 	val lsLength: UInt = 0.U,
+	val wenR: Bool = false.B,
+	val wenM: Bool = false.B,
 	val loadSignExt: Bool = false.B
 ) {
-	def generate: List[UInt] = List(rs1From, rs2From, exType, immType, aluType, lsLength)
+	def generate: List[UInt] = List(src1From, rs2From, exType, immType, aluType, lsLength, wenR, wenM, loadSignExt)
 }
 
 object RV32IDecode {
@@ -69,14 +71,15 @@ object RV32IDecode {
 
 
 	val table: Array[(BitPat,List[UInt])] = Array(
-		LUI -> DecodeBase(SrcFrom.Imm, SrcFrom.PC, ExType.Lui, ImmType.UType, AluType.add, LSLen.word).generate,
-		ADDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.add, LSLen.word).generate,
-		ADD -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.RType, AluType.add, LSLen.word).generate,
-		LBU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, loadSignExt = false.B).generate,
-		LW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.word, loadSignExt = true.B).generate,
-		SB -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.byte).generate,
-		SW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.word).generate,
-		JALR -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Jalr, ImmType.IType, AluType.add, LSLen.word).generate
+		LUI -> DecodeBase(SrcFrom.Imm, SrcFrom.PC, ExType.Lui, ImmType.UType, AluType.add, LSLen.word, wenR = true.B).generate,
+		ADDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
+		ADD -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.add, LSLen.word, wenR = true.B).generate,
+		LBU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, wenR = true.B).generate,
+		LW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.word, wenR = true.B, loadSignExt = true.B).generate,
+		SB -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.byte, wenM = true.B).generate,
+		SW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.word, wenM = true.B).generate,
+		JALR -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Jalr, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
+		EBREAK -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Ebreak, ImmType.IType, AluType.add, LSLen.word).generate,
 	)
 }
 
@@ -95,7 +98,7 @@ object ImmType {
 	def BType = "b010".U
 	def UType = "b011".U
 	def JType = "b100".U
-	def RType = "b101".U
+	def NType = "b101".U // not a type
 
 	def apply() = UInt(3.W)
 }
@@ -139,40 +142,50 @@ object LSLen {
 }
 
 class DecodedInst extends Bundle {
-	val rs1From = SrcFrom() // rs1 source
-	val rs2From = SrcFrom() // rs2 source
+	val src1From = SrcFrom() // rs1 source
+	val src2From = SrcFrom() // rs2 source
 	val exType = ExType()
 	val immType = ImmType()
 	val aluType = Output(UInt(4.W))
 	val lsLength = LSLen() // length of load/store data
+	val wenR = Bool() // write reg enable
+	val wenM = Bool() // write memory enable
+	val loadSignExt = Bool() // sign extend for load
+
+	val isEbreak = Bool() // is ebreak instruction
 
 	val inst = new StaticInst
 
 	def default: List[UInt] = 
-		List(SrcFrom.RS1,SrcFrom.RS2,ExType.AluR,ImmType.IType,AluType.add,LSLen.word)
+		List(SrcFrom.RS1,SrcFrom.RS2,ExType.AluR,ImmType.NType,AluType.add,LSLen.word,false.B,false.B,false.B)
 
 	def signals = Seq(
-		rs1From,
-		rs2From,
+		src1From,
+		src2From,
 		exType,
 		immType,
 		aluType,
-		lsLength
+		lsLength,
+		wenR,
+		wenM,
+		loadSignExt
 	)
 
 	def decode(table: Array[(BitPat, List[UInt])]) = {
-		val decoded: Seq[UInt] = ListLookup(inst.inst, default, table)
+		val decoded: Seq[UInt] = ListLookup(inst.code, default, table)
 		signals zip decoded foreach { case (signal, value) => signal := value}
 	}
 }
 
 class DecoderIO extends Bundle {
-	val instr = Input(UInt(32.W))
+	val inst = Input(UInt(32.W))
 	val out = Output(new DecodedInst)
 }
 
-class Decoder {
+class Decoder extends Module{
 	val io = IO(new DecoderIO)
-	io.out.inst.inst := io.instr
+	io.out.inst.code := io.inst
 	io.out.decode(RV32IDecode.table)
+
+	io.out.isEbreak := io.inst === RV32IDecode.EBREAK
 }

@@ -2,10 +2,11 @@ package cpu
 
 import chisel3._
 import chisel3.util._
-import cpu.{ImmType, ExType}
+import cpu.decode._
+import cpu.exu._
 
 class CPUIO extends Bundle {
-	val instr 	= Input(UInt(32.W))
+	val inst 	= Input(UInt(32.W))
 	val pc		= Output(UInt(32.W))
 
 	//val mem_wen 	= Output(Bool())
@@ -25,7 +26,10 @@ class Top extends Module{
 	/**
 	  * Modules of CPU
 	  */
+	val decoder = Module(new Decoder())
 	val regfile = Module(new Regfile())
+	val immgen = Module(new ImmGen())
+	val bru = Module(new BRU())
 	val alu = Module(new ALU())
 	val ebreak_handler = Module(new EbreakHandler())
 
@@ -35,7 +39,7 @@ class Top extends Module{
 	/**
 	  * Alias
 	  */
-	val instr = io.instr
+	val inst = io.inst
 	val wen = regfile.io.wen
 	val waddr = regfile.io.waddr
 	val wdata = regfile.io.wdata
@@ -43,53 +47,79 @@ class Top extends Module{
 	val rdata2 = regfile.io.rdata2
 
 	/**
-	  * PC
+	  * Wire
+	  */
+	val result = Wire(UInt(32.W))
+	val alu_A = Wire(UInt(32.W))
+	val alu_B = Wire(UInt(32.W))
+
+	/**
+	  * Instruction Fetch
 	  */
 	val pc = RegInit(0x80000000L.U(32.W))
 
-	pc := pc + 4.U
+	when(decoder.io.out.exType === ExType.Jalr) {
+		pc := bru.io.target;
+	} .otherwise {
+		pc := pc + 4.U
+	}
+
 	io.pc := pc
 
 	/**
 	  * Decoder
 	  */
-	val decoder = Module(new Decoder)
-	decoder.io.instr := instr
-	
-
-	val Rtype = opcode(5) & opcode(4) & ~opcode(2)
-	val Itype_C = ~opcode(5) & opcode(4) & ~opcode(2)
-
-
-	val inst_ebreak = WireInit(0.B)
-	inst_ebreak := 	opcode === 0b1110011.U(7.W) && 
-			funct3 === 0b000.U(3.W) && 
-			funct7 === 0b0000000.U(7.W) && 
-			rd === 0b00000.U(5.W) && 
-			rs2 === 0b00001.U(5.W)
+	decoder.io.inst := inst
 
 	/**
 	  * RegFile
 	  */
-	regfile.io.wen := ~inst_ebreak
-	regfile.io.waddr := rd
-	regfile.io.wdata := alu.io.result
-	regfile.io.raddr1 := rs1
-	regfile.io.raddr2 := rs2
-	
-
+	regfile.io.wen := decoder.io.out.wenR
+	regfile.io.waddr := decoder.io.out.inst.rd
+	regfile.io.wdata := result
+	regfile.io.raddr1 := decoder.io.out.inst.rs1
+	regfile.io.raddr2 := decoder.io.out.inst.rs2
 
 	/**
 	  * ALU
 	  */
-	val imm = Cat(Fill(20, instr(31)), instr(31, 20)) // I-type immediate
+	immgen.io.inst := decoder.io.out.inst
+	immgen.io.immType := decoder.io.out.immType
+	alu_A := MuxLookup(decoder.io.out.src1From, 0.U(32.W))(Seq(
+		SrcFrom.RS1 -> rdata1,
+		SrcFrom.RS2 -> rdata2,
+		SrcFrom.PC -> pc,
+		SrcFrom.Imm -> immgen.io.imm
+	))
+	alu_B := MuxLookup(decoder.io.out.src2From, 0.U(32.W))(Seq(
+		SrcFrom.RS1 -> rdata1,
+		SrcFrom.RS2 -> rdata2,
+		SrcFrom.PC -> pc,
+		SrcFrom.Imm -> immgen.io.imm
+	))
+	alu.io.A := alu_A
+	alu.io.B := alu_B
+	alu.io.aluType := decoder.io.out.aluType
 
-	alu.io.aluop := 0.U(3.W)
-	alu.io.A := rdata1
-	alu.io.B := imm
+	/**
+	  * BRU
+	  */
+	bru.io.pc := pc
+	bru.io.imm := immgen.io.imm
+	bru.io.reg := rdata1
+	bru.io.exType := decoder.io.out.exType
+
+	/**
+	  * Write Back
+	  */
+	result := MuxLookup(decoder.io.out.exType, alu.io.result)(Seq(
+		ExType.Lui -> immgen.io.imm,
+		ExType.Jal -> (pc + 4.U),
+		ExType.Jalr -> (pc + 4.U)
+	))
 
 	/* ebreak */
-	ebreak_handler.io.inst_ebreak := inst_ebreak
+	ebreak_handler.io.inst_ebreak := decoder.io.out.isEbreak
 
 
 	/**
