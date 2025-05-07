@@ -8,7 +8,7 @@ class ysyxMemIO extends Bundle {
 	val wen = Input(Bool())
 	val addr = Input(UInt(32.W))
 	val wdata = Input(UInt(32.W))
-	val wmask = Input(UInt(2.W))
+	val wmask = Input(UInt(8.W))
 	val rdata = Output(UInt(32.W))
 }
 
