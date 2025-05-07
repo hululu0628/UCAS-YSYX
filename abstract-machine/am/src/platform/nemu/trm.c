@@ -8,7 +8,7 @@ int main(const char *args);
 // PMEM_END defined in LDFLAGS(see .mk file, different for different platforms)
 Area heap = RANGE(&_heap_start, PMEM_END);
 // defined in CFLAGS, modified if user provides arguments (mainargs)
-static const char mainargs[MAINARGS_MAX_LEN] = MAINARGS_PLACEHOLDER;
+static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER);
 
 // put char......
 void putch(char ch) {
