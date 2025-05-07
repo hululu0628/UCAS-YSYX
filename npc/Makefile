@@ -16,7 +16,11 @@ NXDC_FILES = $(NPC_HOME)/constr/top.nxdc
 
 VERILATOR = verilator
 
-VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
+
+override RUN_ARGS ?= --log=$(shell pwd)/build/npc-log.txt
+
+IMG ?=
 
 # constraint file
 
@@ -60,6 +64,7 @@ clean-verilog:
 
 
 # rules for verilator
+INC_PATH = $(CSRC)/include
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
 

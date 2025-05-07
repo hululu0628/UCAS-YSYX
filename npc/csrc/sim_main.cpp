@@ -1,37 +1,13 @@
-#include <verilated.h>
-#include "VTop.h"
-#include "sim.h"
+#include <common.h>
 
-void ebreak_handler(int inst_ebreak)
+void init_sim(int argc, char **argv);
+void start_sim();
+
+int main(int argc, char *argv[])
 {
-	
-}
+	init_sim(argc, argv);
 
-int check(VTop * top)
-{
+	start_sim();
 
-}
-
-
-
-int main()
-{
-	VTop * top = new VTop;
-
-	top->clock = 0;
-	top->reset = 1;
-	top->eval();
-	top->reset = 0;
-
-	while(1)
-	{
-		top->io_instr = InstFetch(InstAddressTrans(top->io_pc));
-		top->clock = !top->clock;
-		top->eval();
-		if(check(top))
-		{
-			std::cout << "Error" << std::endl;
-			break;
-		}
-	}
+	return 0;
 }

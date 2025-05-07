@@ -10,3 +10,6 @@ sim:
 wave: VERILATOR_FLAGS += --trace-fst
 wave: CXXFLAGS += -DTRACE_PATH=$(BUILD_DIR)/trace.fst
 wave: sim
+
+run: sim
+	./$(BUILD_DIR)/$(TOP) $(RUN_ARGS) $(IMG)

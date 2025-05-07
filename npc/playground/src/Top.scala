@@ -116,15 +116,22 @@ class Top extends Module{
 			LSLen.byte -> Cat(Fill(24, sign && memdata(7)), (memdata >> (offset << 3))(7, 0))
 		))
 	}
+	def getwmask(stype: UInt, offset: UInt): UInt = {
+		MuxLookup(stype, 0.U(4.W))(Seq(
+			LSLen.word -> "b00001111".U,
+			LSLen.half -> (Cat(0.U(6.W), "b11".U) << offset(1, 0)),
+			LSLen.byte -> (Cat(0.U(7.W), "b1".U) << offset(2, 0))
+		))
+	}
 	mem.io.valid := decoder.io.out.exType === ExType.Load || decoder.io.out.exType === ExType.Store
 	mem.io.addr := MuxLookup(decoder.io.out.lsLength, 0.U(32.W))(Seq(
 		LSLen.word -> (alu.io.result(31, 0) ^ "b11".U),
-		LSLen.half -> (alu.io.result(31, 0) ^ "b1".U),
-		LSLen.byte -> (alu.io.result(31, 0))
+		LSLen.half -> (alu.io.result(31, 0) ^ "b11".U),
+		LSLen.byte -> (alu.io.result(31, 0) ^ "b11".U)
 	))
 	mem.io.wen := decoder.io.out.wenM
 	mem.io.wdata := rdata2
-	mem.io.wmask := Cat(0.U(6.W), decoder.io.out.lsLength)
+	mem.io.wmask := getwmask(decoder.io.out.lsLength, mem.io.addr(1, 0))
 	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem.io.addr(1, 0))
 
 	/**
