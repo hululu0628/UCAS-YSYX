@@ -18,7 +18,7 @@ VERILATOR = verilator
 
 VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
 
-override RUN_ARGS ?= --log=$(shell pwd)/build/npc-log.txt
+override ARGS ?= --log=$(shell pwd)/build/npc-log.txt
 
 IMG ?=
 

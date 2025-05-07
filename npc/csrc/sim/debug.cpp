@@ -13,6 +13,7 @@ void init_log(const char *log_file)
 			std::cerr << "Error: Cannot open log file at " << log_file << std::endl;
 			exit(1);
 		}
+		std::cout << "Log file opened at " << log_file << std::endl;
 		log_stream << "Log File Initialized" << std::endl;
 	} else
 		std::cout << "Running without log file" << std::endl;

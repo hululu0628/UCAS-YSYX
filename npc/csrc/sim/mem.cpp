@@ -1,9 +1,10 @@
 #include <common.h>
-#include "mem.h"
+#include <debug.h>
+#include <mem.h>
 
 static uint8_t pmem[PMEM_SIZE] __attribute((aligned(4096)));
 
-uint8_t* guest_to_host(uint32_t paddr) { return pmem + paddr - PMEM_START; }
+uint8_t* guest_to_host(uint32_t paddr) { return paddr - PMEM_START + pmem; }
 uint32_t host_to_guest(uint8_t *haddr) { return haddr - pmem + PMEM_START; }
 
 void init_mem()
@@ -14,27 +15,29 @@ void init_mem()
 
 uint32_t host_read(void * addr, int len)
 {
+	uint32_t rdata;
 	switch(len)
 	{
-		case 1: return *(uint8_t *)(addr);
-		case 2: return *(uint16_t *)(addr);
-		case 4: return *(uint32_t *)(addr);
+		case 1: rdata = *(uint8_t *)(addr); break;
+		case 2: rdata = *(uint16_t *)(addr); break;
+		case 4: rdata = *(uint32_t *)(addr); break;
 		default: assert(0);
 	}
+	return rdata;
 }
 void host_write(void * addr, int len, uint32_t data)
 {
 	switch(len)
 	{
-		case 1: *(uint8_t *)(addr) = data; return;
-		case 2: *(uint16_t *)(addr) = data; return;
-		case 4: *(uint32_t *)(addr) = data; return;
+		case 1: *(uint8_t *)(addr) = data; break;
+		case 2: *(uint16_t *)(addr) = data; break;
+		case 4: *(uint32_t *)(addr) = data; break;
 		default: assert(0);
 	}
 }
 uint32_t guest_read(uint32_t addr, int len)
 {
-	assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
+	//assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
 	return host_read(guest_to_host(addr), len);
 }
 void guest_write(uint32_t addr, int len, uint32_t data)
@@ -45,10 +48,15 @@ void guest_write(uint32_t addr, int len, uint32_t data)
 
 extern "C" unsigned pmem_read(unsigned raddr)
 {
-	return guest_read(raddr & 0xFFFFFFFC, 4);
+	if(raddr == 0)
+		return 0;
+	unsigned res = guest_read(raddr & 0xFFFFFFFC, 4);
+	return res;
 }
 extern "C" void pmem_write(unsigned waddr, unsigned wdata, unsigned char wmask)
 {
+	log_stream << "waddr: 0x" << std::hex << waddr << "\twdata: 0x" << std::hex << wdata << "\twmask: 0x" << std::hex << (unsigned)wmask << std::endl;
+
 	int begin, end;
 	for(begin = 0; begin < 4; begin++)
 	{

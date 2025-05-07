@@ -11,6 +11,7 @@ class CPUIO extends Bundle {
 	val debug = new Bundle {
 		val pc = Output(UInt(32.W))
 		val wen = Output(Bool())
+		val waddr = Output(UInt(5.W))
 		val data = Output(UInt(32.W))
 	}
 }
@@ -112,22 +113,22 @@ class Top extends Module{
 	def getldata(memdata: UInt, ltype: UInt, sign: Bool, offset: UInt): UInt = {
 		MuxLookup(ltype, 0.U(32.W))(Seq(
 			LSLen.word -> memdata,
-			LSLen.half -> Cat(Fill(16, sign && memdata((offset(0) << 4)+15.U)), (memdata >> (offset(0) << 4))(15, 0)),
-			LSLen.byte -> Cat(Fill(24, sign && memdata(7)), (memdata >> (offset << 3))(7, 0))
+			LSLen.half -> Cat(Fill(16, sign && memdata((offset(1) << 4)+15.U)), (memdata >> (offset(1) << 4))(15, 0)),
+			LSLen.byte -> Cat(Fill(24, sign && memdata((offset << 3) + 7.U)), (memdata >> (offset << 3))(7, 0))
 		))
 	}
 	def getwmask(stype: UInt, offset: UInt): UInt = {
 		MuxLookup(stype, 0.U(4.W))(Seq(
 			LSLen.word -> "b00001111".U,
 			LSLen.half -> (Cat(0.U(6.W), "b11".U) << offset(1, 0)),
-			LSLen.byte -> (Cat(0.U(7.W), "b1".U) << offset(2, 0))
+			LSLen.byte -> (Cat(0.U(7.W), "b1".U) << offset(1, 0))
 		))
 	}
 	mem.io.valid := decoder.io.out.exType === ExType.Load || decoder.io.out.exType === ExType.Store
 	mem.io.addr := MuxLookup(decoder.io.out.lsLength, 0.U(32.W))(Seq(
-		LSLen.word -> (alu.io.result(31, 0) ^ "b11".U),
-		LSLen.half -> (alu.io.result(31, 0) ^ "b11".U),
-		LSLen.byte -> (alu.io.result(31, 0) ^ "b11".U)
+		LSLen.word -> (alu.io.result(31, 0) & "hffff_fffc".U),
+		LSLen.half -> (alu.io.result(31, 0) & "hffff_fffc".U),
+		LSLen.byte -> (alu.io.result(31, 0) & "hffff_fffc".U)
 	))
 	mem.io.wen := decoder.io.out.wenM
 	mem.io.wdata := rdata2
@@ -154,5 +155,6 @@ class Top extends Module{
 
 	io.debug.pc := pc
 	io.debug.wen := wen
+	io.debug.waddr := waddr
 	io.debug.data := wdata
 }

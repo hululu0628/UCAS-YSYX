@@ -15,7 +15,12 @@ void putch(char ch) {
 }
 
 void halt(int code) {
-  while (1);
+	asm volatile (
+		"mv a0, %0\n\t"
+		"ebreak\n\t"
+		: : "r"(code)
+	);
+	while(1);
 }
 
 void _trm_init() {
