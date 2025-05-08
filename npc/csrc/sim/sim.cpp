@@ -4,6 +4,9 @@
 #include "VTop.h"
 #include <debug.h>
 
+void monitor_run(VTop *top);
+
+
 static VTop *top;
 static bool is_exit = false;
 
@@ -29,10 +32,9 @@ void start_sim()
 	{
 		top->clock = !top->clock;
 		top->eval();
-		if(top->clock == 1)
+		if(top->clock == 0)
 		{
-			log_stream << "PC: 0x" << std::hex << top->io_debug_pc << "\twaddr: 0x" << std::hex << (int)top->io_debug_waddr
-			<< "\twdata: 0x" << std::hex << top->io_debug_data << "\twen: " << std::hex << (int)(top->io_debug_wen) << std::endl;
+			monitor_run(top);
 		}
 	}
 	delete top;

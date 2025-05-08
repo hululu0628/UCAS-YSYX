@@ -10,6 +10,7 @@ import cpu.mem._
 class CPUIO extends Bundle {
 	val debug = new Bundle {
 		val pc = Output(UInt(32.W))
+		val inst = Output(UInt(32.W))
 		val wen = Output(Bool())
 		val waddr = Output(UInt(5.W))
 		val data = Output(UInt(32.W))
@@ -42,6 +43,8 @@ class Top extends Module{
 	val wdata = regfile.io.wdata
 	val rdata1 = regfile.io.rdata1
 	val rdata2 = regfile.io.rdata2
+
+	val mem_addr = alu.io.result;
 
 	/**
 	  * Wires
@@ -126,14 +129,14 @@ class Top extends Module{
 	}
 	mem.io.valid := decoder.io.out.exType === ExType.Load || decoder.io.out.exType === ExType.Store
 	mem.io.addr := MuxLookup(decoder.io.out.lsLength, 0.U(32.W))(Seq(
-		LSLen.word -> (alu.io.result(31, 0) & "hffff_fffc".U),
-		LSLen.half -> (alu.io.result(31, 0) & "hffff_fffc".U),
-		LSLen.byte -> (alu.io.result(31, 0) & "hffff_fffc".U)
+		LSLen.word -> (mem_addr(31, 0) & "hffff_fffc".U),
+		LSLen.half -> (mem_addr(31, 0) & "hffff_fffc".U),
+		LSLen.byte -> (mem_addr(31, 0) & "hffff_fffc".U)
 	))
 	mem.io.wen := decoder.io.out.wenM
 	mem.io.wdata := rdata2
-	mem.io.wmask := getwmask(decoder.io.out.lsLength, mem.io.addr(1, 0))
-	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem.io.addr(1, 0))
+	mem.io.wmask := getwmask(decoder.io.out.lsLength, mem_addr(1, 0))
+	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem_addr(1, 0))
 
 	/**
 	  * Write Back
@@ -154,6 +157,7 @@ class Top extends Module{
 	  */
 
 	io.debug.pc := pc
+	io.debug.inst := inst
 	io.debug.wen := wen
 	io.debug.waddr := waddr
 	io.debug.data := wdata

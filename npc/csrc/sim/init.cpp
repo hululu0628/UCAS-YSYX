@@ -3,36 +3,44 @@
 #include <fstream>
 #include <getopt.h>
 
+NPC_state npc_state = { .state = NPC_STOP};
+
 static char *log_file = nullptr;
 static char *img_file = nullptr;
+static char *diff_file = nullptr;
 
 
 void init_mem();
 void init_log(const char *log_file);
+void init_monitor();
+void init_difftest(const char *ref_so_file, long img_size, int port);
 
 static int parse_args(int argc, char **argv)
 {
 	assert(argc > 0);
 	const struct option table[] = {
 	{"log"      , required_argument, nullptr, 'l'},
+	{"diff"     , required_argument, nullptr, 'd' },
 	{"help"     , no_argument      , nullptr, 'h'},
 	{0          , 0                , nullptr,  0 },
 	};
 	int o;
-  	while ( (o = getopt_long(argc, argv, "-hl:", table, nullptr)) != -1) 
+  	while ( (o = getopt_long(argc, argv, "-hl:d:", table, nullptr)) != -1) 
 	{
     		switch (o) 
 		{
       			case 'l': log_file = optarg; break;
+			case 'd': diff_file = optarg; break;
       			case 1: img_file = optarg; return 0;
       			default:
 				std::cout << "Usage: " << argv[0] << " [OPTION...] IMAGE [args]" << std::endl;
 				std::cout << "\t-l, --log=FILE		output log to FILE" << std::endl;
+				std::cout << "\t-d, --diff=FILE		difftest-so with FILE" << std::endl;
 				std::cout << "\t-h, --help		show this help message" << std::endl;
         			exit(0);
     		}
   	}
-  return 0;
+  	return 0;
 }
 
 void load_image(const char *img_file)
@@ -65,4 +73,6 @@ void init_sim(int argc, char **argv)
 	init_log(log_file);
 	init_mem();
 	load_image(img_file);
+	init_monitor();
+	// init_difftest(diff_file, PMEM_SIZE, 1234);
 }

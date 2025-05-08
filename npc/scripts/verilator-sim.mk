@@ -13,3 +13,5 @@ wave: sim
 
 run: sim
 	$(BUILD_DIR)/$(TOP) $(ARGS) $(IMG)
+run-wave: wave
+	$(BUILD_DIR)/$(TOP) $(ARGS) $(IMG)

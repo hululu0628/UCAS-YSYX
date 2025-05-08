@@ -13,21 +13,37 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "isa-def.h"
 #include <isa.h>
 #include <cpu/cpu.h>
 #include <difftest-def.h>
 #include <memory/paddr.h>
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
-  assert(0);
+	if(direction == DIFFTEST_TO_REF)
+		memcpy(guest_to_host(addr), buf, n);
+	else
+		memcpy(buf, guest_to_host(addr), n);
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
-  assert(0);
+	CPU_state *npc_dut = (CPU_state *)dut;
+	if(direction == DIFFTEST_TO_REF) 
+	{
+		for(int i = 0; i < NR_GPR; i++)
+			cpu.gpr[i] = npc_dut->gpr[i];
+		cpu.pc = npc_dut->pc;
+	}
+	else
+	{
+		for(int i = 0; i < NR_GPR; i++)
+			npc_dut->gpr[i] = cpu.gpr[i];
+		npc_dut->pc = cpu.pc;
+	}
 }
 
 __EXPORT void difftest_exec(uint64_t n) {
-  assert(0);
+	cpu_exec(n);
 }
 
 __EXPORT void difftest_raise_intr(word_t NO) {

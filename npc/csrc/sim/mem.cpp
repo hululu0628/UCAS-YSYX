@@ -15,7 +15,7 @@ void init_mem()
 
 uint32_t host_read(void * addr, int len)
 {
-	uint32_t rdata;
+	word_t rdata;
 	switch(len)
 	{
 		case 1: rdata = *(uint8_t *)(addr); break;
@@ -25,7 +25,7 @@ uint32_t host_read(void * addr, int len)
 	}
 	return rdata;
 }
-void host_write(void * addr, int len, uint32_t data)
+void host_write(void * addr, int len, word_t data)
 {
 	switch(len)
 	{
@@ -35,12 +35,12 @@ void host_write(void * addr, int len, uint32_t data)
 		default: assert(0);
 	}
 }
-uint32_t guest_read(uint32_t addr, int len)
+uint32_t guest_read(paddr_t addr, int len)
 {
 	//assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
 	return host_read(guest_to_host(addr), len);
 }
-void guest_write(uint32_t addr, int len, uint32_t data)
+void guest_write(paddr_t addr, int len, word_t data)
 {
 	assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
 	host_write(guest_to_host(addr), len, data);
@@ -55,8 +55,6 @@ extern "C" unsigned pmem_read(unsigned raddr)
 }
 extern "C" void pmem_write(unsigned waddr, unsigned wdata, unsigned char wmask)
 {
-	log_stream << "waddr: 0x" << std::hex << waddr << "\twdata: 0x" << std::hex << wdata << "\twmask: 0x" << std::hex << (unsigned)wmask << std::endl;
-
 	int begin, end;
 	for(begin = 0; begin < 4; begin++)
 	{
