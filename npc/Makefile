@@ -58,7 +58,7 @@ bsp:
 idea:
 	mill -i mill.idea.GenIdea/idea
 
-clean-build:
+clean:
 	-rm -rf $(BUILD_DIR)
 clean-verilog:
 	-rm -rf $(VSRC)
@@ -67,6 +67,9 @@ clean-verilog:
 
 
 # rules for verilator
+LIBS += -lreadline
+LDFLAGS += $(LIBS)
+
 INC_PATH = $(CSRC)/include
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""

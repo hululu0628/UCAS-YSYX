@@ -1,19 +1,34 @@
 #include <verilated.h>
 #include "VTop.h"
-#include <common.h>
+#include <isa.h>
 #include <debug.h>
 
 void monitor_run(VTop *top);
 void difftest_step();
 
 VerilatedContext* contextp = new VerilatedContext;
-static VTop *top = new VTop{contextp};
+static VTop *top;
 
-static bool is_exit = false;
+static bool is_end = false;
 
 extern "C" void ebreak_handler(unsigned char inst_ebreak)
 {
-	is_exit = inst_ebreak ? true : is_exit;
+	if(inst_ebreak)
+	{
+		if(cpu.gpr[REG_A0] == 0x1)
+			npc_state.state = NPC_ABORT;
+		else
+			npc_state.state = NPC_END;
+	}
+}
+
+void init_sim()
+{
+	top = new VTop{contextp};
+
+	top->reset = 1;
+	top->clock = 0;
+	top->eval();
 }
 
 void reg_modify(VTop *top)
@@ -34,35 +49,38 @@ void sim_once()
 {
 	top->clock = !top->clock;
 	top->eval();
+	top->reset = 0;
+	top->clock = !top->clock;
+	top->eval();
 	reg_modify(top);
-
 }
 
 void sim_step(uint64_t n)
 {
+	npc_state.state = NPC_RUNNING;
 	for(; n > 0; n--)
 	{
 		sim_once();
 		trace_and_difftest();
 		if(!(npc_state.state == NPC_RUNNING)) break;
 	}
-
-
-	top->reset = 1;
-	top->clock = 0;
-	top->eval();
-	top->clock = 1;
-	top->eval();
-	top->reset = 0;
-
-	while(!is_exit)
+	if(npc_state.state == NPC_RUNNING)
 	{
-		top->clock = !top->clock;
-		top->eval();
-		if(top->clock == 0)
-		{
-			monitor_run(top);
-		}
+		npc_state.state = NPC_STOP;
 	}
-	delete top;
+	switch (npc_state.state)
+	{
+		case NPC_RUNNING:
+		case NPC_STOP:
+		case NPC_QUIT:
+			break;
+		case NPC_END:
+			std::cout << "[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE << std::endl;
+			break;
+		case NPC_ABORT:
+			std::cout << "[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE << std::endl;
+			break;
+		default:
+			assert(0);
+	}
 }
