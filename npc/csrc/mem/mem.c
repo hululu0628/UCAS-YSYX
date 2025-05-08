@@ -45,28 +45,3 @@ void guest_write(paddr_t addr, int len, word_t data)
 	assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
 	host_write(guest_to_host(addr), len, data);
 }
-
-extern "C" unsigned pmem_read(unsigned raddr)
-{
-	if(raddr == 0)
-		return 0;
-	unsigned res = guest_read(raddr & 0xFFFFFFFC, 4);
-	return res;
-}
-extern "C" void pmem_write(unsigned waddr, unsigned wdata, unsigned char wmask)
-{
-	int begin, end;
-	for(begin = 0; begin < 4; begin++)
-	{
-		if(wmask & 0x1)
-			break;
-		wmask >>= 1;
-	}
-	for(end = begin; end < 5; end++)
-	{
-		if(!wmask)
-			break;
-		wmask >>= 1;
-	}
-	guest_write(waddr + begin, end - begin, wdata >> (begin * 8));
-}

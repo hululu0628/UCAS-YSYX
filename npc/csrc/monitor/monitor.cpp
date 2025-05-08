@@ -27,8 +27,8 @@ void trace_and_difftest()
 
 void reg_modify(VTop *top)
 {
-	cpu.pc = top->io_debug_pc;
-	if(top->io_debug_wen)
+	cpu.pc = top->io_debug_npc;
+	if(top->io_debug_wen && top->io_debug_waddr != 0)
 	{
 		cpu.gpr[top->io_debug_waddr] = top->io_debug_data;
 	}
@@ -37,7 +37,7 @@ void reg_modify(VTop *top)
 void monitor_run(VTop *top)
 {
 	// Log
-	log_stream << "PC: 0x" << std::hex << top->io_debug_pc << "\twaddr: 0x" << std::hex << (int)top->io_debug_waddr
+	log_stream << "Next PC: 0x" << std::hex << top->io_debug_pc << "\twaddr: 0x" << std::hex << (int)top->io_debug_waddr
 			<< "\twdata: 0x" << std::hex << top->io_debug_data << "\twen: " << std::hex << (int)(top->io_debug_wen) << std::endl;
 	reg_modify(top);
 

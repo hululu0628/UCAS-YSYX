@@ -1,5 +1,7 @@
 #include "common.h"
+#include "mem.h"
 #include <difftest.h>
+#include <isa.h>
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction);
 void (*ref_difftest_regcpy)(void *dut, bool direction);
@@ -7,12 +9,14 @@ void (*ref_difftest_exec)(uint64_t n);
 void (*ref_difftest_raise_intr)(uint64_t NO);
 void (*ref_difftest_init)(int port);
 
-void init_difftest(char *ref_so_file, long img_size, int port) {
+void init_difftest(const char *ref_so_file, long img_size, int port) {
 	assert(ref_so_file != NULL);
 
 	void *handle;
 	handle = dlopen(ref_so_file, RTLD_LAZY);
 	assert(handle);
+
+	printf("Loading %s\n", ref_so_file);
 
 	ref_difftest_memcpy = (void (*)(paddr_t addr, void *buf, size_t n, bool direction))dlsym(handle, "difftest_memcpy");
 	assert(ref_difftest_memcpy);
@@ -30,8 +34,10 @@ void init_difftest(char *ref_so_file, long img_size, int port) {
 	assert(ref_difftest_init);
 
 	ref_difftest_init(port);
-	ref_difftest_memcpy(PMEM_START, (void *)PMEM_START, img_size, DIFFTEST_TO_REF);
+	ref_difftest_memcpy(PMEM_START, guest_to_host(PMEM_START), img_size, DIFFTEST_TO_REF);
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+
+	std::cout << "Difftest initialized" << std::endl;
 }
 
 static void check_regs(CPU_state *nemu)
@@ -39,14 +45,16 @@ static void check_regs(CPU_state *nemu)
 	if(cpu.pc != nemu->pc)
 	{
 		std::cerr << "Error: PC mismatch: REF: 0x" << std::hex << nemu->pc << "\tDUT: 0x" << std::hex << cpu.pc << std::endl;
+		isa_reg_display();
 		assert(0);
 	}
 	for(int i = 0; i < NR_GPR; i++)
 	{
 		if(cpu.gpr[i] != nemu->gpr[i])
 		{
-			std::cerr << "Error: [0x" << std::hex << cpu.pc << "]"
+			std::cerr << "Error: [Next PC 0x" << std::hex << cpu.pc << "]"
 			  << " GPR[" << i << "] mismatch: REF: 0x" << std::hex << nemu->gpr[i] << "\tDUT: 0x" << std::hex << cpu.gpr[i] << std::endl;
+			isa_reg_display();
 			assert(0);
 		}
 	}

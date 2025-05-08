@@ -18,7 +18,10 @@ VERILATOR = verilator
 
 VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
 
+ARGS_DIFF = --diff=$(shell find $(NEMU_HOME)/build/ -type f -name "*-so")
+
 override ARGS ?= --log=$(shell pwd)/build/npc-log.txt
+override ARGS += $(ARGS_DIFF)
 
 IMG ?=
 

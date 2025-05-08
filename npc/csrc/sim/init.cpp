@@ -43,7 +43,7 @@ static int parse_args(int argc, char **argv)
   	return 0;
 }
 
-void load_image(const char *img_file)
+word_t load_image(const char *img_file)
 {
 	if(img_file == nullptr)
 	{
@@ -58,13 +58,15 @@ void load_image(const char *img_file)
 		exit(1);
 	}
 	input.seekg(0, input.end);
-	int length = input.tellg();
+	word_t length = input.tellg();
 	input.seekg(0, input.beg);
 	std::cout << "Loading image file: " << img_file << std::endl;
 	std::cout << "Image file size: 0x" << std::hex << length << std::endl;
 	assert(length < PMEM_SIZE);
 	input.read((char *)guest_to_host(PMEM_START), length);
 	input.close();
+
+	return length;
 }
 
 void init_sim(int argc, char **argv)
@@ -72,7 +74,7 @@ void init_sim(int argc, char **argv)
 	parse_args(argc, argv);
 	init_log(log_file);
 	init_mem();
-	load_image(img_file);
+	word_t img_size = load_image(img_file);
 	init_monitor();
-	// init_difftest(diff_file, PMEM_SIZE, 1234);
+	init_difftest(diff_file, img_size, 1234);
 }

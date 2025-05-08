@@ -10,6 +10,7 @@ import cpu.mem._
 class CPUIO extends Bundle {
 	val debug = new Bundle {
 		val pc = Output(UInt(32.W))
+		val npc = Output(UInt(32.W))
 		val inst = Output(UInt(32.W))
 		val wen = Output(Bool())
 		val waddr = Output(UInt(5.W))
@@ -57,11 +58,13 @@ class Top extends Module{
 	  * Instruction Fetch
 	  */
 	val pc = RegInit(0x80000000L.U(32.W))
+	val pc_next = Wire(UInt(32.W))
+	pc := pc_next
 
 	when(decoder.io.out.exType === ExType.Jalr) {
-		pc := bru.io.target;
+		pc_next := bru.io.target;
 	} .otherwise {
-		pc := pc + 4.U
+		pc_next := pc + 4.U
 	}
 
 	instfetch.io.pc := pc
@@ -120,6 +123,13 @@ class Top extends Module{
 			LSLen.byte -> Cat(Fill(24, sign && memdata((offset << 3) + 7.U)), (memdata >> (offset << 3))(7, 0))
 		))
 	}
+	def getwdata(data: UInt, stype: UInt, offset: UInt): UInt = {
+		MuxLookup(stype, 0.U(32.W))(Seq(
+			LSLen.word -> data,
+			LSLen.half -> (data << (offset(1) << 4)),
+			LSLen.byte -> (data << (offset << 3))
+		))
+	}
 	def getwmask(stype: UInt, offset: UInt): UInt = {
 		MuxLookup(stype, 0.U(4.W))(Seq(
 			LSLen.word -> "b00001111".U,
@@ -134,7 +144,7 @@ class Top extends Module{
 		LSLen.byte -> (mem_addr(31, 0) & "hffff_fffc".U)
 	))
 	mem.io.wen := decoder.io.out.wenM
-	mem.io.wdata := rdata2
+	mem.io.wdata := getwdata(rdata2, decoder.io.out.lsLength, mem_addr(1, 0))
 	mem.io.wmask := getwmask(decoder.io.out.lsLength, mem_addr(1, 0))
 	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem_addr(1, 0))
 
@@ -157,6 +167,7 @@ class Top extends Module{
 	  */
 
 	io.debug.pc := pc
+	io.debug.npc := pc_next
 	io.debug.inst := inst
 	io.debug.wen := wen
 	io.debug.waddr := waddr

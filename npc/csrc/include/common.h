@@ -18,11 +18,11 @@ using word_t = uint32_t;
 using paddr_t = word_t;
 using vaddr_t = word_t;
 
-using NPC_state = struct {
+using NPC_state = struct NPC_state{
 	NPC_STATE state;
 };
 
-using CPU_state = struct {
+using CPU_state = struct CPU_state{
     word_t gpr[NR_GPR];
     word_t csr[NR_CSR];
     vaddr_t pc;
