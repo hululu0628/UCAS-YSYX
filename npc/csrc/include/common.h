@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cstring>
 #include <cstdint>
+#include "macro.h"
+#include "utils.h"
 
 #define NR_GPR 32
 #define NR_CSR 4
@@ -11,8 +13,6 @@
 #define PMEM_START 0x80000000
 #define PMEM_SIZE 0x8000000
 #define PROGRAM_ENTRY PMEM_START
-
-enum NPC_STATE {NPC_RUNNING, NPC_STOP, NPC_ABORT, NPC_QUIT};
 
 using word_t = uint32_t;
 using paddr_t = word_t;

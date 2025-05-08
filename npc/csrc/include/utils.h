@@ -1,5 +1,7 @@
 #pragma once
 
+enum NPC_STATE {NPC_RUNNING, NPC_STOP, NPC_END, NPC_ABORT, NPC_QUIT};
+
 #define ANSI_FG_BLACK   "\33[1;30m"
 #define ANSI_FG_RED     "\33[1;31m"
 #define ANSI_FG_GREEN   "\33[1;32m"
