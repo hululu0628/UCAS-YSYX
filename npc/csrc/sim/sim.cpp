@@ -16,6 +16,7 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 {
 	if(inst_ebreak)
 	{
+		npc_state.halt_ret = cpu.gpr[REG_A0];
 		if(cpu.gpr[REG_A0] == 0x1)
 			npc_state.state = NPC_ABORT;
 		else
@@ -43,6 +44,7 @@ void reg_modify(VTop *top)
 
 void trace_and_difftest()
 {
+	// log_write("PC: 0x" << std::hex << top->io_debug_pc << "\twen: " << (unsigned)top->io_debug_wen << "\treg: " << regs[top->io_debug_waddr] << "\t data: 0x" << top->io_debug_data << std::endl);
 	difftest_step();
 
 	check_watchpoints();

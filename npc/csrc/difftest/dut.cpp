@@ -52,8 +52,8 @@ static void check_regs(CPU_state *nemu)
 	{
 		if(cpu.gpr[i] != nemu->gpr[i])
 		{
-			std::cerr << "Error: [Next PC 0x" << std::hex << cpu.pc << "]"
-			  << " GPR[" << i << "] mismatch: REF: 0x" << std::hex << nemu->gpr[i] << "\tDUT: 0x" << std::hex << cpu.gpr[i] << std::endl;
+			std::cerr << "Error: [Next PC 0x" << std::hex << cpu.pc << "] "
+			  << regs[i] << " mismatch: REF: 0x" << std::hex << nemu->gpr[i] << "\tDUT: 0x" << std::hex << cpu.gpr[i] << std::endl;
 			isa_reg_display();
 			npc_state.state = NPC_ABORT;
 		}

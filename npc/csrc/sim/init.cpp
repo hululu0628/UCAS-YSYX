@@ -28,7 +28,7 @@ static int parse_args(int argc, char **argv)
 	{0          , 0                , nullptr,  0 },
 	};
 	int o;
-  	while ( (o = getopt_long(argc, argv, "-hl:d:", table, nullptr)) != -1) 
+  	while ( (o = getopt_long(argc, argv, "-bhl:d:", table, nullptr)) != -1) 
 	{
     		switch (o) 
 		{

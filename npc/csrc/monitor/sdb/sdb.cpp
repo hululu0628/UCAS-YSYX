@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "utils.h"
 #include <isa.h>
 #include <debug.h>
 #include <mem.h>
@@ -253,6 +254,7 @@ static int cmd_help(char *args) {
 
 void sdb_set_batch_mode() {
   is_batch_mode = true;
+  stdout_write("Batch mode enabled");
 }
 
 void sdb_mainloop() {

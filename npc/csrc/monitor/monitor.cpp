@@ -28,13 +28,4 @@ void init_monitor()
 void monitor_start()
 {
 	sdb_mainloop();
-
-	if(npc_state.state == NPC_QUIT)
-	{
-		std::cout << "Exiting NPC..." << std::endl;
-	}
-	else
-	{
-		std::cout << "Exiting NPC with error..." << std::endl;
-	}
 }
