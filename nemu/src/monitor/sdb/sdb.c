@@ -53,7 +53,7 @@ static int cmd_c(char *args)
 	return 0;
 }
 
-static int cmd_si(char *args)
+static int cmd_s(char *args)
 {
 	char *steps = strtok(NULL, " ");
 	uint64_t n = steps ? atoi(steps) : 1;
@@ -217,7 +217,7 @@ static struct {
 } cmd_table [] = {
 	{ "help", "Display information about all supported commands", cmd_help },
 	{ "c", "Continue the execution of the program", cmd_c },
-	{ "si", "Single step the program", cmd_si },
+	{ "s", "Step program. Usage: s [N]", cmd_s },
 	{ "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
 	{ "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
 	{ "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
