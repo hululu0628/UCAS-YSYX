@@ -1,6 +1,7 @@
 *.*
 *
 !*/
+!Kconfig
 !Makefile
 !*.mk
 !*.scala
@@ -15,7 +16,7 @@
 build/
 vsrc/
 config/
-!config/Kconfig
+
 
 # mill
 !*.sc
