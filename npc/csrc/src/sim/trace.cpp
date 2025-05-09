@@ -10,7 +10,11 @@
 void trace_instruction()
 {
 	if(excuted_inst_num < CONFIG_TRACE_END)
-		log_write("PC: 0x" << std::hex << top->io_debug_pc << "\twen: " << (unsigned)top->io_debug_wen << "\treg: [" << regs[top->io_debug_waddr] << "]\t data: 0x" << top->io_debug_data);
+		log_write("[" << excuted_inst_num << "]" << 
+	 	  "PC: 0x" << std::hex << top->io_debug_pc << 
+		  "\twen: " << (unsigned)top->io_debug_wen << 
+		  "\treg: [" << regs[top->io_debug_waddr] << 
+		  "]\t data: 0x" << top->io_debug_data);
 }
 
 #endif

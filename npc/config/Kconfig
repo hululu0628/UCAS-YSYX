@@ -81,5 +81,15 @@ config VCD
   bool "vcd"
 config FST
   bool "fst"
+config WAVE_BEGIN
+  depends on VCD || FST
+  int "Instruction dump begin"
+  default 0
+config WAVE_END
+  depends on VCD || FST
+  int "Instruction dump end (to keep dumping, set -1)"
+  default 10000
 endchoice
+
+
   

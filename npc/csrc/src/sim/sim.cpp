@@ -36,7 +36,8 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 void wave_dump()
 {
 #ifndef CONFIG_NO_WAVE
-	tfp->dump(contextp->time());
+	if(CONFIG_WAVE_BEGIN <= excuted_inst_num && excuted_inst_num < CONFIG_WAVE_END)
+		tfp->dump(contextp->time());
 	contextp->timeInc(1);
 #endif
 }
