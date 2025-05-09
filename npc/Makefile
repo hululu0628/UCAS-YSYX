@@ -1,5 +1,5 @@
--include $(NPC_HOME)/config/auto.conf
--include $(NPC_HOME)/config/auto.conf.cmd
+-include $(NPC_HOME)/config/include/config/auto.conf
+-include $(NPC_HOME)/config/include/config/auto.conf.cmd
 
 TOP ?= Top
 
@@ -78,8 +78,8 @@ clean-verilog:
 LIBS += -lreadline
 LDFLAGS += $(LIBS)
 
-INC_PATH += $(CSRC)/include
-INC_PATH += $(CONFIG_DIR)
+INC_PATH += $(CSRC)/include/generated
+INC_PATH += $(CONFIG_DIR)/build
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
 
