@@ -10,7 +10,7 @@ uint32_t host_to_guest(uint8_t *haddr) { return haddr - pmem + PMEM_START; }
 void init_mem()
 {
 	memset(pmem, 0, PMEM_SIZE);
-	std::cout << "physical memory area [0x" << std::hex << PMEM_START << ", 0x" << PMEM_START + PMEM_SIZE << "]" << std::endl;
+	Log("Physical memory area [0x" << std::hex << PMEM_START << ", 0x" << PMEM_START + PMEM_SIZE << "]");
 }
 
 uint32_t host_read(void * addr, int len)

@@ -1,14 +1,15 @@
-#include <verilated.h>
-#include "VTop.h"
 #include <isa.h>
 #include <debug.h>
 #include <sdb.h>
+#include <sim.h>
 
 void monitor_run(VTop *top);
 void difftest_step();
 
-VerilatedContext* contextp = new VerilatedContext;
-static VTop *top;
+word_t excuted_inst_num = 0;
+
+VerilatedContext* contextp;
+VTop *top;
 
 static bool is_end = false;
 
@@ -26,11 +27,14 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 
 void init_sim()
 {
+	contextp = new VerilatedContext;
 	top = new VTop{contextp};
 
 	top->reset = 1;
 	top->clock = 0;
 	top->eval();
+
+	Log("Reset CPU successfully");
 }
 
 void reg_modify(VTop *top)
@@ -44,10 +48,9 @@ void reg_modify(VTop *top)
 
 void trace_and_difftest()
 {
-	// log_write("PC: 0x" << std::hex << top->io_debug_pc << "\twen: " << (unsigned)top->io_debug_wen << "\treg: " << regs[top->io_debug_waddr] << "\t data: 0x" << top->io_debug_data << std::endl);
-	difftest_step();
-
-	check_watchpoints();
+	IFDEF(CONFIG_DIFFTEST, difftest_step();)
+	
+	IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
 }
 
 void sim_once()
@@ -66,6 +69,7 @@ void sim_step(uint64_t n)
 	for(; n > 0; n--)
 	{
 		sim_once();
+		excuted_inst_num++;
 		trace_and_difftest();
 		if(!(npc_state.state == NPC_RUNNING)) break;
 	}
@@ -80,10 +84,10 @@ void sim_step(uint64_t n)
 		case NPC_QUIT:
 			break;
 		case NPC_END:
-			std::cout << "[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE << std::endl;
+			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE);
 			break;
 		case NPC_ABORT:
-			std::cout << "[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE << std::endl;
+			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE);
 			break;
 		default:
 			assert(0);

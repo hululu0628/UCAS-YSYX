@@ -21,4 +21,4 @@ enum NPC_STATE {NPC_RUNNING, NPC_STOP, NPC_END, NPC_ABORT, NPC_QUIT};
 #define ANSI_NONE       "\33[0m"
 
 
-#define stdout_write(x) do { std::cout << ANSI_FG_BLUE << x << ANSI_NONE << std::endl; } while(0)
+#define stdout_write(x) do { std::cout << x << std::endl; } while(0)

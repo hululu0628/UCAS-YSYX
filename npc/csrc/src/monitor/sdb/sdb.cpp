@@ -299,5 +299,6 @@ void sdb_mainloop() {
 void init_sdb()
 {
 	init_regex();
-	init_wp_pool();
+	IFDEF(CONFIG_WATCHPOINT, init_wp_pool();)
+	Log("SDB initialized");
 }

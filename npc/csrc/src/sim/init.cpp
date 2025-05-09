@@ -1,4 +1,5 @@
 #include <common.h>
+#include "debug.h"
 #include "mem.h"
 #include <fstream>
 #include <getopt.h>
@@ -53,21 +54,21 @@ word_t load_image(const char *img_file)
 {
 	if(img_file == nullptr)
 	{
-		std::cerr << "Error: No image file specified" << std::endl;
+		Log_Error("Error: No image file specified" );
 		exit(1);
 	}
 	std::ifstream input;
 	input.open(img_file, std::ios::in);
 	if(!input.is_open())
 	{
-		std::cerr << "Error: Cannot open image file at " << img_file << std::endl;
+		Log_Error("Error: Cannot open image file at " << img_file);
 		exit(1);
 	}
 	input.seekg(0, input.end);
 	word_t length = input.tellg();
 	input.seekg(0, input.beg);
-	std::cout << "Loading image file: " << img_file << std::endl;
-	std::cout << "Image file size: 0x" << std::hex << length << std::endl;
+	Log("Loading image file: " << img_file);
+	Log("Image file size: 0x" << std::hex << length);
 	assert(length < PMEM_SIZE);
 	input.read((char *)guest_to_host(PMEM_START), length);
 	input.close();
@@ -82,5 +83,5 @@ void init_sim(int argc, char **argv)
 	init_mem();
 	word_t img_size = load_image(img_file);
 	init_monitor();
-	init_difftest(diff_file, img_size, 1234);
+	IFDEF(CONFIG_DIFFTEST, init_difftest(diff_file, img_size, 1234);)
 }

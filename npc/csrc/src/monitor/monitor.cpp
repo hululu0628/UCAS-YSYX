@@ -16,6 +16,7 @@ void init_cpu()
 	{
 		cpu.gpr[i] = 0;
 	}
+	Log("Registers initialized");
 }
 
 void init_monitor()
