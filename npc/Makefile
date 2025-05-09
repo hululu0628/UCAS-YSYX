@@ -78,8 +78,8 @@ clean-verilog:
 LIBS += -lreadline
 LDFLAGS += $(LIBS)
 
-INC_PATH += $(CSRC)/include/generated
-INC_PATH += $(CONFIG_DIR)/build
+INC_PATH += $(CSRC)/include
+INC_PATH += $(CONFIG_DIR)/include/generated
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
 
