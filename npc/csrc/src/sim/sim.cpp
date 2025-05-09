@@ -51,7 +51,7 @@ void init_sim()
 	contextp->traceEverOn(true);
 	top->trace(tfp, 99);
 	tfp->open(wave_file);
-	Log("Ready for wave dump");
+	Log("Ready for wave dump: " << wave_file);
 #endif
 
 	top->reset = 1;

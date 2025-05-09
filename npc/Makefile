@@ -27,6 +27,7 @@ ARGS_DIFF = --diff=$(shell find $(NEMU_HOME)/build/ -type f -name "*-so")
 
 override ARGS ?= --log=$(shell pwd)/build/npc-log.txt
 override ARGS += $(ARGS_DIFF)
+override ARGS +=
 
 IMG ?=
 
