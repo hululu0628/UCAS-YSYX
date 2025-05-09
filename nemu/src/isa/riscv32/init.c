@@ -41,5 +41,5 @@ void init_isa() {
   /* Initialize this virtual computer system. */
   restart();
 
-  Log("ISA initialized\n");
+  printf("ISA initialized\n");
 }

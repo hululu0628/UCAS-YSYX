@@ -115,38 +115,12 @@ class Top extends Module{
 	/**
 	  * Memory
 	  */
-	/* Select data because memory only support 4byte-algined mem access */
-	def getldata(memdata: UInt, ltype: UInt, sign: Bool, offset: UInt): UInt = {
-		MuxLookup(ltype, 0.U(32.W))(Seq(
-			LSLen.word -> memdata,
-			LSLen.half -> Cat(Fill(16, sign && memdata((offset(1) << 4)+15.U)), (memdata >> (offset(1) << 4))(15, 0)),
-			LSLen.byte -> Cat(Fill(24, sign && memdata((offset << 3) + 7.U)), (memdata >> (offset << 3))(7, 0))
-		))
-	}
-	def getwdata(data: UInt, stype: UInt, offset: UInt): UInt = {
-		MuxLookup(stype, 0.U(32.W))(Seq(
-			LSLen.word -> data,
-			LSLen.half -> (data << (offset(1) << 4)),
-			LSLen.byte -> (data << (offset << 3))
-		))
-	}
-	def getwmask(stype: UInt, offset: UInt): UInt = {
-		MuxLookup(stype, 0.U(4.W))(Seq(
-			LSLen.word -> "b00001111".U,
-			LSLen.half -> (Cat(0.U(6.W), "b11".U) << offset(1, 0)),
-			LSLen.byte -> (Cat(0.U(7.W), "b1".U) << offset(1, 0))
-		))
-	}
 	mem.io.valid := decoder.io.out.exType === ExType.Load || decoder.io.out.exType === ExType.Store
-	mem.io.addr := MuxLookup(decoder.io.out.lsLength, 0.U(32.W))(Seq(
-		LSLen.word -> (mem_addr(31, 0) & "hffff_fffc".U),
-		LSLen.half -> (mem_addr(31, 0) & "hffff_fffc".U),
-		LSLen.byte -> (mem_addr(31, 0) & "hffff_fffc".U)
-	))
+	mem.io.addr := mem.getAlignedAddr(mem_addr, decoder.io.out.lsLength)
 	mem.io.wen := decoder.io.out.wenM
-	mem.io.wdata := getwdata(rdata2, decoder.io.out.lsLength, mem_addr(1, 0))
-	mem.io.wmask := getwmask(decoder.io.out.lsLength, mem_addr(1, 0))
-	val ldata = getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem_addr(1, 0))
+	mem.io.wdata := mem.getwdata(rdata2, decoder.io.out.lsLength, mem_addr(1, 0))
+	mem.io.wmask := mem.getwmask(decoder.io.out.lsLength, mem_addr(1, 0))
+	val ldata = mem.getldata(mem.io.rdata, decoder.io.out.lsLength, decoder.io.out.loadSignExt, mem_addr(1, 0))
 
 	/**
 	  * Write Back
@@ -155,12 +129,11 @@ class Top extends Module{
 		ExType.Lui -> immgen.io.imm,
 		ExType.Jal -> (pc + 4.U),
 		ExType.Jalr -> (pc + 4.U),
-		ExType.Load -> ldata
+		ExType.Load -> (ldata)
 	))
 
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := decoder.io.out.isEbreak
-
 
 	/**
 	  * Debug Module
