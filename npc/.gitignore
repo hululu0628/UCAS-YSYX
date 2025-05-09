@@ -15,8 +15,8 @@
 !README.md
 build/
 vsrc/
-config/include/config
-config/include/generated
+config/include/config/*
+config/include/generated/*
 
 # mill
 !*.sc
