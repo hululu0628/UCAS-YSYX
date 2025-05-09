@@ -16,13 +16,15 @@
 #include <isa.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include "common.h"
-#include "utils.h"
+#include <debug.h>
+#include <mem.h>
 
 #define NR_CMD ARRLEN(cmd_table)
 
 static int is_batch_mode = false;
 
+void init_regex();
+word_t expr(char *e, bool *success);
 void sim_step(uint64_t n);
 
 /* We use the `readline' library to provide more flexibility to read from stdin. */
@@ -78,6 +80,66 @@ static int cmd_info(char *args)
 	return 0;
 }
 
+static int cmd_x(char *args)
+{
+	char * arg;
+	arg = strtok(NULL, " ");
+	if(arg == NULL)
+	{
+		printf("X: missing N\n");
+		return 0;
+	}
+	else
+	{
+		int n = atoi(arg);
+		arg = strtok(NULL, " ");
+		if(arg == NULL)
+		{
+			printf("X: missing EXPR\n");
+			return 0;
+		}
+		else
+		{
+			word_t addr = strtol(arg, NULL, 0);
+			for(int i = 0; i < n; i += 4)
+			{
+				printf(ANSI_FG_BLUE "0x%x" ANSI_NONE ":        ", addr);
+				for(int j = 0; j < 4; j++)
+				{
+					if(j + i >= n)
+						break;
+					printf("0x%08x    ", (*(uint32_t *)(guest_to_host(addr))));
+					addr += 4;
+				}
+				printf("\n");
+			}
+		}
+	}
+	return 0;
+}
+
+static int cmd_p(char *args)
+{
+	bool success = true;
+	uint32_t result;
+	if(args == NULL)
+	{
+		printf("P: missing EXPR\n");
+		return 0;
+	}
+	result = expr(args, &success);
+
+	if(success)
+	{
+		printf("0x%x\n", result);
+	}
+	else
+	{
+		printf("P: invalid expression\n");
+	}
+	return 0;
+}
+
 static int cmd_q(char *args) 
 {
 	npc_state.state = NPC_QUIT;
@@ -95,6 +157,8 @@ static struct {
 	{ "c", "Continue the execution of the program", cmd_c },
 	{ "si", "Single step the program", cmd_si },
 	{ "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
+	{ "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
+	{ "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
 	{ "q", "Exit NEMU", cmd_q },
 
 	/* TODO: Add more commands */
@@ -165,4 +229,9 @@ void sdb_mainloop() {
 
     if (i == NR_CMD) { printf("Unknown command '%s'\n", cmd); }
   }
+}
+
+void init_sdb()
+{
+	init_regex();
 }

@@ -13,16 +13,15 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
-#include "common.h"
-#include "memory/paddr.h"
 #include "utils.h"
 #include <isa.h>
+#include <debug.h>
+#include <mem.h>
 
 /* We use the POSIX regex functions to process regular expressions.
  * Type 'man regex' for more information about POSIX regex functions.
  */
 #include <regex.h>
-#include <stdbool.h>
 
 #define MAX_TOKEN_LEN 31
 #define MAX_TOKEN_NUM 64 //32
@@ -71,7 +70,7 @@ void init_regex() {
     ret = regcomp(&re[i], rules[i].regex, REG_EXTENDED);
     if (ret != 0) {
       regerror(ret, &re[i], error_msg, 128);
-      panic("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
+      printf("regex compilation failed: %s\n%s", error_msg, rules[i].regex);
     }
   }
 }
@@ -124,7 +123,7 @@ static bool make_token(char *e) {
 	{
 		if(substr_len > MAX_TOKEN_LEN)
 		{
-			printf(ANSI_FG_YELLOW"The length of the token is out of range!\n"ANSI_NONE);
+			printf(ANSI_FG_YELLOW "The length of the token is out of range!\n" ANSI_NONE);
 			return false;
 		}
 

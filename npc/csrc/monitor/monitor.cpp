@@ -6,6 +6,7 @@
 CPU_state cpu = {};
 
 void init_sim();
+void init_sdb();
 void sdb_mainloop();
 
 void init_cpu()
@@ -21,6 +22,7 @@ void init_monitor()
 {
 	init_cpu();
 	init_sim();
+	init_sdb();
 }
 
 void monitor_start()

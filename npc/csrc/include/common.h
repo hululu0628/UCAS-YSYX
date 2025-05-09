@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <cassert>
 #include <cstring>
 #include <cstdint>
@@ -14,6 +15,7 @@
 #define PMEM_SIZE 0x8000000
 #define PROGRAM_ENTRY PMEM_START
 
+using sword_t = int32_t;
 using word_t = uint32_t;
 using paddr_t = word_t;
 using vaddr_t = word_t;

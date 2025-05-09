@@ -8,3 +8,4 @@ enum {REG_ZERO, REG_RA, REG_SP, REG_GP, REG_TP, REG_T0, REG_T1, REG_T2,
       REG_S8, REG_S9, REG_S10,REG_S11};
 
 void isa_reg_display();
+word_t isa_reg_str2val(const char *s, bool *success);
