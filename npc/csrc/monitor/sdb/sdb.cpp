@@ -297,4 +297,5 @@ void sdb_mainloop() {
 void init_sdb()
 {
 	init_regex();
+	init_wp_pool();
 }
