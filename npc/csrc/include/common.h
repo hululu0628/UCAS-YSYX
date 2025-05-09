@@ -1,5 +1,7 @@
 #pragma once
 
+#include "autoconf.h"
+
 #include <iostream>
 #include <fstream>
 #include <cassert>

@@ -1,3 +1,6 @@
+-include $(NPC_HOME)/config/auto.conf
+-include $(NPC_HOME)/config/auto.conf.cmd
+
 TOP ?= Top
 
 PLATFORM ?= verilator
@@ -7,6 +10,8 @@ BUILD_DIR = $(NPC_HOME)/build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 
 PRJ = playground
+
+CONFIG_DIR = $(NPC_HOME)/config
 
 CSRC = $(NPC_HOME)/csrc
 
@@ -73,7 +78,8 @@ clean-verilog:
 LIBS += -lreadline
 LDFLAGS += $(LIBS)
 
-INC_PATH = $(CSRC)/include
+INC_PATH += $(CSRC)/include
+INC_PATH += $(CONFIG_DIR)
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
 
