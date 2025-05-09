@@ -1,8 +1,8 @@
-#include "utils.h"
 #include <common.h>
 
 void init_sim(int argc, char **argv);
 void monitor_start();
+void sim_end();
 
 int is_exit_status_bad()
 {
@@ -23,6 +23,8 @@ int main(int argc, char *argv[])
 	init_sim(argc, argv);
 
 	monitor_start();
+
+	sim_end();
 
 	return is_exit_status_bad();
 }

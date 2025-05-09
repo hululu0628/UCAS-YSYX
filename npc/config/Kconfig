@@ -71,3 +71,15 @@ config WATCHPOINT
   default n
 
 endmenu
+
+choice 
+  prompt "Wave"
+  default NO_WAVE
+config NO_WAVE
+  bool "no wave"
+config VCD
+  bool "vcd"
+config FST
+  bool "fst"
+endchoice
+  

@@ -1,3 +1,4 @@
+#include "verilated.h"
 #include <isa.h>
 #include <debug.h>
 #include <sdb.h>
@@ -7,6 +8,13 @@ void monitor_run(VTop *top);
 void difftest_step();
 
 word_t excuted_inst_num = 0;
+
+#ifdef CONFIG_FST
+VerilatedFstC* tfp = new VerilatedFstC;
+#endif
+#ifdef CONFIG_VCD
+VerilatedVcdC* tfp = new VerilatedVcdC;
+#endif
 
 VerilatedContext* contextp;
 VTop *top;
@@ -25,15 +33,30 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 	}
 }
 
+void wave_dump()
+{
+#ifndef CONFIG_NO_WAVE
+	tfp->dump(contextp->time());
+	contextp->timeInc(1);
+#endif
+}
+
 void init_sim()
 {
 	contextp = new VerilatedContext;
 	top = new VTop{contextp};
 
+#ifndef CONFIG_NO_WAVE
+	contextp->traceEverOn(true);
+	top->trace(tfp, 99);
+	tfp->open(wave_file);
+	Log("Ready for wave dump");
+#endif
+
 	top->reset = 1;
 	top->clock = 0;
 	top->eval();
-
+	wave_dump();
 	Log("Reset CPU successfully");
 }
 
@@ -57,9 +80,11 @@ void sim_once()
 {
 	top->clock = !top->clock;
 	top->eval();
+	wave_dump();
 	top->reset = 0;
 	top->clock = !top->clock;
 	top->eval();
+	wave_dump();
 	reg_modify(top);
 }
 
@@ -92,4 +117,11 @@ void sim_step(uint64_t n)
 		default:
 			assert(0);
 	}
+}
+
+void sim_end()
+{
+	delete top;
+	delete contextp;
+	IFNDEF(CONFIG_NO_WAVE, tfp->close();)
 }
