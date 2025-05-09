@@ -2,6 +2,7 @@
 #include "VTop.h"
 #include <isa.h>
 #include <debug.h>
+#include <sdb.h>
 
 void monitor_run(VTop *top);
 void difftest_step();
@@ -43,6 +44,8 @@ void reg_modify(VTop *top)
 void trace_and_difftest()
 {
 	difftest_step();
+
+	check_watchpoints();
 }
 
 void sim_once()

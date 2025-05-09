@@ -14,10 +14,11 @@
 ***************************************************************************************/
 
 #include <isa.h>
-#include <readline/readline.h>
-#include <readline/history.h>
 #include <debug.h>
 #include <mem.h>
+#include <sdb.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #define NR_CMD ARRLEN(cmd_table)
 
@@ -140,6 +141,65 @@ static int cmd_p(char *args)
 	return 0;
 }
 
+static int cmd_w(char *args)
+{
+	bool success = true;
+	WP *wp = new_wp(WATCH_POINT);
+	strcpy(wp->expr, args);
+	wp->old_val = expr(wp->expr, &success);
+	if(!success)
+	{
+		free_wp(wp);
+		printf("W: invalid expression\n");
+		return 0;
+	}
+	printf("Set watchpoint %d\n", wp->NO);
+	return 0;
+}
+
+static int cmd_d(char *args)
+{
+	char * arg = strtok(NULL, " ");
+	if(arg == NULL)
+	{
+		printf("D: missing N\n");
+	}
+	else
+	{
+		int n = atoi(arg);
+		if(n >= 0 && n < NR_WP)
+		{
+			if(free_wp(&wp_pool[n]))
+			{
+				printf("Watchpoint %d deleted\n", n);
+			}
+			else
+			{
+				printf("D: failed to delete the watchpoint\n");
+			}
+		}
+	}
+	return 0;
+}
+
+static int cmd_b(char *args)
+{
+	bool success = true;
+	WP *wp = new_wp(BREAK_POINT);
+	strcpy(wp->expr, args);
+	strcat(wp->expr, " == $pc");
+	wp->old_val = expr(wp->expr, &success);
+	wp->old_val = 0;
+	if(!success)
+	{
+		free_wp(wp);
+		printf("W: invalid expression\n");
+		return 0;
+	}
+	printf("Set breakpoint %d\n", wp->NO);
+	return 0;
+}
+
 static int cmd_q(char *args) 
 {
 	npc_state.state = NPC_QUIT;
@@ -159,6 +219,9 @@ static struct {
 	{ "info", "Print the program status. Use formats such as \"info SUBCMD\".", cmd_info },
 	{ "x", "Find and print the value of the expression EXPR. Use formats such as \"x N EXPR\".", cmd_x },
 	{ "p", "Print the value of the expression EXPR. Use formats such as \"p EXPR\"", cmd_p },
+	{ "w", "Set a watchpoint for the expression EXPR", cmd_w },
+	{ "d", "Delete the watchpoint with the number N", cmd_d },
+	{ "b", "Set a breakpoint at the address ADDR", cmd_b },
 	{ "q", "Exit NEMU", cmd_q },
 
 	/* TODO: Add more commands */
