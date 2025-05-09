@@ -49,7 +49,7 @@ void reg_modify(VTop *top)
 void trace_and_difftest()
 {
 	IFDEF(CONFIG_DIFFTEST, difftest_step();)
-	
+	IFDEF(CONFIG_ITRACE, trace_instruction();)
 	IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
 }
 

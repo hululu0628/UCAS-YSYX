@@ -30,3 +30,6 @@ WP * new_wp(point_tp type);
 bool free_wp(WP *wp);
 void print_watchpoints();
 void check_watchpoints();
+
+/* trace */
+void trace_instruction();
