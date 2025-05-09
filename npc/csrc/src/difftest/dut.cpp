@@ -1,4 +1,5 @@
 #include "common.h"
+#include "debug.h"
 #include "mem.h"
 #include <difftest.h>
 #include <isa.h>
@@ -15,8 +16,6 @@ void init_difftest(const char *ref_so_file, long img_size, int port) {
 	void *handle;
 	handle = dlopen(ref_so_file, RTLD_LAZY);
 	assert(handle);
-
-	printf("Loading %s\n", ref_so_file);
 
 	ref_difftest_memcpy = (void (*)(paddr_t addr, void *buf, size_t n, bool direction))dlsym(handle, "difftest_memcpy");
 	assert(ref_difftest_memcpy);
@@ -37,14 +36,14 @@ void init_difftest(const char *ref_so_file, long img_size, int port) {
 	ref_difftest_memcpy(PMEM_START, guest_to_host(PMEM_START), img_size, DIFFTEST_TO_REF);
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 
-	std::cout << "Difftest initialized" << std::endl;
+	Log("Difftest initialized");
 }
 
 static void check_regs(CPU_state *nemu)
 {
 	if(cpu.pc != nemu->pc)
 	{
-		std::cerr << "Error: PC mismatch: REF: 0x" << std::hex << nemu->pc << "\tDUT: 0x" << std::hex << cpu.pc << std::endl;
+		Log_Error("Error: PC mismatch: REF: 0x" << std::hex << nemu->pc << "\tDUT: 0x" << std::hex << cpu.pc);
 		isa_reg_display();
 		npc_state.state = NPC_ABORT;
 	}
@@ -52,8 +51,8 @@ static void check_regs(CPU_state *nemu)
 	{
 		if(cpu.gpr[i] != nemu->gpr[i])
 		{
-			std::cerr << "Error: [Next PC 0x" << std::hex << cpu.pc << "] "
-			  << regs[i] << " mismatch: REF: 0x" << std::hex << nemu->gpr[i] << "\tDUT: 0x" << std::hex << cpu.gpr[i] << std::endl;
+			Log_Error("Error: [Next PC 0x" << std::hex << cpu.pc << "] "
+			  << regs[i] << " mismatch: REF: 0x" << std::hex << nemu->gpr[i] << "\tDUT: 0x" << std::hex << cpu.gpr[i]);
 			isa_reg_display();
 			npc_state.state = NPC_ABORT;
 		}
