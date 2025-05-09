@@ -1,7 +1,7 @@
 /*
  *
  * Automatically generated file; DO NOT EDIT.
- * NPC Configuration Menu
+ * Configuration
  *
  */
 #define CONFIG_WATCHPOINT 1

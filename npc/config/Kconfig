@@ -1,0 +1,73 @@
+menu "Testing and Debugging"
+
+config TRACE
+  bool "Enable tracer"
+  default y
+
+config TRACE_START
+  depends on TRACE
+  int "When tracing is enabled (unit: number of instructions)"
+  default 0
+
+config TRACE_END
+  depends on TRACE
+  int "When tracing is disabled (unit: number of instructions)"
+  default 10000
+
+config ITRACE
+  depends on TRACE && TARGET_NATIVE_ELF && ENGINE_INTERPRETER
+  bool "Enable instruction tracer"
+  default y
+
+config ITRACE_COND
+  depends on ITRACE
+  string "Only trace instructions when the condition is true"
+  default "true"
+
+config IRINGBUF
+  depends on ITRACE
+  bool "Enable instruction ring buffer"
+  default n
+
+config MTRACE
+  depends on TRACE
+  bool "Enable memory tracer"
+  default n
+
+config MTRACE_START
+  depends on MTRACE
+  hex "When memory tracing is enabled"
+  range 0x80000000 0x88000000
+  default 0x80000000
+
+config MTRACE_END
+  depends on MTRACE
+  hex "When memory tracing is disabled"
+  range 0x80000000 0x88000000
+  default 0x88000000
+
+config FTRACE
+  depends on TRACE
+  bool "Enable function tracer"
+  default n
+
+config DTRACE
+  depends on TRACE
+  bool "Enable data tracer"
+  default n
+
+config ETRACE
+  depends on TRACE
+  bool "Enable exception tracer"
+  default n
+
+
+config DIFFTEST
+  bool "Enable differential testing"
+  default n
+
+config WATCHPOINT
+  bool "Enable watchpoint"
+  default n
+
+endmenu
