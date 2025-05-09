@@ -26,9 +26,6 @@ override ARGS += -b
 
 IMG ?=
 
-# constraint file
-
-
 # project source
 VSRCS = $(shell find $(abspath $(VSRC)) -name "*.v" -or -name "*.sv")
 CSRCS = $(shell find $(abspath $(CSRC)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
@@ -58,6 +55,11 @@ bsp:
 
 idea:
 	mill -i mill.idea.GenIdea/idea
+
+# get mconf and conf from nemu.tools after 'make menuconfig' in nemu
+# or you can install kconfig-frontends
+menuconfig:
+	make -C $(NPC_HOME)/config menuconfig
 
 clean:
 	-rm -rf $(BUILD_DIR)
