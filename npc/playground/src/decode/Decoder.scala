@@ -72,6 +72,7 @@ object RV32IDecode {
 
 	val table: Array[(BitPat,List[UInt])] = Array(
 		LUI -> DecodeBase(SrcFrom.Imm, SrcFrom.PC, ExType.Lui, ImmType.UType, AluType.add, LSLen.word, wenR = true.B).generate,
+		AUIPC -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Auipc, ImmType.UType, AluType.add, LSLen.word, wenR = true.B).generate,
 		ADDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
 		ADD -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.add, LSLen.word, wenR = true.B).generate,
 		LBU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, wenR = true.B).generate,
