@@ -7,6 +7,7 @@ CPU_state cpu = {};
 
 void init_sim();
 void init_sdb();
+void init_disasm();
 void sdb_mainloop();
 
 void init_cpu()
@@ -24,6 +25,7 @@ void init_monitor()
 	init_cpu();
 	init_sim();
 	init_sdb();
+	IFDEF(CONFIG_TRACE, init_disasm();)
 }
 
 void monitor_start()

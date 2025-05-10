@@ -19,10 +19,15 @@ config ITRACE
   bool "Enable instruction tracer"
   default y
 
-config ITRACE_COND
+config ITRACE_OUTPUT
   depends on ITRACE
-  string "Only trace instructions when the condition is true"
-  default "true"
+  bool "Only trace instructions when the condition is true"
+  default y
+
+config ITRACE_DISASM
+  depends on ITRACE
+  bool "Onliy trace disasmmebled instructions when the condition is true"
+  default n
 
 config IRINGBUF
   depends on ITRACE

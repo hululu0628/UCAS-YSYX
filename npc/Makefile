@@ -31,9 +31,13 @@ override ARGS +=
 
 IMG ?=
 
+FILELIST_MK = $(shell find -L $(CSRC)/src -name "filelist.mk")
+include $(FILELIST_MK)
+
 # project source
+
 VSRCS = $(shell find $(abspath $(VSRC)) -name "*.v" -or -name "*.sv")
-CSRCS = $(shell find $(abspath $(CSRC)) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CSRCS = $(shell find $(abspath $(CSRC)/src) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 
 
 $(shell mkdir -p $(BUILD_DIR))
@@ -81,7 +85,7 @@ LDFLAGS += $(LIBS)
 INC_PATH += $(CSRC)/include
 INC_PATH += $(CONFIG_DIR)/include/generated
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
+CXXFLAGS += $(INCFLAGS)
 
 -include $(NPC_HOME)/scripts/$(PLATFORM)-sim.mk
 

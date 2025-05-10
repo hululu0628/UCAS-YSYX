@@ -5,15 +5,23 @@
 
 #ifdef CONFIG_TRACE
 
+void itrace_disasm(uint64_t pc, uint8_t *code, int nbyte);
+
 #ifdef CONFIG_ITRACE
 
 void trace_instruction()
 {
-	log_write("["<< std::dec << excuted_inst_num << "]" << 
-		"PC: 0x" << std::hex << top->io_debug_pc << 
-		"\twen: " << (unsigned)top->io_debug_wen << 
-		"\treg: [" << regs[top->io_debug_waddr] << 
-	  	"]\t data: 0x" << top->io_debug_data);
+	IFDEF(CONFIG_ITRACE_OUTPUT,
+		log_write("[" << std::setw(5) << std::dec << excuted_inst_num << "]" << 
+			"PC: 0x" << std::hex << top->io_debug_pc << 
+			" wen: " << (unsigned)top->io_debug_wen << 
+			" [" << regs[top->io_debug_waddr] << 
+			"] data: 0x" << std::left << std::setw(9) << top->io_debug_data << std::right);
+	)
+
+	IFDEF(CONFIG_ITRACE_DISASM,
+		itrace_disasm(top->io_debug_pc, (uint8_t *)&top->io_debug_inst, 4);
+	)
 }
 
 #endif

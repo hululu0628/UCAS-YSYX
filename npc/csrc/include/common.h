@@ -3,6 +3,7 @@
 #include "autoconf.h"
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <cassert>
 #include <cstring>
