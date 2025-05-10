@@ -14,17 +14,18 @@ class BRU extends Module {
 	val zero = Wire(Bool())
 	val overflow = Wire(Bool())
 	val carryout = Wire(Bool())
-	val A = Wire(UInt(32.W))
-	val B = Wire(UInt(32.W))
+	val A = Wire(UInt(33.W))
+	val B = Wire(UInt(33.W))
 	val sum = Wire(UInt(33.W))
+	val issext = !((io.fuType === BrType.bltu) || (io.fuType === BrType.bgeu))
 
-	A := io.src1
-	B := (~io.src2) + 1.U
-	sum := Cat(0.U(1.W), A) + Cat(0.U(1.W), B)
+	A := Cat(io.src1(31) & issext, io.src1)
+	B := (~Cat(io.src2(31) & issext, io.src2)) + 1.U
+	sum := A + B
 	
 	zero := sum(31, 0) === 0.U
-	overflow := (sum(31) ^ A(31)) && (sum(31) ^ B(31))
-	carryout := ~sum(32)
+	overflow := (sum(31) ^ A(32)) && (sum(31) ^ B(32))
+	carryout := sum(32)
 
 	io.br_flag := MuxCase(false.B, Seq(
 		(io.fuType === BrType.beq) -> zero,

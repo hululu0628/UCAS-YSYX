@@ -19,12 +19,15 @@ class ALU extends Module {
 	val issub = (aluop === AluType.sub) || (aluop === AluType.slt) || (aluop === AluType.sltu)
 	val isslt = (aluop === AluType.slt)
 	val issltu = (aluop === AluType.sltu)
-	val complement_1 = Wire(UInt(32.W))
+	val issext = !issltu
+	val complement_1 = Wire(UInt(33.W))
 	val sum = Wire(UInt(33.W))
+	val A = Wire(UInt(33.W))
 	val comp = ((sum(31)^io.overflow) & isslt) | (io.carryout & issltu);
 
-	complement_1 := (io.B ^ Fill(32, issub)) + issub
-	sum := Cat(0.U(1.W),io.A) + Cat(0.U(1.W), complement_1);
+	A := Cat(io.A(31) & issext,io.A)
+	complement_1 := (Cat(io.B(31) & issext, io.B) ^ Fill(33, issub)) + issub
+	sum := A + complement_1;
 	
 
 	io.result := MuxCase(sum(31, 0), Seq(
@@ -38,7 +41,7 @@ class ALU extends Module {
 		(aluop === AluType.sra) -> ((io.A.asSInt >> io.B(4, 0)).asUInt)(31, 0),
 	))
 
-	io.overflow := (io.A(31) ^ sum(31)) && (complement_1(31) ^ sum(31))
+	io.overflow := (A(32) ^ sum(31)) && (complement_1(32) ^ sum(31))
 	io.carryout := sum(32)
 	
 	io.zero := io.result === 0.U
