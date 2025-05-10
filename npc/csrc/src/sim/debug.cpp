@@ -4,6 +4,12 @@
 
 std::ofstream log_stream;
 
+bool log_enable()
+{
+	return MUXDEF(CONFIG_TRACE, (excuted_inst_num >= CONFIG_TRACE_START) &&
+         (excuted_inst_num <= CONFIG_TRACE_END), false);
+}
+
 void init_log(const char *log_file)
 {
 	if(log_file)

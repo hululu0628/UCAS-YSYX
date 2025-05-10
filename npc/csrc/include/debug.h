@@ -1,13 +1,15 @@
 #pragma once
+#include "sim.h"
 #include <common.h>
 #include <fstream>
 
-extern bool log_enable;
 extern std::ofstream log_stream;
+
+extern bool log_enable();
+
 #define log_write(x) do { \
-	extern std::ofstream log_stream; \
-	extern bool log_enable; \
-	log_stream << x << std::endl; \
+	if(log_enable()) \
+		log_stream << x << std::endl; \
 } while(0)
 
 #define _Log(x, color) do { \
