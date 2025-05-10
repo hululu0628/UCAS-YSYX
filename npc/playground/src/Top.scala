@@ -61,8 +61,8 @@ class Top extends Module{
 	val pc_next = Wire(UInt(32.W))
 	pc := pc_next
 
-	when(decoder.io.out.exType === ExType.Jalr) {
-		pc_next := bru.io.target;
+	when(bru.io.br_flag && decoder.io.out.exType === ExType.Branch) {
+		pc_next := alu.io.result;
 	} .otherwise {
 		pc_next := pc + 4.U
 	}
@@ -102,15 +102,16 @@ class Top extends Module{
 	))
 	alu.io.A := alu_A
 	alu.io.B := alu_B
-	alu.io.aluType := decoder.io.out.aluType
+	alu.io.aluType := MuxLookup(decoder.io.out.exType, decoder.io.out.fuType)(Seq(
+		ExType.Branch -> AluType.add,
+	))
 
 	/**
 	  * BRU
 	  */
-	bru.io.pc := pc
-	bru.io.imm := immgen.io.imm
-	bru.io.reg := rdata1
-	bru.io.exType := decoder.io.out.exType
+	bru.io.src1 := rdata1
+	bru.io.src2 := rdata2
+	bru.io.fuType := decoder.io.out.fuType
 
 	/**
 	  * Memory
@@ -127,8 +128,7 @@ class Top extends Module{
 	  */
 	result := MuxLookup(decoder.io.out.exType, alu.io.result)(Seq(
 		ExType.Lui -> immgen.io.imm,
-		ExType.Jal -> (pc + 4.U),
-		ExType.Jalr -> (pc + 4.U),
+		ExType.Branch -> (pc + 4.U),
 		ExType.Load -> (ldata)
 	))
 

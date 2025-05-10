@@ -16,8 +16,8 @@ class ImmGen extends Module {
 	io.imm := MuxLookup(io.immType, 0.U)(Seq(
 		ImmType.IType -> Cat(Fill(20, io.inst.code(31)), io.inst.code(31, 20)),
 		ImmType.UType -> Cat(io.inst.code(31, 12), 0.U(12.W)),
-		ImmType.JType -> Cat(Fill(11, io.inst.code(31)), io.inst.code(19, 12), io.inst.code(20), io.inst.code(30, 21), 0.U(1.W)),
+		ImmType.JType -> Cat(Fill(12, io.inst.code(31)), io.inst.code(19, 12), io.inst.code(20), io.inst.code(30, 21), 0.U(1.W)),
 		ImmType.SType -> Cat(Fill(20, io.inst.code(31)), io.inst.code(31, 25), io.inst.code(11, 7)),
-		ImmType.BType -> Cat(Fill(19, io.inst.code(31)), io.inst.code(7), io.inst.code(30, 25), io.inst.code(11, 8), 0.U(1.W))
+		ImmType.BType -> Cat(Fill(20, io.inst.code(31)), io.inst.code(7), io.inst.code(30, 25), io.inst.code(11, 8), 0.U(1.W))
 	))
 }

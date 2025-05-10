@@ -20,13 +20,13 @@ case class DecodeBase(
 	val src2From: UInt = 0.U,
 	val exType: UInt = 0.U,
 	val immType: UInt = 0.U,
-	val aluType: UInt = 0.U,
+	val fuType: UInt = 0.U,
 	val lsLength: UInt = 0.U,
 	val wenR: Bool = false.B,
 	val wenM: Bool = false.B,
 	val loadSignExt: Bool = false.B
 ) {
-	def generate: List[UInt] = List(src1From, src2From, exType, immType, aluType, lsLength, wenR, wenM, loadSignExt)
+	def generate: List[UInt] = List(src1From, src2From, exType, immType, fuType, lsLength, wenR, wenM, loadSignExt)
 }
 
 object RV32IDecode {
@@ -69,18 +69,46 @@ object RV32IDecode {
 	def AND 	= BitPat("b0000000??????????111?????0110011")
 	def EBREAK 	= BitPat("b00000000000100000000000001110011")
 
-
+	// for R_shifter instructions, src2 type is imm
 	val table: Array[(BitPat,List[UInt])] = Array(
 		LUI -> DecodeBase(SrcFrom.Imm, SrcFrom.PC, ExType.Lui, ImmType.UType, AluType.add, LSLen.word, wenR = true.B).generate,
 		AUIPC -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Auipc, ImmType.UType, AluType.add, LSLen.word, wenR = true.B).generate,
-		ADDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
-		ADD -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.add, LSLen.word, wenR = true.B).generate,
-		LBU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, wenR = true.B).generate,
+		JAL -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.JType, BrType.jal, LSLen.word, wenR = true.B).generate,
+		JALR -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Branch, ImmType.IType, BrType.jalr, LSLen.word, wenR = true.B).generate,
+		BEQ -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.beq, LSLen.word).generate,
+		BNE -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.bne, LSLen.word).generate,
+		BLT -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.blt, LSLen.word).generate,
+		BGE -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.bge, LSLen.word).generate,
+		BLTU -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.bltu, LSLen.word).generate,
+		BGEU -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Branch, ImmType.BType, BrType.bgeu, LSLen.word).generate,
+		LB -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, wenR = true.B, loadSignExt = true.B).generate,
+		LH -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.half, wenR = true.B, loadSignExt = true.B).generate,
 		LW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.word, wenR = true.B, loadSignExt = true.B).generate,
+		LBU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.byte, wenR = true.B).generate,
+		LHU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Load, ImmType.IType, AluType.add, LSLen.half, wenR = true.B).generate,
 		SB -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.byte, wenM = true.B).generate,
+		SH -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.half, wenM = true.B, loadSignExt = true.B).generate,
 		SW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Store, ImmType.SType, AluType.add, LSLen.word, wenM = true.B).generate,
-		JALR -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.Jalr, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
-		EBREAK -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Ebreak, ImmType.IType, AluType.add, LSLen.word).generate,
+		ADDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.add, LSLen.word, wenR = true.B).generate,
+		SLTI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.slt, LSLen.word, wenR = true.B).generate,
+		SLTIU -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.sltu, LSLen.word, wenR = true.B).generate,
+		XORI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.xor, LSLen.word, wenR = true.B).generate,
+		ORI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.or, LSLen.word, wenR = true.B).generate,
+		ANDI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.and, LSLen.word, wenR = true.B).generate,
+		SLLI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.sll, LSLen.word, wenR = true.B).generate,
+		SRLI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.srl, LSLen.word, wenR = true.B).generate,
+		SRAI -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluI, ImmType.IType, AluType.sra, LSLen.word, wenR = true.B).generate,
+		ADD -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.add, LSLen.word, wenR = true.B).generate,
+		SUB -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.sub, LSLen.word, wenR = true.B).generate,
+		SLL -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluR, ImmType.IType, AluType.sll, LSLen.word, wenR = true.B).generate,
+		SLT -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.slt, LSLen.word, wenR = true.B).generate,
+		SLTU -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.sltu, LSLen.word, wenR = true.B).generate,
+		XOR -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.xor, LSLen.word, wenR = true.B).generate,
+		SRL -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluR, ImmType.IType, AluType.srl, LSLen.word, wenR = true.B).generate,
+		SRA -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.AluR, ImmType.IType, AluType.sra, LSLen.word, wenR = true.B).generate,
+		OR -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.or, LSLen.word, wenR = true.B).generate,
+		AND -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.and, LSLen.word, wenR = true.B).generate,
+		EBREAK -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Ebreak, ImmType.NType, AluType.add, LSLen.word).generate,
 	)
 }
 
@@ -112,11 +140,13 @@ object ExType {
 	def Branch = "b0100".U
 	def Lui = "b0101".U
 	def Auipc = "b0110".U
-	def Jal = "b0111".U
-	def Jalr = "b1000".U
 	def Ebreak = "b1001".U
-
 	def apply() = UInt(4.W)
+}
+
+object FuType {
+	def apply() = UInt(8.W)
+	def X = "b00000000".U
 }
 
 object AluType {
@@ -130,8 +160,17 @@ object AluType {
 	def sll = "b0111".U
 	def srl = "b1000".U
 	def sra = "b1001".U
+}
 
-	def apply() = UInt(4.W)
+object BrType {
+	def beq = "b1010".U
+	def bne = "b1011".U
+	def blt = "b1100".U
+	def bge = "b1101".U
+	def bltu = "b1110".U
+	def bgeu = "b1111".U
+	def jalr = "b10000".U
+	def jal = "b10001".U
 }
 
 object LSLen {
@@ -147,7 +186,7 @@ class DecodedInst extends Bundle {
 	val src2From = SrcFrom() // rs2 source
 	val exType = ExType()
 	val immType = ImmType()
-	val aluType = Output(UInt(4.W))
+	val fuType = FuType()
 	val lsLength = LSLen() // length of load/store data
 	val wenR = Bool() // write reg enable
 	val wenM = Bool() // write memory enable
@@ -165,7 +204,7 @@ class DecodedInst extends Bundle {
 		src2From,
 		exType,
 		immType,
-		aluType,
+		fuType,
 		lsLength,
 		wenR,
 		wenM,

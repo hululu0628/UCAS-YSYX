@@ -9,32 +9,37 @@ class ALU extends Module {
 	val io = IO(new Bundle{
 		val A = Input(UInt(32.W))
 		val B = Input(UInt(32.W))
-		val aluType = Input(AluType())
+		val aluType = Input(FuType())
 		val overflow = Output(Bool())
 		val carryout = Output(Bool())
 		val zero = Output(Bool())
 		val result = Output(UInt(32.W))
 	})
 	val aluop = io.aluType
-	val issub = aluop === AluType.sub
-	val isslt = aluop === AluType.slt
-	val issltu = aluop === AluType.sltu
-	val complement = Wire(UInt(32.W))
-	complement := io.B ^ Fill(32, issub)
-
-	val sum = Cat(0.U, io.A) + Cat(0.U, complement) + issub
+	val issub = (aluop === AluType.sub) || (aluop === AluType.slt) || (aluop === AluType.sltu)
+	val isslt = (aluop === AluType.slt)
+	val issltu = (aluop === AluType.sltu)
+	val complement_1 = Wire(UInt(32.W))
+	val sum = Wire(UInt(33.W))
 	val comp = ((sum(31)^io.overflow) & isslt) | (io.carryout & issltu);
+
+	complement_1 := (io.B ^ Fill(32, issub)) + issub
+	sum := Cat(0.U(1.W),io.A) + Cat(0.U(1.W), complement_1);
+	
 
 	io.result := MuxCase(sum(31, 0), Seq(
 		(aluop === AluType.and) -> (io.A & io.B),
 		(aluop === AluType.or) -> (io.A | io.B),
 		(aluop === AluType.xor) -> (io.A ^ io.B),
 		(aluop === AluType.slt) -> Cat(0.U(31.W), comp),
-		(aluop === AluType.sltu) -> Cat(0.U(31.W), comp)
+		(aluop === AluType.sltu) -> Cat(0.U(31.W), comp),
+		(aluop === AluType.sll) -> (io.A << io.B(4, 0))(31, 0),
+		(aluop === AluType.srl) -> (io.A >> io.B(4, 0))(31, 0),
+		(aluop === AluType.sra) -> ((io.A.asSInt >> io.B(4, 0)).asUInt)(31, 0),
 	))
 
-	io.overflow := (~io.A(31) & ~complement(31) & sum(31)) || (io.A(31) & complement(31) & ~sum(31))
-	io.carryout := sum(32) ^ issub
+	io.overflow := (io.A(31) ^ sum(31)) && (complement_1(31) ^ sum(31))
+	io.carryout := sum(32) ^ 
 	
 	io.zero := io.result === 0.U
 }
