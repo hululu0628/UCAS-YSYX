@@ -39,7 +39,7 @@ class ALU extends Module {
 	))
 
 	io.overflow := (io.A(31) ^ sum(31)) && (complement_1(31) ^ sum(31))
-	io.carryout := sum(32) ^ 
+	io.carryout := sum(32)
 	
 	io.zero := io.result === 0.U
 }
