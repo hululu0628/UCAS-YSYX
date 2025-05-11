@@ -1,6 +1,6 @@
 #include <isa.h>
-#include <sdb.h>
-#include <sim.h>
+#include <sim/sdb.h>
+#include <sim/sim.h>
 #include <debug.h>
 
 #ifdef CONFIG_TRACE

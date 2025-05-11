@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 enum NPC_STATE {NPC_RUNNING, NPC_STOP, NPC_END, NPC_ABORT, NPC_QUIT};
 
@@ -20,5 +21,6 @@ enum NPC_STATE {NPC_RUNNING, NPC_STOP, NPC_END, NPC_ABORT, NPC_QUIT};
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
 
-
 #define stdout_write(x) do { std::cout << x << std::endl; } while(0)
+
+uint64_t get_time();

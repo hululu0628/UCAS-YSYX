@@ -1,7 +1,7 @@
 #include <common.h>
-#include <sim.h>
+#include <sim/sim.h>
 #include "debug.h"
-#include "mem.h"
+#include "mem/mem.h"
 #include <fstream>
 #include <getopt.h>
 

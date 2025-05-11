@@ -35,9 +35,9 @@ FILELIST_MK = $(shell find -L $(CSRC)/src -name "filelist.mk")
 include $(FILELIST_MK)
 
 # project source
-
+CSRCS-y += $(shell find -L $(DIRS-y) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VSRCS = $(shell find $(abspath $(VSRC)) -name "*.v" -or -name "*.sv")
-CSRCS = $(shell find $(abspath $(CSRC)/src) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+CSRCS = $(CSRCS-y)
 
 
 $(shell mkdir -p $(BUILD_DIR))

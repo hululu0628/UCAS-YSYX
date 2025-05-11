@@ -14,7 +14,7 @@
 ***************************************************************************************/
 
 #include "common.h"
-#include "sdb.h"
+#include "sim/sdb.h"
 
 WP wp_pool[NR_WP] = {};
 static WP *head = NULL, *free_ = NULL;

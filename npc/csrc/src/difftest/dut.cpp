@@ -1,7 +1,7 @@
-#include "sim.h"
+#include "sim/sim.h"
 #include "debug.h"
-#include "mem.h"
-#include <difftest.h>
+#include <mem/mem.h>
+#include <difftest/difftest.h>
 #include <isa.h>
 
 void (*ref_difftest_memcpy)(paddr_t addr, void *buf, size_t n, bool direction);

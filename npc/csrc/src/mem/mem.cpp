@@ -1,6 +1,6 @@
 #include <common.h>
 #include <debug.h>
-#include <mem.h>
+#include <mem/mem.h>
 
 static uint8_t pmem[PMEM_SIZE] __attribute((aligned(4096)));
 
@@ -13,7 +13,7 @@ void init_mem()
 	Log("Physical memory area [0x" << std::hex << PMEM_START << ", 0x" << PMEM_START + PMEM_SIZE << "]");
 }
 
-uint32_t host_read(void * addr, int len)
+word_t host_read(void * addr, int len)
 {
 	word_t rdata;
 	switch(len)

@@ -4,6 +4,8 @@
 
 #include <iostream>
 #include <iomanip>
+#include <string>
+#include <stdlib.h>
 #include <fstream>
 #include <cassert>
 #include <cstring>
@@ -18,17 +20,21 @@
 #define PMEM_SIZE 0x8000000
 #define PROGRAM_ENTRY PMEM_START
 
+#define FMT_PADDR "0x" << std::hex << std::setw(8) << std::setfill('0')
+#define FMT_WORD "0x" << std::hex << std::setw(8) << std::setfill('0')
+
 using sword_t = int32_t;
 using word_t = uint32_t;
 using paddr_t = word_t;
 using vaddr_t = word_t;
+using ioaddr_t = uint16_t;
 
-using NPC_state = struct NPC_state{
+using NPC_state = struct NPC_state {
 	NPC_STATE state;
 	int halt_ret;
 };
 
-using CPU_state = struct CPU_state{
+using CPU_state = struct CPU_state {
     word_t gpr[NR_GPR];
     word_t csr[NR_CSR];
     vaddr_t pc;

@@ -1,137 +1,15 @@
-menu "Memory Configuration"
-
-config MBASE
-  hex "Memory base address"
-  default 0x0        if ISA_x86
-  default 0x80000000
-
-config MSIZE
-  hex "Memory size"
-  default 0x8000000
-
-config PC_RESET_OFFSET
-  hex "Offset of reset vector from the base of memory"
-  default 0x100000 if ISA_x86
-  default 0
-
-choice
-  prompt "Physical memory definition"
-  default PMEM_GARRAY
-config PMEM_MALLOC
-  bool "Using malloc()"
-config PMEM_GARRAY
-  depends on !TARGET_AM
-  bool "Using global array"
-endchoice
-
-endmenu
-
-menu "Testing and Debugging"
-
-config TRACE
-  bool "Enable tracer"
-  default y
-
-config TRACE_START
-  depends on TRACE
-  int "When tracing is enabled (unit: number of instructions)"
-  default 0
-
-config TRACE_END
-  depends on TRACE
-  int "When tracing is disabled (unit: number of instructions)"
-  default 10000
-
-config ITRACE
-  depends on TRACE
-  bool "Enable instruction tracer"
-  default y
-
-config ITRACE_OUTPUT
-  depends on ITRACE
-  bool "Only trace instructions when the condition is true"
-  default y
-
-config ITRACE_DISASM
-  depends on ITRACE
-  bool "Onliy trace disasmmebled instructions when the condition is true"
-  default n
-
-config IRINGBUF
-  depends on ITRACE
-  bool "Enable instruction ring buffer"
-  default n
-
-config MTRACE
-  depends on TRACE
-  bool "Enable memory tracer"
-  default n
-
-config MTRACE_START
-  depends on MTRACE
-  hex "When memory tracing is enabled"
-  range 0x80000000 0x88000000
-  default 0x80000000
-
-config MTRACE_END
-  depends on MTRACE
-  hex "When memory tracing is disabled"
-  range 0x80000000 0x88000000
-  default 0x88000000
-
-config FTRACE
-  depends on TRACE
-  bool "Enable function tracer"
-  default n
-
-config DTRACE
-  depends on TRACE
-  bool "Enable data tracer"
-  default n
-
-config ETRACE
-  depends on TRACE
-  bool "Enable exception tracer"
-  default n
-
-
-config DIFFTEST
-  bool "Enable differential testing"
-  default n
-
-config WATCHPOINT
-  bool "Enable watchpoint"
-  default n
-
-endmenu
-
-choice 
-  prompt "Wave"
-  default NO_WAVE
-config NO_WAVE
-  bool "no wave"
-config VCD
-  bool "vcd"
-config FST
-  bool "fst"
-config WAVE_BEGIN
-  depends on VCD || FST
-  int "Instruction dump begin"
-  default 0
-config WAVE_END
-  depends on VCD || FST
-  int "Instruction dump end (to keep dumping, set -1)"
-  default 10000
-endchoice
-
 menuconfig DEVICE
+  depends on !TARGET_SHARE
   bool "Devices"
   default n
+  help
+    Provide device support for NEMU.
 
 if DEVICE
 
 config HAS_PORT_IO
   bool
+  default y if ISA_x86
   default n
 
 menuconfig HAS_SERIAL
@@ -273,7 +151,4 @@ config SDCARD_IMG_PATH
 endif # HAS_SDCARD
 endif
 
-endif
-
-
-  
+endif # DEVICE

@@ -1,7 +1,7 @@
 #include <common.h>
 #include <debug.h>
-#include <sdb.h>
-#include <mem.h>
+#include <sim/sdb.h>
+#include <mem/mem.h>
 
 extern "C" unsigned pmem_read(unsigned raddr)
 {

@@ -16,8 +16,8 @@
 #include "utils.h"
 #include <isa.h>
 #include <debug.h>
-#include <mem.h>
-#include <sdb.h>
+#include <mem/mem.h>
+#include <sim/sdb.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 

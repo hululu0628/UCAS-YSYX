@@ -17,6 +17,7 @@
 #include <dlfcn.h>
 #include <capstone/capstone.h>
 #include <common.h>
+#include <sim/sim.h>
 
 using cs_disasm_func_t = size_t (*)(csh handle, const uint8_t *code,
     size_t code_size, uint64_t address, size_t count, cs_insn **insn);

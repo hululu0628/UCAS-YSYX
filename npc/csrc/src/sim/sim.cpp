@@ -1,8 +1,8 @@
 #include "verilated.h"
 #include <isa.h>
 #include <debug.h>
-#include <sdb.h>
-#include <sim.h>
+#include <sim/sdb.h>
+#include <sim/sim.h>
 
 void monitor_run(VTop *top);
 void difftest_step();

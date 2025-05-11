@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sim/sim.h"
 #include "debug.h"
 #include "utils.h"
 
