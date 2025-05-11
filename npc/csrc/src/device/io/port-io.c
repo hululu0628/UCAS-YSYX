@@ -28,8 +28,8 @@ void add_pio_map(const char *name, ioaddr_t addr, void *space, uint32_t len, io_
   assert(addr + len <= PORT_IO_SPACE_MAX);
   maps[nr_map] = (IOMap){ .name = name, .low = addr, .high = addr + len - 1,
     .space = space, .callback = callback };
-  Log("Add port-io map '" << maps[nr_map].name << "' at [" << FMT_PADDR << maps[nr_map].low << ", " 
-	<< FMT_PADDR << maps[nr_map].high << "]");
+  Log("Add port-io map '" << maps[nr_map].name << "' at [" << FMT_PADDR(maps[nr_map].low) << ", " 
+	<< FMT_PADDR(maps[nr_map].high) << "]");
 
   nr_map ++;
 }

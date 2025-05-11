@@ -57,8 +57,8 @@ static void pmem_write(paddr_t addr, int len, word_t data) {
 }
 
 static void out_of_bound(paddr_t addr) {
-  	Log_Error("address = " << FMT_PADDR << addr << " is out of bound of pmem ["
-	  << FMT_PADDR << PMEM_LEFT << ", " << FMT_PADDR << PMEM_RIGHT << "] at pc = " FMT_WORD << cpu.pc);
+  	Log_Error("address = " << FMT_PADDR(addr) << " is out of bound of pmem ["
+	  << FMT_PADDR(PMEM_LEFT) << ", " << FMT_PADDR(PMEM_RIGHT) << "] at pc = " FMT_WORD(cpu.pc));
 }
 
 word_t paddr_read(paddr_t addr, int len) 

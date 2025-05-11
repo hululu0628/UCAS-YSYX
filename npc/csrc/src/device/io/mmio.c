@@ -30,8 +30,8 @@ static IOMap* fetch_mmio_map(paddr_t addr) {
 
 static void report_mmio_overlap(const char *name1, paddr_t l1, paddr_t r1,
     const char *name2, paddr_t l2, paddr_t r2) {
-  Log_Error("MMIO region " << name1 << "@[" FMT_PADDR << l1 << ", " FMT_PADDR << r1 << "] is overlapped "
-               "with " << name2 << "@[" FMT_PADDR << l2 << ", " FMT_PADDR << r2 << "]");
+  Log_Error("MMIO region " << name1 << "@[" FMT_PADDR(l1) << ", " FMT_PADDR(r1) << "] is overlapped "
+               "with " << name2 << "@[" FMT_PADDR(l2) << ", " FMT_PADDR(r2) << "]");
 }
 
 /* device interface */
@@ -49,8 +49,8 @@ void add_mmio_map(const char *name, paddr_t addr, void *space, uint32_t len, io_
 
   maps[nr_map] = (IOMap){ .name = name, .low = addr, .high = addr + len - 1,
     .space = space, .callback = callback };
-  Log("Add mmio map '" << maps[nr_map].name << "' at [" << FMT_PADDR << maps[nr_map].low << ", " 
-	<< FMT_PADDR << maps[nr_map].high << "]");
+  Log("Add mmio map '" << maps[nr_map].name << "' at [" << FMT_PADDR(maps[nr_map].low) << ", " 
+	<< FMT_PADDR(maps[nr_map].high) << "]");
 
   nr_map ++;
 }

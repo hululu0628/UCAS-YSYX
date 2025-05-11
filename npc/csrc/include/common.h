@@ -20,8 +20,8 @@
 #define PMEM_SIZE 0x8000000
 #define PROGRAM_ENTRY PMEM_START
 
-#define FMT_PADDR "0x" << std::hex << std::setw(8) << std::setfill('0')
-#define FMT_WORD "0x" << std::hex << std::setw(8) << std::setfill('0')
+#define FMT_PADDR(addr) "0x" << std::hex << std::setw(8) << std::setfill('0') << addr << std::setfill(' ')
+#define FMT_WORD(data) "0x" << std::hex << std::setw(8) << std::setfill('0') << data << std::setfill(' ')
 
 using sword_t = int32_t;
 using word_t = uint32_t;
