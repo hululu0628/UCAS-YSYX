@@ -3,6 +3,7 @@
 void init_sim(int argc, char **argv);
 void monitor_start();
 void sim_end();
+void close_device();
 
 int is_exit_status_bad()
 {
@@ -25,6 +26,8 @@ int main(int argc, char *argv[])
 	monitor_start();
 
 	sim_end();
+	
+	IFDEF(CONFIG_DEVICE, close_device());
 
 	return is_exit_status_bad();
 }

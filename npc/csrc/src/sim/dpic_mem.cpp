@@ -3,15 +3,15 @@
 #include <sim/sdb.h>
 #include <mem/mem.h>
 
-extern "C" unsigned pmem_read(unsigned raddr)
+extern "C" unsigned dpic_read(unsigned raddr)
 {
 	if(raddr == 0)
 		return 0;
-	unsigned res = guest_read(raddr & 0xFFFFFFFC, 4);
+	unsigned res = paddr_read(raddr & 0xFFFFFFFC, 4);
 	IFDEF(CONFIG_MTRACE, trace_rmem(raddr, res);)
 	return res;
 }
-extern "C" void pmem_write(unsigned waddr, unsigned wdata, unsigned char wmask)
+extern "C" void dpic_write(unsigned waddr, unsigned wdata, unsigned char wmask)
 {
 	int begin, end;
 	IFDEF(CONFIG_MTRACE,trace_wmem(waddr, wdata, wmask);)
@@ -27,5 +27,5 @@ extern "C" void pmem_write(unsigned waddr, unsigned wdata, unsigned char wmask)
 			break;
 		wmask >>= 1;
 	}
-	guest_write(waddr + begin, end - begin, wdata >> (begin * 8));
+	paddr_write(waddr + begin, end - begin, wdata >> (begin * 8));
 }

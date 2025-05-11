@@ -26,14 +26,14 @@ class ysyxMem extends BlackBox with HasBlackBoxInline {
 		|	input [7:0] wmask,
 		|	output reg [31:0] rdata
 		|);
-		|import "DPI-C" function int pmem_read(input int raddr);
-		|import "DPI-C" function void pmem_write(
+		|import "DPI-C" function int dpic_read(input int raddr);
+		|import "DPI-C" function void dpic_write(
 		|input int waddr, input int wdata, input byte wmask);
 		|always @(*) begin
 		|	if (valid) begin
-		|		rdata = pmem_read(addr);
+		|		rdata = dpic_read(addr);
 		|		if (wen) begin
-		|			pmem_write(addr, wdata, wmask);
+		|			dpic_write(addr, wdata, wmask);
 		|		end
 		|	end
 		|	else begin

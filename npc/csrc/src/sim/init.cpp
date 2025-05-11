@@ -15,8 +15,10 @@ static char *diff_file = nullptr;
 char *wave_file = nullptr;
 
 
+void init_rand();
 void init_mem();
 void init_log(const char *log_file);
+void init_device();
 void init_monitor();
 void init_difftest(const char *ref_so_file, long img_size, int port);
 
@@ -84,9 +86,18 @@ word_t load_image(const char *img_file)
 void init_sim(int argc, char **argv)
 {
 	parse_args(argc, argv);
+
+	init_rand();
+
 	init_log(log_file);
+
 	init_mem();
+
+	IFDEF(CONFIG_DEVICE, init_device());
+
 	word_t img_size = load_image(img_file);
+
 	init_monitor();
+
 	IFDEF(CONFIG_DIFFTEST, init_difftest(diff_file, img_size, 1234);)
 }

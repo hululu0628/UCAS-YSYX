@@ -15,9 +15,9 @@ class InstFetch extends BlackBox with HasBlackBoxInline {
 		|	input [31:0] pc,
 		|	output reg [31:0] inst
 		|);
-		|import "DPI-C" function int pmem_read(input int raddr);
+		|import "DPI-C" function int dpic_read(input int raddr);
 		|always @(*) begin
-		|	inst = pmem_read(pc);
+		|	inst = dpic_read(pc);
 		|end
 		|endmodule
 		""".stripMargin
