@@ -6,6 +6,7 @@
 
 void monitor_run(VTop *top);
 void difftest_step();
+void device_update();
 
 word_t excuted_inst_num = 0;
 
@@ -98,6 +99,7 @@ void sim_step(uint64_t n)
 		excuted_inst_num++;
 		trace_and_difftest();
 		if(npc_state.state != NPC_RUNNING) break;
+		IFDEF(CONFIG_DEVICE, device_update());
 	}
 	if(npc_state.state == NPC_RUNNING)
 	{
