@@ -1,5 +1,6 @@
 #include <common.h>
 #include <debug.h>
+#include <sim/sdb.h>
 #include <mem/mem.h>
 #include <device/mmio.h>
 
@@ -36,16 +37,6 @@ void host_write(void * addr, int len, word_t data)
 		default: assert(0);
 	}
 }
-uint32_t guest_read(paddr_t addr, int len)
-{
-	//assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
-	return host_read(guest_to_host(addr), len);
-}
-void guest_write(paddr_t addr, int len, word_t data)
-{
-	assert(addr >= PMEM_START && addr < PMEM_START + PMEM_SIZE);
-	host_write(guest_to_host(addr), len, data);
-}
 
 static word_t pmem_read(paddr_t addr, int len) {
   word_t ret = host_read(guest_to_host(addr), len);
@@ -66,10 +57,6 @@ word_t paddr_read(paddr_t addr, int len)
 	if (likely(in_pmem(addr))) 
 	{
 		word_t ret = pmem_read(addr, len);
-		#ifdef CONFIG_MTRACE
-		void trace_mem(int op, paddr_t addr, int len, word_t data);
-		trace_mem(0, addr, len, ret);
-		#endif
 		return ret;
 	}
 	IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
@@ -79,13 +66,10 @@ word_t paddr_read(paddr_t addr, int len)
 
 void paddr_write(paddr_t addr, int len, word_t data) 
 {
+
 	if (likely(in_pmem(addr)))
 	{ 
 		pmem_write(addr, len, data);
-		#ifdef CONFIG_MTRACE
-		void trace_mem(int op, paddr_t addr, int len, word_t data);
-		trace_mem(1, addr, len, data);
-		#endif
 		return; 
 	}
 	IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);

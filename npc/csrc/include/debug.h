@@ -18,7 +18,10 @@ extern bool log_enable();
 
 #define Log(x) do {_Log("[" << __FILE__ << ":" << __LINE__ << " " << __func__ << "] " << x, BLUE);} while(0)
 #define Log_Warn(x) do {_Log("[" << __FILE__ << ":" << __LINE__ << " " << __func__ << "] " << x, YELLOW);} while(0)
-#define Log_Error(x) do {_Log("[" << __FILE__ << ":" << __LINE__ << " " << __func__ << "] " << x, RED);} while(0)
+#define Log_Error(x) do { \
+	_Log("[" << __FILE__ << ":" << __LINE__ << " " << __func__ << "] " << x, RED); \
+	npc_state.state = NPC_ABORT; \
+} while(0)
 
 #define Assert(cond, x) do { \
 	if(!(cond)) { \

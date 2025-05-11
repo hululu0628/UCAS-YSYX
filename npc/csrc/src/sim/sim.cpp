@@ -97,7 +97,7 @@ void sim_step(uint64_t n)
 		sim_once();
 		excuted_inst_num++;
 		trace_and_difftest();
-		if(!(npc_state.state == NPC_RUNNING)) break;
+		if(npc_state.state != NPC_RUNNING) break;
 	}
 	if(npc_state.state == NPC_RUNNING)
 	{

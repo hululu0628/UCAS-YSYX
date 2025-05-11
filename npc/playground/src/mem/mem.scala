@@ -31,9 +31,14 @@ class ysyxMem extends BlackBox with HasBlackBoxInline {
 		|input int waddr, input int wdata, input byte wmask);
 		|always @(*) begin
 		|	if (valid) begin
-		|		rdata = dpic_read(addr);
 		|		if (wen) begin
 		|			dpic_write(addr, wdata, wmask);
+		|		end
+		|		if(!wen) begin
+		|			rdata = dpic_read(addr);
+		|		end
+		|		else begin
+		|			rdata = 0;
 		|		end
 		|	end
 		|	else begin

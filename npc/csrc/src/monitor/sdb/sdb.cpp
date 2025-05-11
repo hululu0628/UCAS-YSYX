@@ -53,7 +53,8 @@ static char* rl_gets()
 static int cmd_c(char *args)
 {
 	sim_step(-1);
-	return 0;
+
+	return npc_state.state == NPC_ABORT ? -1 : 0;
 }
 
 static int cmd_s(char *args)
@@ -61,7 +62,8 @@ static int cmd_s(char *args)
 	char *steps = strtok(NULL, " ");
 	uint64_t n = steps ? atoi(steps) : 1;
 	sim_step(n);
-	return 0;
+	
+	return npc_state.state == NPC_ABORT ? -1 : 0;
 }
 
 static int cmd_info(char *args)
