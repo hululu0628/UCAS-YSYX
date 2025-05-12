@@ -203,6 +203,7 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
 	char *end = out + n - 1;
 	int flags, field_width, precision, len;
 	int base;
+	int long_flag = 0;
 
 	char *s;
 	unsigned long long num;
@@ -292,6 +293,7 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
 		base = 10;
 		switch (*fmt)
 		{
+			case 'l': long_flag = 1; fmt++; break;
 			case 'd': flags |= SIGN;
 			case 'u': break;
 			case 'X': flags |= LARGE;
@@ -348,10 +350,28 @@ int vsnprintf(char *out, size_t n, const char *fmt, va_list ap)
 
 		}
 
-		// TODO: cannot handle modifier with 'l' or something else
-		num = va_arg(ap, unsigned);
-		if(flags & SIGN)
-			num = (signed)num;
+		// support ld, lu and lx
+		if(long_flag)
+		{
+			switch (*fmt)
+			{
+				case 'd': flags |= SIGN; break;
+				case 'u': break;
+				case 'x': base = 16; break;
+				default:
+					panic("vsprintf: unknown format code\n");
+					break;
+			}
+			num = va_arg(ap, unsigned long);
+			if(flags & SIGN)
+				num = (signed long)num;
+		}
+		else
+		{
+			num = va_arg(ap, unsigned);
+			if(flags & SIGN)
+				num = (signed)num;
+		}
 
 		str = number(str, end, num, base, field_width, precision, flags);
 	}
