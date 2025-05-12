@@ -32,7 +32,7 @@ bool cte_init(Context*(*handler)(Event, Context*)) {
 	// initialize exception entry
 	asm volatile("csrw mtvec, %0" : : "r"(__am_asm_trap));
 	// [hululu.PA3]: initialize mstatus for difftest (rv32)
-	uint32_t mstatus_value = 0x1800;
+	uint32_t mstatus_value = 0x21800;
 	asm volatile("csrw mstatus, %0" : : "r"(mstatus_value));
 
 	// register event handler
