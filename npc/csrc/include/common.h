@@ -43,3 +43,9 @@ using CPU_state = struct CPU_state {
 extern NPC_state npc_state;
 
 extern CPU_state cpu;
+
+extern char *log_file;
+extern char *elf_file;
+extern char *img_file;
+extern char *diff_file;
+extern char *wave_file;

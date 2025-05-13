@@ -35,3 +35,5 @@ void check_watchpoints();
 void trace_instruction();
 void trace_rmem(paddr_t addr, word_t data);
 void trace_wmem(paddr_t addr, word_t data, unsigned char mask);
+void init_ftrace(char * elf_file);
+void trace_func(paddr_t addr, word_t code);

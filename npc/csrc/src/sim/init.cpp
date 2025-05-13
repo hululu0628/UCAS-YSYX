@@ -9,9 +9,10 @@ NPC_state npc_state = { .state = NPC_STOP};
 
 void sdb_set_batch_mode();
 
-static char *log_file = nullptr;
-static char *img_file = nullptr;
-static char *diff_file = nullptr;
+char *log_file = nullptr;
+char *elf_file = nullptr;
+char *img_file = nullptr;
+char *diff_file = nullptr;
 char *wave_file = nullptr;
 
 
@@ -28,18 +29,20 @@ static int parse_args(int argc, char **argv)
 	const struct option table[] = {
 	{"batch"    , no_argument      , nullptr, 'b'},
 	{"log"      , required_argument, nullptr, 'l'},
+	{"elf"      , required_argument, nullptr, 'e'},
 	{"diff"     , required_argument, nullptr, 'd'},
 	{"wave"     , required_argument, nullptr, 'w'},
 	{"help"     , no_argument      , nullptr, 'h'},
 	{0          , 0                , nullptr,  0 },
 	};
 	int o;
-  	while ( (o = getopt_long(argc, argv, "-bhl:d:w:", table, nullptr)) != -1) 
+  	while ( (o = getopt_long(argc, argv, "-bhl:d:e:w:", table, nullptr)) != -1) 
 	{
     		switch (o) 
 		{
 			case 'b': sdb_set_batch_mode(); break;
       			case 'l': log_file = optarg; break;
+			case 'e': elf_file = optarg; break;
 			case 'd': diff_file = optarg; break;
 			case 'w': wave_file = optarg; break;
       			case 1: img_file = optarg; return 0;
@@ -48,6 +51,7 @@ static int parse_args(int argc, char **argv)
 				std::cout << "Options:" << std::endl;
 				std::cout << "\t-b, --batch		run in batch mode" << std::endl;
 				std::cout << "\t-l, --log=FILE		output log to FILE" << std::endl;
+				std::cout << "\t-e, --elf=FILE		load elf file" << std::endl;
 				std::cout << "\t-d, --diff=FILE		difftest-so with FILE" << std::endl;
 				std::cout << "\t-w, --wave=FILE		wave dump path" << std::endl;
 				std::cout << "\t-h, --help		show this help message" << std::endl;

@@ -19,4 +19,5 @@ sim:
 		--Mdir $(OBJ_DIR) -o $(BUILD_DIR)/$(TOP)
 
 run: sim
+	@echo ${ARGS}
 	$(BUILD_DIR)/$(TOP) $(ARGS) $(IMG)

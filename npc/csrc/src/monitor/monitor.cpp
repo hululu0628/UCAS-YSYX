@@ -1,4 +1,5 @@
 #include <isa.h>
+#include <sim/sdb.h>
 #include <debug.h>
 #include "VTop.h"
 #include <verilated.h>
@@ -26,6 +27,7 @@ void init_monitor()
 	init_sim();
 	init_sdb();
 	IFDEF(CONFIG_TRACE, init_disasm();)
+	IFDEF(CONFIG_FTRACE, init_ftrace(elf_file);)
 }
 
 void monitor_start()

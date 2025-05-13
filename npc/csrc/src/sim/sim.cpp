@@ -75,6 +75,7 @@ void trace_and_difftest()
 {
 	IFDEF(CONFIG_DIFFTEST, difftest_step();)
 	IFDEF(CONFIG_ITRACE, trace_instruction();)
+	IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)
 	IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
 }
 
