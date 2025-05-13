@@ -91,7 +91,7 @@ config DTRACE
 
 config ETRACE
   depends on TRACE
-  bool "Enable exception tracer"
+  bool "Enable exception tracer (waiting for the implementation)"
   default n
 
 
