@@ -6,6 +6,7 @@ import cpu.instfetch._
 import cpu.decode._
 import cpu.exu._
 import cpu.mem._
+import cpu.regfile._
 
 class CPUIO extends Bundle {
 	val debug = new Bundle {
@@ -26,6 +27,7 @@ class Top extends Module{
 	val instfetch = Module(new InstFetch())
 	val decoder = Module(new Decoder())
 	val regfile = Module(new Regfile())
+	val csr = Module(new CSR())
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
 	val alu = Module(new ALU())
@@ -83,6 +85,12 @@ class Top extends Module{
 	regfile.io.raddr1 := decoder.io.out.inst.rs1
 	regfile.io.raddr2 := decoder.io.out.inst.rs2
 
+	csr.io.wen := decoder.io.out.exType === ExType.CSR
+	csr.io.addr := immgen.io.imm
+	csr.io.fuType := decoder.io.out.fuType
+	csr.io.src1_reg := rdata1
+	csr.io.uimm := decoder.io.out.inst.rs1
+
 	/**
 	  * ALU
 	  */
@@ -129,7 +137,8 @@ class Top extends Module{
 	result := MuxLookup(decoder.io.out.exType, alu.io.result)(Seq(
 		ExType.Lui -> immgen.io.imm,
 		ExType.Branch -> (pc + 4.U),
-		ExType.Load -> (ldata)
+		ExType.Load -> (ldata),
+		ExType.CSR -> (csr.io.rdata),
 	))
 
 	/* ebreak */

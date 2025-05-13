@@ -30,6 +30,7 @@ case class DecodeBase(
 }
 
 object RV32IDecode {
+	// RV32I Base
 	def LUI 	= BitPat("b?????????????????????????0110111")
 	def AUIPC 	= BitPat("b?????????????????????????0010111")
 	def JAL 	= BitPat("b?????????????????????????1101111")
@@ -67,7 +68,18 @@ object RV32IDecode {
 	def SRA 	= BitPat("b0100000??????????101?????0110011")
 	def OR  	= BitPat("b0000000??????????110?????0110011")
 	def AND 	= BitPat("b0000000??????????111?????0110011")
+	def ECALL 	= BitPat("b00000000000000000000000001110011")
 	def EBREAK 	= BitPat("b00000000000100000000000001110011")
+
+	// Zicsr extension
+	def CSRRW 	= BitPat("b?????????????????001?????1110011")
+	def CSRRS 	= BitPat("b?????????????????010?????1110011")
+	def CSRRC 	= BitPat("b?????????????????011?????1110011")
+	def CSRRWI 	= BitPat("b?????????????????101?????1110011")
+	def CSRRSI 	= BitPat("b?????????????????110?????1110011")
+	def CSRRCI 	= BitPat("b?????????????????111?????1110011")
+
+	def MRET 	= BitPat("b00110000001000000000000001110011")
 
 	// for R_shifter instructions, src2 type is imm
 	val table: Array[(BitPat,List[UInt])] = Array(
@@ -108,7 +120,15 @@ object RV32IDecode {
 		SRA -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.sra, LSLen.word, wenR = true.B).generate,
 		OR -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.or, LSLen.word, wenR = true.B).generate,
 		AND -> DecodeBase(SrcFrom.RS1, SrcFrom.RS2, ExType.AluR, ImmType.NType, AluType.and, LSLen.word, wenR = true.B).generate,
+		ECALL -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Ecall, ImmType.NType, AluType.add, LSLen.word).generate,
 		EBREAK -> DecodeBase(SrcFrom.PC, SrcFrom.Imm, ExType.Ebreak, ImmType.NType, AluType.add, LSLen.word).generate,
+		CSRRW -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrw, LSLen.word, wenR = true.B).generate,
+		CSRRS -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrs, LSLen.word, wenR = true.B).generate,
+		CSRRC -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrc, LSLen.word, wenR = true.B).generate,
+		CSRRWI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrwi, LSLen.word, wenR = true.B).generate,
+		CSRRSI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrsi, LSLen.word, wenR = true.B).generate,
+		CSRRCI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrci, LSLen.word, wenR = true.B).generate
+		MRET -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.Mret, ImmType.NType, AluType.add, LSLen.word).generate
 	)
 }
 
@@ -141,7 +161,12 @@ object ExType {
 	def Lui = "b0101".U
 	def Auipc = "b0110".U
 	def Ebreak = "b1001".U
-	def apply() = UInt(4.W)
+	def Ecall = "b1010".U
+
+	def CSR = "b1011".U
+	def Mret = "b1100".U
+
+	def apply() = UInt(5.W)
 }
 
 object FuType {
@@ -171,6 +196,15 @@ object BrType {
 	def bgeu = "b1111".U
 	def jalr = "b10000".U
 	def jal = "b10001".U
+}
+
+object CSRType {
+	def csrrw = "b10010".U
+	def csrrs = "b10011".U
+	def csrrc = "b10100".U
+	def csrrwi = "b10101".U
+	def csrrsi = "b10110".U
+	def csrrci = "b10111".U
 }
 
 object LSLen {
