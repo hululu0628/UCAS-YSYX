@@ -27,7 +27,7 @@ class Top extends Module{
 	val instfetch = Module(new InstFetch())
 	val decoder = Module(new Decoder())
 	val regfile = Module(new Regfile())
-	val csr = Module(new CSR())
+	val csrCtrlBlock = Module(new CSR())
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
 	val alu = Module(new ALU())
@@ -66,7 +66,7 @@ class Top extends Module{
 	when(bru.io.br_flag && decoder.io.out.exType === ExType.Branch) {
 		pc_next := alu.io.result;
 	} .elsewhen(decoder.io.out.exType === ExType.Ecall || decoder.io.out.exType === ExType.Mret) {
-		pc_next := csr.io.rdata
+		pc_next := csrCtrlBlock.io.rdata
 	} .otherwise {
 		pc_next := pc + 4.U
 	}
@@ -87,12 +87,12 @@ class Top extends Module{
 	regfile.io.raddr1 := decoder.io.out.inst.rs1
 	regfile.io.raddr2 := decoder.io.out.inst.rs2
 
-	csr.io.pc := pc
-	csr.io.exType := decoder.io.out.exType
-	csr.io.addr := immgen.io.imm
-	csr.io.fuType := decoder.io.out.fuType
-	csr.io.src1_reg := rdata1
-	csr.io.uimm := decoder.io.out.inst.rs1
+	csrCtrlBlock.io.pc := pc
+	csrCtrlBlock.io.exType := decoder.io.out.exType
+	csrCtrlBlock.io.addr := immgen.io.imm
+	csrCtrlBlock.io.fuType := decoder.io.out.fuType
+	csrCtrlBlock.io.src1_reg := rdata1
+	csrCtrlBlock.io.uimm := decoder.io.out.inst.rs1
 
 	/**
 	  * ALU
@@ -141,7 +141,7 @@ class Top extends Module{
 		ExType.Lui -> immgen.io.imm,
 		ExType.Branch -> (pc + 4.U),
 		ExType.Load -> (ldata),
-		ExType.CSR -> (csr.io.rdata),
+		ExType.CSR -> (csrCtrlBlock.io.rdata),
 	))
 
 	/* ebreak */
