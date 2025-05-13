@@ -127,8 +127,8 @@ object RV32IDecode {
 		CSRRC -> DecodeBase(SrcFrom.RS1, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrc, LSLen.word, wenR = true.B).generate,
 		CSRRWI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrwi, LSLen.word, wenR = true.B).generate,
 		CSRRSI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrsi, LSLen.word, wenR = true.B).generate,
-		CSRRCI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrci, LSLen.word, wenR = true.B).generate
-		MRET -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.Mret, ImmType.NType, AluType.add, LSLen.word).generate
+		CSRRCI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrci, LSLen.word, wenR = true.B).generate,
+		MRET -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.Mret, ImmType.NType, AluType.add, LSLen.word).generate,
 	)
 }
 

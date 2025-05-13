@@ -11,9 +11,9 @@ object CSROp {
 }
 
 class CSRIO extends Bundle {
-	val valid = Input(Bool())
-	val wen = Input(Bool())
+	val pc = Input(UInt(32.W))
 	val addr = Input(UInt(12.W))
+	val exType = Input(ExType())
 	val fuType = Input(FuType())
 	val src1_reg = Input(UInt(32.W))
 	val uimm = Input(UInt(32.W))
@@ -22,7 +22,7 @@ class CSRIO extends Bundle {
 
 trait CSRList{
 	def csr_addr = List(
-		0x300, 0x305, 0x341, 0x342
+		0x300.U, 0x305.U, 0x341.U, 0x342.U
 	)
 	def csr_name = List(
 		"mstatus", "mtvec", "mepc", "mcause"
@@ -34,19 +34,11 @@ case class CSRBase(addr: UInt) {
 	def getaddr = addr
 	def rdata = csr
 
-	def select(op: UInt, reg: UInt, uimm: UInt) = {
-		when(op === CSROp.write) {
-			reg
-		} .otherwise {
-			uimm
-		}
-	}
-
-	def write(data: UInt, mask: UInt, op: UInt): Unit = {
+	def write(csrdata: UInt, src: UInt, op: UInt): Unit = {
 		csr := MuxLookup(op, csr)(Seq(
-			CSROp.write -> data,
-			CSROp.set -> (csr | mask),
-			CSROp.clear -> (csr & ~mask)
+			CSROp.write -> src,
+			CSROp.set -> (csrdata | src),
+			CSROp.clear -> (csrdata & ~src)
 		))	
 	}
 }
@@ -60,6 +52,40 @@ class CSR extends Module with CSRList{
 	val reg = io.src1_reg
 	val uimm = io.uimm
 
+	val mstatus = CSRBase(csr_addr(0))
+	val mtvec = CSRBase(csr_addr(1))
+	val mepc = CSRBase(csr_addr(2))
+	val mcause = CSRBase(csr_addr(3))
+	val csr_list = List(mstatus, mtvec, mepc, mcause)
+	val csrHitVec = csr_list.map(_.getaddr === addr)
 
-	
+	val op = WireInit(0.U(2.W))
+	val src = WireInit(0.U(32.W))
+	rdata := 0.U(32.W)
+
+	// This may be modified when there's a lot of CSR
+	when(io.exType === ExType.CSR) {
+		op := MuxLookup(fuType, 3.U(2.W))(Seq(
+			CSRType.csrrw -> CSROp.write,
+			CSRType.csrrs -> CSROp.set,
+			CSRType.csrrs -> CSROp.clear,
+			CSRType.csrrwi -> CSROp.write,
+			CSRType.csrrsi -> CSROp.set,
+			CSRType.csrrci -> CSROp.clear
+		))
+		src := Mux((fuType === CSRType.csrrwi || fuType === CSRType.csrrsi || fuType === CSRType.csrrci), uimm, reg)
+		csr_list.zip(csrHitVec).foreach { case (csr, hit) =>
+			when(hit) {
+				rdata := csr.rdata
+				csr.write(csr.rdata, reg, op)
+		}}
+	} .elsewhen(io.exType === ExType.Ecall) {
+		op := CSROp.write
+		rdata := mtvec.rdata
+		mepc.write(mepc.rdata, io.pc, op)
+		mcause.write(mcause.rdata, 0xb.U(32.W), op)
+	} .elsewhen(io.exType === ExType.Mret) {
+		op := CSROp.write
+		rdata := mepc.rdata
+	}
 }

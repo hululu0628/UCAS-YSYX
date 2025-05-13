@@ -65,6 +65,8 @@ class Top extends Module{
 
 	when(bru.io.br_flag && decoder.io.out.exType === ExType.Branch) {
 		pc_next := alu.io.result;
+	} .elsewhen(decoder.io.out.exType === ExType.Ecall || decoder.io.out.exType === ExType.Mret) {
+		pc_next := csr.io.rdata
 	} .otherwise {
 		pc_next := pc + 4.U
 	}
@@ -85,7 +87,8 @@ class Top extends Module{
 	regfile.io.raddr1 := decoder.io.out.inst.rs1
 	regfile.io.raddr2 := decoder.io.out.inst.rs2
 
-	csr.io.wen := decoder.io.out.exType === ExType.CSR
+	csr.io.pc := pc
+	csr.io.exType := decoder.io.out.exType
 	csr.io.addr := immgen.io.imm
 	csr.io.fuType := decoder.io.out.fuType
 	csr.io.src1_reg := rdata1
