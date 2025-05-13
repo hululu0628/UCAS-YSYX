@@ -10,25 +10,6 @@ object CSROp {
 	def clear = "b10".U
 }
 
-class CSRIO extends Bundle {
-	val pc = Input(UInt(32.W))
-	val addr = Input(UInt(12.W))
-	val exType = Input(ExType())
-	val fuType = Input(FuType())
-	val src1_reg = Input(UInt(32.W))
-	val uimm = Input(UInt(32.W))
-	val rdata = Output(UInt(32.W))
-}
-
-trait CSRList{
-	def csr_addr = List(
-		0x300.U, 0x305.U, 0x341.U, 0x342.U
-	)
-	def csr_name = List(
-		"mstatus", "mtvec", "mepc", "mcause"
-	)
-}
-
 case class CSRBase(addr: UInt) {
 	val csr = RegInit(0.U(32.W))
 	def getaddr = addr
@@ -43,49 +24,74 @@ case class CSRBase(addr: UInt) {
 	}
 }
 
+class CSRIO extends Bundle {
+	val pc = Input(UInt(32.W))
+	val addr = Input(UInt(12.W))
+	val exType = Input(ExType())
+	val fuType = Input(FuType())
+	val src1_reg = Input(UInt(32.W))
+	val uimm = Input(UInt(32.W))
+	val rdata = Output(UInt(32.W))
+}
+
+trait CSRList {
+	// Add new csr here
+	def csrPair = List(
+		("mstatus", 0x300.U),
+		("mtvec", 0x305.U),
+		("mepc", 0x341.U),
+		("mcause", 0x342.U)
+	)
+	def csrName = csrPair.unzip._1
+	def csrAddr = csrPair.unzip._2
+
+	// get csr by name
+	val csrNameHT = csrName.zip(csrAddr).map { case (name, addr) => (name -> CSRBase(addr))}.toMap
+	// get csr by index
+	val csrList = csrName.map { name => csrNameHT(name) }
+}
+
 class CSR extends Module with CSRList{
 	val io = IO(new CSRIO)
 
-	val rdata = io.rdata
 	val fuType = io.fuType
 	val addr = io.addr
 	val reg = io.src1_reg
 	val uimm = io.uimm
 
-	val mstatus = CSRBase(csr_addr(0))
-	val mtvec = CSRBase(csr_addr(1))
-	val mepc = CSRBase(csr_addr(2))
-	val mcause = CSRBase(csr_addr(3))
-	val csr_list = List(mstatus, mtvec, mepc, mcause)
-	val csrHitVec = csr_list.map(_.getaddr === addr)
-
 	val op = WireInit(0.U(2.W))
 	val src = WireInit(0.U(32.W))
-	rdata := 0.U(32.W)
+	val rdata = WireInit(0.U(32.W))
+
+	val csrHitVec = csrList.map { case csr => addr === csr.getaddr }.toVector
 
 	// This may be modified when there's a lot of CSR
 	when(io.exType === ExType.CSR) {
 		op := MuxLookup(fuType, 3.U(2.W))(Seq(
 			CSRType.csrrw -> CSROp.write,
 			CSRType.csrrs -> CSROp.set,
-			CSRType.csrrs -> CSROp.clear,
+			CSRType.csrrc -> CSROp.clear,
 			CSRType.csrrwi -> CSROp.write,
 			CSRType.csrrsi -> CSROp.set,
 			CSRType.csrrci -> CSROp.clear
 		))
-		src := Mux((fuType === CSRType.csrrwi || fuType === CSRType.csrrsi || fuType === CSRType.csrrci), uimm, reg)
-		csr_list.zip(csrHitVec).foreach { case (csr, hit) =>
+		src := Mux((fuType === CSRType.csrrwi || 
+			    fuType === CSRType.csrrsi || 
+			    fuType === CSRType.csrrci), uimm, reg)
+		csrHitVec.zipWithIndex.foreach { case (hit, i) =>
 			when(hit) {
-				rdata := csr.rdata
-				csr.write(csr.rdata, reg, op)
+				rdata := csrList(i).rdata
+				csrList(i).write(csrList(i).rdata, reg, op)
 		}}
 	} .elsewhen(io.exType === ExType.Ecall) {
 		op := CSROp.write
-		rdata := mtvec.rdata
-		mepc.write(mepc.rdata, io.pc, op)
-		mcause.write(mcause.rdata, 0xb.U(32.W), op)
+		rdata := csrNameHT("mtvec").rdata
+		csrNameHT("mepc").write(csrNameHT("mepc").rdata, io.pc, op)
+		csrNameHT("mcause").write(csrNameHT("mcause").rdata, 0xb.U(32.W), op)
 	} .elsewhen(io.exType === ExType.Mret) {
 		op := CSROp.write
-		rdata := mepc.rdata
+		rdata := csrNameHT("mepc").rdata
 	}
+
+	io.rdata := rdata
 }
