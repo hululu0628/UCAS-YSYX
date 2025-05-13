@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <sim/sdb.h>
 #include <mem/mem.h>
 #include <device/map.h>
 #include <debug.h>
@@ -70,10 +71,7 @@ word_t map_read(paddr_t addr, int len, IOMap *map) {
 	invoke_callback(map->callback, offset, len, false); // prepare data to read
 	word_t ret = host_read((void *)((uintptr_t)map->space + offset), len);
 
-#ifdef CONFIG_DTRACE
-	void trace_device(paddr_t addr, int len, IOMap * map, int is_write);
-	trace_device(addr, len, map, 0);
-#endif
+	IFDEF(CONFIG_DTRACE, trace_rdevice(addr, len, ret, map->name);)
 
 	return ret;
 }
@@ -85,9 +83,5 @@ void map_write(paddr_t addr, int len, word_t data, IOMap *map) {
 	host_write((void *)((uintptr_t)map->space + offset), len, data);
 	invoke_callback(map->callback, offset, len, true);
 
-#ifdef CONFIG_DTRACE
-	void trace_device(paddr_t addr, int len, IOMap * map, int is_write);
-	trace_device(addr, len, map, 1);
-#endif
-
+	IFDEF(CONFIG_DTRACE, trace_wdevice(addr, len, data, map->name);)
 }

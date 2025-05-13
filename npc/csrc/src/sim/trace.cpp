@@ -158,4 +158,23 @@ void trace_func(paddr_t addr, word_t code)
 
 #endif
 
+#ifdef CONFIG_DTRACE
+void trace_rdevice(paddr_t addr, int len, word_t data, const char* name)
+{
+	log_write(
+		"[ SDB ]At PC = " << FMT_PADDR(top->io_debug_pc) << "   read "
+		<< len <<"-byte long Data 0x" << std::hex << data 
+		<< " from device " << name <<" at Address " << FMT_PADDR(addr)
+	);
+}
+void trace_wdevice(paddr_t addr, int len, word_t data, const char* name)
+{
+	log_write(
+		"[ SDB ]At PC = " << FMT_PADDR(top->io_debug_pc) << "   write "
+		<< len <<"-byte long Data 0x"<< std::hex << data 
+		<<" to device " << name <<" at Address " << FMT_PADDR(addr)
+	);
+}
+#endif
+
 #endif

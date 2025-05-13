@@ -37,3 +37,5 @@ void trace_rmem(paddr_t addr, word_t data);
 void trace_wmem(paddr_t addr, word_t data, unsigned char mask);
 void init_ftrace(char * elf_file);
 void trace_func(paddr_t addr, word_t code);
+void trace_rdevice(paddr_t addr, int len, word_t data, const char* name);
+void trace_wdevice(paddr_t addr, int len, word_t data, const char* name);
