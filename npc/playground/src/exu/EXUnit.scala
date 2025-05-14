@@ -110,7 +110,7 @@ class EXU extends Module {
 	out.result.alu := alu.io.result
 	out.result.csr := csrCtrlBlock.io.exuRdata
 	out.result.imm := immgen.io.imm
-	out.result.mem := mem.io.rdata
+	out.result.mem := ldata
 	out.result.bruFlag := bru.io.br_flag
 	out.result.rdata1 := regfile.io.rdata1
 

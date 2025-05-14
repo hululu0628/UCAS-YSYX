@@ -20,7 +20,7 @@ class InstFetch extends Module {
 
 	val dpi_fetch = Module(new DPIFetch())
 
-	val pc = RegInit(0.U(32.W))
+	val pc = RegInit(0x80000000L.U(32.W))
 
 	pc := io.writeback.bits.nextpc
 

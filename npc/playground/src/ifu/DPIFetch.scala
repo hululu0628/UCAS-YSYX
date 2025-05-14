@@ -9,9 +9,9 @@ class DPIFetch extends BlackBox with HasBlackBoxInline {
 		val inst = Output(UInt(32.W))
 	})
 	setInline(
-		"InstFetch.sv",
+		"DPIFetch.sv",
 		"""
-		|module InstFetch(
+		|module DPIFetch(
 		|	input [31:0] pc,
 		|	output reg [31:0] inst
 		|);
