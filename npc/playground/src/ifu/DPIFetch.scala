@@ -1,9 +1,9 @@
-package cpu.instfetch
+package cpu.ifu
 
 import chisel3._
 import chisel3.util._
 
-class InstFetch extends BlackBox with HasBlackBoxInline {
+class DPIFetch extends BlackBox with HasBlackBoxInline {
 	val io = IO(new Bundle{
 		val pc = Input(UInt(32.W))
 		val inst = Output(UInt(32.W))

@@ -3,6 +3,8 @@ package cpu.decode
 import chisel3._
 import chisel3.util._
 
+import cpu.ifu._
+
 class StaticInst extends Bundle {
 	val code = UInt(32.W)
 
@@ -13,6 +15,9 @@ class StaticInst extends Bundle {
 	def funct3 = code(14, 12)
 	def funct7 = code(31, 25)
 	def shamt = code(24, 20)
+
+	def imm12 = code(31, 20)
+	def uimm = code(19, 15)
 }
 
 case class DecodeBase(
@@ -216,6 +221,9 @@ object LSLen {
 }
 
 class DecodedInst extends Bundle {
+	val inst = new StaticInst
+	val pc = UInt(32.W) // pc of the instruction
+
 	val src1From = SrcFrom() // rs1 source
 	val src2From = SrcFrom() // rs2 source
 	val exType = ExType()
@@ -227,8 +235,6 @@ class DecodedInst extends Bundle {
 	val loadSignExt = Bool() // sign extend for load
 
 	val isEbreak = Bool() // is ebreak instruction
-
-	val inst = new StaticInst
 
 	def default: List[UInt] = 
 		List(SrcFrom.RS1,SrcFrom.RS2,ExType.AluR,ImmType.NType,AluType.add,LSLen.word,false.B,false.B,false.B)
@@ -252,14 +258,19 @@ class DecodedInst extends Bundle {
 }
 
 class DecoderIO extends Bundle {
-	val inst = Input(UInt(32.W))
-	val out = Output(new DecodedInst)
+	val in = Flipped(Decoupled(new IFUOut))
+	val out = Decoupled(new DecodedInst)
 }
 
 class Decoder extends Module{
 	val io = IO(new DecoderIO)
-	io.out.inst.code := io.inst
-	io.out.decode(RV32IDecode.table)
+	io.out.bits.inst := io.in.bits.inst
+	io.out.bits.decode(RV32IDecode.table)
 
-	io.out.isEbreak := io.inst === RV32IDecode.EBREAK
+	io.out.bits.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
+	io.out.bits.pc := io.in.bits.pc
+
+	// for single cpu
+	io.in.ready := true.B
+	io.out.valid := true.B
 }
