@@ -31,6 +31,6 @@ class InstFetch extends Module {
 	io.out.bits.pc := pc
 
 	// for single cpu
-	io.writeback.ready := true.B
+	io.writeback.ready := io.out.ready
 	io.out.valid := true.B
 }

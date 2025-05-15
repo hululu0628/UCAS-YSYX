@@ -271,6 +271,6 @@ class Decoder extends Module{
 	io.out.bits.pc := io.in.bits.pc
 
 	// for single cpu
-	io.in.ready := true.B
-	io.out.valid := true.B
+	io.in.ready := io.out.ready
+	io.out.valid := io.in.valid
 }

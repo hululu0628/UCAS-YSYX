@@ -115,7 +115,7 @@ class EXU extends Module {
 	out.result.rdata1 := regfile.io.rdata1
 
 	// for single cpu
-	io.decode.ready := true.B
+	io.decode.ready := io.out.ready
 	io.writeback.ready := true.B
-	io.out.valid := true.B
+	io.out.valid := io.decode.valid
 }

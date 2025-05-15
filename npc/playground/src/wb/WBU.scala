@@ -53,5 +53,5 @@ class WBU extends Module {
 
 	// for single cpu
 	io.in.ready := true.B
-	io.out.valid := true.B
+	io.out.valid := io.in.valid
 }
