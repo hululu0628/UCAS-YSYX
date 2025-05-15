@@ -37,7 +37,7 @@ class Top extends Module{
 	StageConnect(idu.io.out, exu.io.decode)
 	StageConnect(exu.io.out, wbu.io.in)
 	StageConnect(wbu.io.out, exu.io.writeback)
-	StageConnectMulti(wbu.io.out, ifu.io.writeback)
+	StageConnect(wbu.io.out, ifu.io.writeback)
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.out.bits.info.isEbreak

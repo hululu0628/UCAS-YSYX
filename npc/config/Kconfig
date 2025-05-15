@@ -28,6 +28,10 @@ endmenu
 
 menu "Testing and Debugging"
 
+config AUTOQUIT_CYCLE
+  int "Auto quit after blocked for cycles"
+  default 1000
+
 config TRACE
   bool "Enable tracer"
   default y

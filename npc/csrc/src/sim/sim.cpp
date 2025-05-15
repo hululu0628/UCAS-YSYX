@@ -8,6 +8,7 @@ void monitor_run(VTop *top);
 void difftest_step();
 void device_update();
 
+word_t blocked_cycle = 0;
 word_t excuted_inst_num = 0;
 
 #ifdef CONFIG_FST
@@ -74,7 +75,18 @@ void reg_modify(VTop *top)
 void trace_and_difftest()
 {
 	if(!top->io_debug_valid)
-		return;
+	{
+		blocked_cycle++;
+		if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
+		{
+			npc_state.state = NPC_ABORT;
+			return;
+		}
+	}
+	else
+		blocked_cycle = 0;
+
+	excuted_inst_num++;
 	IFDEF(CONFIG_DIFFTEST, difftest_step();)
 	IFDEF(CONFIG_ITRACE, trace_instruction();)
 	IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)
@@ -99,7 +111,6 @@ void sim_step(uint64_t n)
 	for(; n > 0; n--)
 	{
 		sim_once();
-		excuted_inst_num++;
 		trace_and_difftest();
 		if(npc_state.state != NPC_RUNNING) break;
 		IFDEF(CONFIG_DEVICE, device_update());

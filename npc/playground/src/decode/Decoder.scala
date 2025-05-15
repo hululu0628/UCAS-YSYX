@@ -270,7 +270,15 @@ class Decoder extends Module{
 	io.out.bits.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
 	io.out.bits.pc := io.in.bits.pc
 
+	// state machine
+	val s_idle :: s_ifvalid :: Nil = Enum(2)
+	val state = RegInit(s_idle)
+	state := MuxLookup(state, s_idle)(Seq(
+		s_idle -> Mux(io.in.fire, s_ifvalid, s_idle),
+		s_ifvalid -> Mux(!io.in.fire, s_idle, s_ifvalid)
+	))
+
 	// for single cpu
 	io.in.ready := io.out.ready
-	io.out.valid := io.in.valid
+	io.out.valid := state === s_ifvalid
 }

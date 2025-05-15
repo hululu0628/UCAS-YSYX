@@ -13,6 +13,7 @@ extern VerilatedFstC* tfp;
 extern VerilatedVcdC* tfp;
 #endif
 
+extern unsigned blocked_cycle;
 
 extern VerilatedContext* contextp;
 extern VTop *top;
