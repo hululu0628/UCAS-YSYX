@@ -73,6 +73,8 @@ void reg_modify(VTop *top)
 
 void trace_and_difftest()
 {
+	if(!top->io_debug_valid)
+		return;
 	IFDEF(CONFIG_DIFFTEST, difftest_step();)
 	IFDEF(CONFIG_ITRACE, trace_instruction();)
 	IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)

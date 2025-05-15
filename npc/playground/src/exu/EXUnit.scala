@@ -49,7 +49,7 @@ class EXU extends Module {
 	/**
 	  * Regfile
 	  */
-	regfile.io.wen := wbIn.info.wenR
+	regfile.io.wen := wbIn.info.wenR && io.writeback.fire
 	regfile.io.waddr := wbIn.info.inst.rd
 	regfile.io.wdata := wbIn.regWdata
 	regfile.io.raddr1 := idIn.inst.rs1
@@ -60,6 +60,7 @@ class EXU extends Module {
 	  */
 	csrCtrlBlock.io.exuAddr := idIn.inst.imm12
 	csrCtrlBlock.io.exuExType := idIn.exType
+	csrCtrlBlock.io.wen := io.writeback.fire
 	csrCtrlBlock.io.wbuAddr := wbIn.info.inst.imm12
 	csrCtrlBlock.io.wbuExType := wbIn.info.exType
 	csrCtrlBlock.io.wbuFuType := wbIn.info.fuType

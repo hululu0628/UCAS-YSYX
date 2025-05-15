@@ -9,6 +9,7 @@ import cpu.wb._
 
 class CPUIO extends Bundle {
 	val debug = new Bundle {
+		val valid = Output(Bool())
 		val pc = Output(UInt(32.W))
 		val npc = Output(UInt(32.W))
 		val inst = Output(new StaticInst)
@@ -32,11 +33,11 @@ class Top extends Module{
 	/**
 	  * Stage Connect
 	  */
-	StageConnect(ifu.io.out, idu.io.in)
+	StageConnectMulti(ifu.io.out, idu.io.in)
 	StageConnect(idu.io.out, exu.io.decode)
 	StageConnect(exu.io.out, wbu.io.in)
 	StageConnect(wbu.io.out, exu.io.writeback)
-	StageConnect(wbu.io.out, ifu.io.writeback)
+	StageConnectMulti(wbu.io.out, ifu.io.writeback)
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.out.bits.info.isEbreak
@@ -44,7 +45,7 @@ class Top extends Module{
 	/**
 	  * Debug Module
 	  */
-
+	io.debug.valid := wbu.io.out.valid
 	io.debug.pc := wbu.io.out.bits.info.pc
 	io.debug.npc := wbu.io.out.bits.nextpc
 	io.debug.inst := wbu.io.out.bits.info.inst

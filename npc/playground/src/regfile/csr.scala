@@ -27,6 +27,7 @@ case class CSRBase(addr: UInt) {
 class CSRIO extends Bundle {
 	val exuAddr = Input(UInt(12.W))
 	val exuExType = Input(ExType())
+	val wen = Input(Bool())
 	val wbuAddr = Input(UInt(12.W))
 	val wbuExType = Input(ExType())
 	val wbuFuType = Input(FuType())
@@ -59,6 +60,7 @@ class CSR extends Module with CSRList{
 
 	val exuAddr = io.exuAddr
 	val exuExType = io.exuExType
+	val wen = io.wen
 	val wbuAddr = io.wbuAddr
 	val wbuExType = io.wbuExType
 	val wbuFuType = io.wbuFuType
@@ -86,7 +88,7 @@ class CSR extends Module with CSRList{
 		rdata := 0.U
 	}
 
-	when(wbuExType === ExType.CSR) {
+	when(wen && wbuExType === ExType.CSR) {
 		op := MuxLookup(wbuFuType, 3.U(2.W))(Seq(
 			CSRType.csrrw -> CSROp.write,
 			CSRType.csrrs -> CSROp.set,
@@ -98,11 +100,11 @@ class CSR extends Module with CSRList{
 		csrHitVecWB.zipWithIndex.foreach { 
 			case (hit, i) => when(hit) {csrList(i).write(csrList(i).rdata, wbuSrc1, op)}
 		}
-	} .elsewhen(wbuExType === ExType.Ecall) {
+	} .elsewhen(wen && wbuExType === ExType.Ecall) {
 		op := CSROp.write
 		csrNameHT("mepc").write(csrNameHT("mepc").rdata, wbuPC, op)
 		csrNameHT("mcause").write(csrNameHT("mcause").rdata, 0xb.U(32.W), op)
-	} .elsewhen(wbuExType === ExType.Mret) {
+	} .elsewhen(wen && wbuExType === ExType.Mret) {
 		op := CSROp.write
 		csrNameHT("mepc").write(csrNameHT("mepc").rdata, wbuPC, op)
 	}

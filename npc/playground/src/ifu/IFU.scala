@@ -18,19 +18,17 @@ class IFIO extends Bundle {
 class InstFetch extends Module {
 	val io = IO(new IFIO)
 
-	val dpi_fetch = Module(new DPIFetch())
+	val isram = Module(new InstSRAM())
 
-	val pc = RegInit(0x80000000L.U(32.W))
+	val pc = RegEnable(io.writeback.bits.nextpc, 0x80000000L.U(32.W), io.writeback.fire)
 
-	pc := io.writeback.bits.nextpc
+	isram.io.pc := pc
 
-	dpi_fetch.io.pc := pc
-
-	io.out.bits.inst.code := dpi_fetch.io.inst
+	io.out.bits.inst.code := isram.io.inst
 
 	io.out.bits.pc := pc
 
 	// for single cpu
 	io.writeback.ready := io.out.ready
-	io.out.valid := true.B
+	io.out.valid := isram.io.valid 
 }
