@@ -36,20 +36,20 @@ class Top extends Module{
 	StageConnect(ifu.io.out, idu.io.in)
 	StageConnect(idu.io.out, exu.io.decode)
 	StageConnect(exu.io.out, wbu.io.in)
-	StageConnect(wbu.io.out, exu.io.writeback)
-	StageConnect(wbu.io.out, ifu.io.writeback)
+	StageConnect(wbu.io.w2e, exu.io.writeback)
+	StageConnect(wbu.io.w2f, ifu.io.writeback)
 	
 	/* ebreak */
-	ebreak_handler.io.inst_ebreak := wbu.io.out.bits.info.isEbreak
+	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak
 
 	/**
 	  * Debug Module
 	  */
-	io.debug.valid := wbu.io.out.valid
-	io.debug.pc := wbu.io.out.bits.info.pc
-	io.debug.npc := wbu.io.out.bits.nextpc
-	io.debug.inst := wbu.io.out.bits.info.inst
-	io.debug.wen := wbu.io.out.bits.info.wenR
-	io.debug.waddr := wbu.io.out.bits.info.inst.rd
-	io.debug.data := wbu.io.out.bits.regWdata
+	io.debug.valid := wbu.io.w2e.valid
+	io.debug.pc := wbu.io.w2e.bits.info.pc
+	io.debug.npc := wbu.io.w2f.bits.nextpc
+	io.debug.inst := wbu.io.w2e.bits.info.inst
+	io.debug.wen := wbu.io.w2e.bits.info.wenR
+	io.debug.waddr := wbu.io.w2e.bits.info.inst.rd
+	io.debug.data := wbu.io.w2e.bits.regWdata
 }
