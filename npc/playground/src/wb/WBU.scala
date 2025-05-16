@@ -66,7 +66,7 @@ class WBU extends Module {
 	w2e.regRdata := in.result.rdata1
 
 	// for single cpu
-	io.in.ready := true.B
+	io.in.ready := io.w2f.fire || e2wState.io.state === e2wState.s_waitvalid
 	io.w2e.valid := io.in.fire || w2eState.io.state === w2eState.s_waitready
 	io.w2f.valid := io.in.fire || w2fState.io.state === w2fState.s_waitready
 }

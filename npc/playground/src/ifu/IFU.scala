@@ -12,7 +12,7 @@ class IFUOut extends Bundle {
 }
 
 class IFIO extends Bundle {
-	val writeback = Flipped(Decoupled(new WBUOut))
+	val writeback = Flipped(Decoupled(new Bundle { val nextpc = UInt(32.W) }))
 	val out = Decoupled(new IFUOut)
 }
 
