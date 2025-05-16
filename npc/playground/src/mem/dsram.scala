@@ -1,53 +1,34 @@
-package cpu.exu
+package cpu.mem
 
 import chisel3._
 import chisel3.util._
 import cpu.decode._
 
-class ysyxMemIO extends Bundle {
-	val valid = Input(Bool())
-	val wen = Input(Bool())
-	val addr = Input(UInt(32.W))
-	val wdata = Input(UInt(32.W))
-	val wmask = Input(UInt(8.W))
-	val rdata = Output(UInt(32.W))
-}
+class DataSRAM extends Module {
+	val io = IO(new Bundle {
+		val valid = Input(Bool())
+		val ready = Output(Bool())
+		val wen = Input(Bool())
+		val addr = Input(UInt(32.W))
+		val wdata = Input(UInt(32.W))
+		val wmask = Input(UInt(8.W))
+		val rdata = Output(UInt(32.W))
+	})
+	val dpiMem = Module(new DPIMem())
+	dpiMem.io.valid := io.valid
+	dpiMem.io.wen := io.wen
+	dpiMem.io.addr := io.addr
+	dpiMem.io.wdata := io.wdata
+	dpiMem.io.wmask := io.wmask
 
-class ysyxMem extends BlackBox with HasBlackBoxInline {
-	val io = IO(new ysyxMemIO)
-	setInline(
-		"ysyxMem.sv",
-		"""
-		|module ysyxMem(
-		|	input valid,
-		|	input wen,
-		|	input [31:0] addr,
-		|	input [31:0] wdata,
-		|	input [7:0] wmask,
-		|	output reg [31:0] rdata
-		|);
-		|import "DPI-C" function int dpic_read(input int raddr);
-		|import "DPI-C" function void dpic_write(
-		|input int waddr, input int wdata, input byte wmask);
-		|always @(*) begin
-		|	if (valid) begin
-		|		if (wen) begin
-		|			dpic_write(addr, wdata, wmask);
-		|		end
-		|		if(!wen) begin
-		|			rdata = dpic_read(addr);
-		|		end
-		|		else begin
-		|			rdata = 0;
-		|		end
-		|	end
-		|	else begin
-		|		rdata = 0;
-		|	end
-		|end
-		|endmodule
-		""".stripMargin
-	)
+	val s_idle :: s_memready :: Nil = Enum(2)
+	val state = RegInit(s_idle)
+	state := MuxLookup(state, s_idle)(Seq(
+		s_idle -> Mux(io.valid && io.wen, s_memready, s_idle),
+		s_memready -> (s_idle)
+	))
+	io.ready := state === s_memready
+	io.rdata := dpiMem.io.rdata
 
 	/* Select because of aligned requirement */
 	def getAlignedAddr(addr: UInt, lstype: UInt): UInt = {

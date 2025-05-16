@@ -2,9 +2,11 @@ package cpu.exu
 
 import chisel3._
 import chisel3.util._
+import cpu._
 import cpu.decode._
 import cpu.wb._
 import cpu.regfile._
+import cpu.mem.DataSRAM
 
 class EXUOut extends Bundle {
 	val result = new Bundle {
@@ -20,7 +22,7 @@ class EXUOut extends Bundle {
 
 class EXUIO extends Bundle {
 	val decode = Flipped(Decoupled(new DecodedInst))
-	val writeback = Flipped(Decoupled(new WBUOut))
+	val writeback = Flipped(Decoupled(new W2EOut))
 	val out = Decoupled(new EXUOut)
 }
 
@@ -35,10 +37,20 @@ class EXU extends Module {
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
 	val alu = Module(new ALU())
-	val mem = Module(new ysyxMem())
+	val mem = Module(new DataSRAM())
 
 	val aluA = Wire(UInt(32.W))
 	val aluB = Wire(UInt(32.W))
+
+	/**
+	  * State machine for connecting different stages
+	  */
+	val d2eState = Module(new StateMachine("master"))
+	d2eState.io.valid := io.decode.valid
+	d2eState.io.ready := io.decode.ready
+	val e2wState = Module(new StateMachine("slave"))
+	e2wState.io.valid := io.out.valid
+	e2wState.io.ready := io.out.ready
 
 	/**
 	  * ImmGen
@@ -99,6 +111,10 @@ class EXU extends Module {
 	/**
 	  * Memory
 	  */
+	val e2lRAMState = Module(new StateMachine("slave")) // state machine for loading data
+	e2lRAMState.io.valid := idIn.exType === ExType.Load
+	e2lRAMState.io.ready := mem.io.ready
+
 	val memAddr = alu.io.result
 	mem.io.valid := idIn.exType === ExType.Load || idIn.exType === ExType.Store
 	mem.io.addr := mem.getAlignedAddr(memAddr, idIn.lsLength)
@@ -116,7 +132,7 @@ class EXU extends Module {
 	out.result.rdata1 := regfile.io.rdata1
 
 	// for single cpu
-	io.decode.ready := io.out.ready
+	io.decode.ready := io.out.fire || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := io.decode.valid
+	io.out.valid := io.decode.fire
 }

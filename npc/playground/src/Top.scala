@@ -33,7 +33,7 @@ class Top extends Module{
 	/**
 	  * Stage Connect
 	  */
-	StageConnectMulti(ifu.io.out, idu.io.in)
+	StageConnect(ifu.io.out, idu.io.in)
 	StageConnect(idu.io.out, exu.io.decode)
 	StageConnect(exu.io.out, wbu.io.in)
 	StageConnect(wbu.io.out, exu.io.writeback)

@@ -3,6 +3,7 @@ package cpu.decode
 import chisel3._
 import chisel3.util._
 
+import cpu._
 import cpu.ifu._
 
 class StaticInst extends Bundle {
@@ -264,21 +265,22 @@ class DecoderIO extends Bundle {
 
 class Decoder extends Module{
 	val io = IO(new DecoderIO)
+
+	// state machine for connecting different stages
+	val f2dState = Module(new StateMachine("master"))
+	val d2eState = Module(new StateMachine("slave"))
+	f2dState.io.valid := io.in.valid
+	f2dState.io.ready := io.in.ready
+	d2eState.io.valid := io.out.valid
+	d2eState.io.ready := io.out.ready
+
 	io.out.bits.inst := io.in.bits.inst
 	io.out.bits.decode(RV32IDecode.table)
 
 	io.out.bits.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
 	io.out.bits.pc := io.in.bits.pc
 
-	// state machine
-	val s_idle :: s_ifvalid :: Nil = Enum(2)
-	val state = RegInit(s_idle)
-	state := MuxLookup(state, s_idle)(Seq(
-		s_idle -> Mux(io.in.fire, s_ifvalid, s_idle),
-		s_ifvalid -> Mux(!io.in.fire, s_idle, s_ifvalid)
-	))
-
 	// for single cpu
-	io.in.ready := io.out.ready
-	io.out.valid := state === s_ifvalid
+	io.in.ready := io.out.fire || f2dState.io.state === f2dState.s_waitvalid
+	io.out.valid := io.in.fire || d2eState.io.state === d2eState.s_waitready
 }
