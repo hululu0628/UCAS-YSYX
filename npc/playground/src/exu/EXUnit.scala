@@ -116,7 +116,7 @@ class EXU extends Module {
 	e2lRAMState.io.ready := mem.io.ready
 
 	val memAddr = alu.io.result
-	mem.io.valid := idIn.exType === ExType.Load || idIn.exType === ExType.Store
+	mem.io.valid := (idIn.exType === ExType.Load || idIn.exType === ExType.Store) && io.decode.fire
 	mem.io.addr := mem.getAlignedAddr(memAddr, idIn.lsLength)
 	mem.io.wen := idIn.wenM
 	mem.io.wdata := mem.getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
