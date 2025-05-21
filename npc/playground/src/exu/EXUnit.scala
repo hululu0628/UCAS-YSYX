@@ -42,9 +42,7 @@ class EXU extends Module {
 	val aluA = Wire(UInt(32.W))
 	val aluB = Wire(UInt(32.W))
 
-	/**
-	  * State machine for connecting different stages
-	  */
+	// State machine for connecting different stages
 	val d2eState = Module(new StateMachine("master"))
 	d2eState.io.valid := io.decode.valid
 	d2eState.io.ready := io.decode.ready
@@ -112,11 +110,13 @@ class EXU extends Module {
 	  * Memory
 	  */
 	val e2lRAMState = Module(new StateMachine("slave")) // state machine for loading data
-	e2lRAMState.io.valid := idIn.exType === ExType.Load
+	e2lRAMState.io.valid := RegNext(io.decode.fire, false.B) && (idIn.exType === ExType.Load)
 	e2lRAMState.io.ready := mem.io.ready
 
 	val memAddr = alu.io.result
-	mem.io.valid := (idIn.exType === ExType.Load || idIn.exType === ExType.Store) && io.decode.fire
+	mem.io.valid := (RegNext(io.decode.fire, false.B) && 
+			 (idIn.exType === ExType.Load || idIn.exType === ExType.Store)) || 
+			e2lRAMState.io.state === e2lRAMState.s_waitready
 	mem.io.addr := mem.getAlignedAddr(memAddr, idIn.lsLength)
 	mem.io.wen := idIn.wenM
 	mem.io.wdata := mem.getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
@@ -131,8 +131,8 @@ class EXU extends Module {
 	out.result.bruFlag := bru.io.br_flag
 	out.result.rdata1 := regfile.io.rdata1
 
-	// for single cpu
-	io.decode.ready := io.out.fire || d2eState.io.state === d2eState.s_waitvalid
+	// for multi-cycle cpu
+	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := io.decode.fire
+	io.out.valid := Mux(idIn.exType === ExType.Load, mem.io.ready || e2wState.io.state === e2wState.s_waitready, RegNext(io.decode.fire))
 }

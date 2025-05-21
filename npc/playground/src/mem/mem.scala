@@ -16,7 +16,7 @@ class DPIMemIO extends Bundle {
 class DPIMem extends BlackBox with HasBlackBoxInline {
 	val io = IO(new DPIMemIO)
 	setInline(
-		"ysyxMem.sv",
+		"DPIMem.sv",
 		"""
 		|module DPIMem(
 		|	input valid,

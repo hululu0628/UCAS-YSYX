@@ -25,22 +25,22 @@ class InstFetch extends Module {
 
 	// state machine for fetching from isram
 	val f2RAMState = Module(new StateMachine("slave"))
-	f2RAMState.io.valid := RegNext(io.writeback.fire)
+	f2RAMState.io.valid := RegNext(io.writeback.fire, true.B)
 	f2RAMState.io.ready := isram.io.ready
 	// state machine for connecting different stages
-	val w2dState = Module(new StateMachine("master"))
-	w2dState.io.valid := io.writeback.valid
-	w2dState.io.ready := io.writeback.ready
+	val w2fState = Module(new StateMachine("master"))
+	w2fState.io.valid := io.writeback.valid
+	w2fState.io.ready := io.writeback.ready
 	val f2dState = Module(new StateMachine("slave"))
-	f2dState.io.valid := isram.io.valid
+	f2dState.io.valid := isram.io.ready
 	f2dState.io.ready := io.out.ready
 
 	isram.io.pc := pc
-	isram.io.valid := true.B
+	isram.io.valid := f2RAMState.io.valid || f2RAMState.io.state === f2RAMState.s_waitready
 
 	io.out.bits.inst.code := isram.io.inst
 	io.out.bits.pc := pc
 
-	io.writeback.ready := io.out.fire || w2dState.io.state === w2dState.s_waitvalid
+	io.writeback.ready := io.out.ready || w2fState.io.state === w2fState.s_waitvalid
 	io.out.valid := isram.io.ready || f2dState.io.state === f2dState.s_waitready
 }

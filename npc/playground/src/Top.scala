@@ -33,11 +33,11 @@ class Top extends Module{
 	/**
 	  * Stage Connect
 	  */
-	StageConnect(ifu.io.out, idu.io.in)
-	StageConnect(idu.io.out, exu.io.decode)
-	StageConnect(exu.io.out, wbu.io.in)
-	StageConnect(wbu.io.w2e, exu.io.writeback)
-	StageConnect(wbu.io.w2f, ifu.io.writeback)
+	StageConnectMulti(ifu.io.out, idu.io.in)
+	StageConnectMulti(idu.io.out, exu.io.decode)
+	StageConnectMulti(exu.io.out, wbu.io.in)
+	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
+	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak

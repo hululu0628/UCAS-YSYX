@@ -24,7 +24,8 @@ class WBU extends Module {
 
 	val in = io.in.bits
 	val w2e = io.w2e.bits
-	val nextpc = io.w2f.bits
+	val w2f = io.w2f.bits
+	val nextpc = io.w2f.bits.nextpc
 	val result = w2e.regWdata
 
 	/**
@@ -66,7 +67,7 @@ class WBU extends Module {
 	w2e.regRdata := in.result.rdata1
 
 	// for single cpu
-	io.in.ready := io.w2f.fire || e2wState.io.state === e2wState.s_waitvalid
-	io.w2e.valid := io.in.fire || w2eState.io.state === w2eState.s_waitready
-	io.w2f.valid := io.in.fire || w2fState.io.state === w2fState.s_waitready
+	io.in.ready := true.B
+	io.w2e.valid := RegNext(io.in.fire) || w2eState.io.state === w2eState.s_waitready
+	io.w2f.valid := RegNext(io.in.fire) || w2fState.io.state === w2fState.s_waitready
 }

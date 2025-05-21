@@ -15,6 +15,7 @@ class DataSRAM extends Module {
 		val rdata = Output(UInt(32.W))
 	})
 	val dpiMem = Module(new DPIMem())
+	val dataReg = RegEnable(dpiMem.io.rdata, io.valid)
 	dpiMem.io.valid := io.valid
 	dpiMem.io.wen := io.wen
 	dpiMem.io.addr := io.addr
@@ -24,11 +25,11 @@ class DataSRAM extends Module {
 	val s_idle :: s_memready :: Nil = Enum(2)
 	val state = RegInit(s_idle)
 	state := MuxLookup(state, s_idle)(Seq(
-		s_idle -> Mux(io.valid && io.wen, s_memready, s_idle),
+		s_idle -> Mux(io.valid && !io.wen, s_memready, s_idle),
 		s_memready -> (s_idle)
 	))
 	io.ready := state === s_memready
-	io.rdata := dpiMem.io.rdata
+	io.rdata := dataReg
 
 	/* Select because of aligned requirement */
 	def getAlignedAddr(addr: UInt, lstype: UInt): UInt = {

@@ -280,7 +280,7 @@ class Decoder extends Module{
 	io.out.bits.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
 	io.out.bits.pc := io.in.bits.pc
 
-	// for single cpu
-	io.in.ready := io.out.fire || f2dState.io.state === f2dState.s_waitvalid
-	io.out.valid := io.in.fire || d2eState.io.state === d2eState.s_waitready
+	// for multi-cycle cpu
+	io.in.ready := io.out.ready || f2dState.io.state === f2dState.s_waitvalid
+	io.out.valid := RegNext(io.in.fire) || d2eState.io.state === d2eState.s_waitready
 }

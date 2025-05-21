@@ -80,17 +80,19 @@ void trace_and_difftest()
 		if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
 		{
 			npc_state.state = NPC_ABORT;
+			Log_Error("Quit because of blocked cycle");
 			return;
 		}
 	}
 	else
+	{
 		blocked_cycle = 0;
-
-	excuted_inst_num++;
-	IFDEF(CONFIG_DIFFTEST, difftest_step();)
-	IFDEF(CONFIG_ITRACE, trace_instruction();)
-	IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)
-	IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
+		excuted_inst_num++;
+		IFDEF(CONFIG_DIFFTEST, difftest_step();)
+		IFDEF(CONFIG_ITRACE, trace_instruction();)
+		IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)
+		IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
+	}
 }
 
 void sim_once()
