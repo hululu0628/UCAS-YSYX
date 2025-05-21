@@ -1,5 +1,6 @@
 #include <common.h>
 #include <debug.h>
+#include <difftest/difftest.h>
 #include <sim/sdb.h>
 #include <mem/mem.h>
 #include <device/mmio.h>
@@ -54,12 +55,13 @@ static void out_of_bound(paddr_t addr) {
 
 word_t paddr_read(paddr_t addr, int len) 
 {
+	word_t ret;
 	if (likely(in_pmem(addr))) 
 	{
-		word_t ret = pmem_read(addr, len);
+		ret = pmem_read(addr, len);
 		return ret;
 	}
-	IFDEF(CONFIG_DEVICE, return mmio_read(addr, len));
+	IFDEF(CONFIG_DEVICE, ret = mmio_read(addr, len); difftest_skip_ref(); return ret;)
 	out_of_bound(addr);
 	return 0;
 }
@@ -72,6 +74,6 @@ void paddr_write(paddr_t addr, int len, word_t data)
 		pmem_write(addr, len, data);
 		return; 
 	}
-	IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); return);
+	IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); difftest_skip_ref(); return;)
 	out_of_bound(addr);
 }

@@ -100,7 +100,7 @@ config ETRACE
 
 
 config DIFFTEST
-  bool "Enable differential testing(don't use it when device enabled)"
+  bool "Enable differential testing"
   default n
 
 config WATCHPOINT

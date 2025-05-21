@@ -128,10 +128,12 @@ void sim_step(uint64_t n)
 		case NPC_QUIT:
 			break;
 		case NPC_END:
-			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE);
+			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE 
+				<< " at PC = 0x" << std::hex << top->io_debug_pc);
 			break;
 		case NPC_ABORT:
-			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE);
+			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE 
+				<< " at PC = 0x" << std::hex << top->io_debug_pc);
 			break;
 		default:
 			assert(0);

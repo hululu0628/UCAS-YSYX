@@ -10,6 +10,8 @@ void (*ref_difftest_exec)(uint64_t n);
 void (*ref_difftest_raise_intr)(uint64_t NO);
 void (*ref_difftest_init)(int port);
 
+bool skip_inst = false;
+
 void init_difftest(const char *ref_so_file, long img_size, int port) {
 	assert(ref_so_file != NULL);
 
@@ -63,8 +65,18 @@ void difftest_step()
 {
 	CPU_state npc_ref;
 
+	if(skip_inst)
+	{
+		ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
+		skip_inst = false;
+		return;
+	}
 	ref_difftest_exec(1);
-
 	ref_difftest_regcpy(&npc_ref, DIFFTEST_TO_DUT);
 	check_regs(&npc_ref);
+}
+
+void difftest_skip_ref()
+{
+	skip_inst = true;
 }
