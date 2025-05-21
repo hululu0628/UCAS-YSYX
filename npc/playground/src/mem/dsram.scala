@@ -2,6 +2,7 @@ package cpu.mem
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.random._
 import cpu.decode._
 
 class DataSRAM extends Module {
@@ -26,9 +27,19 @@ class DataSRAM extends Module {
 	val state = RegInit(s_idle)
 	state := MuxLookup(state, s_idle)(Seq(
 		s_idle -> Mux(io.valid && !io.wen, s_memready, s_idle),
-		s_memready -> (s_idle)
+		s_memready -> Mux(io.valid && io.ready, s_idle, s_memready)
 	))
-	io.ready := state === s_memready
+
+
+	val cnt = RegInit(0.U(4.W))
+	val random = LFSR(4, io.valid, Some(BigInt(7))) // random latency
+	when(io.valid && !io.wen) {
+		cnt := random
+	}
+	when(state === s_memready && cnt =/= 0.U) {
+		cnt := cnt - 1.U
+	}
+	io.ready := state === s_memready && cnt === 0.U
 	io.rdata := dataReg
 
 	/* Select because of aligned requirement */

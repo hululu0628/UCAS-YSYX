@@ -2,6 +2,7 @@ package cpu.ifu
 
 import chisel3._
 import chisel3.util._
+import chisel3.util.random._
 
 class InstSRAM extends Module {
 	val io = IO(new Bundle {
@@ -20,8 +21,17 @@ class InstSRAM extends Module {
 
 	state := MuxLookup(state, s_idle)(Seq(
 		s_idle -> Mux(io.valid, s_instready, s_idle),
-		s_instready -> s_idle
+		s_instready -> (Mux(io.valid && io.ready, s_idle, s_instready))
 	))
-	io.ready := state === s_instready
+
+	val cnt = RegInit(0.U(4.W))
+	val random = LFSR(4, io.valid, Some(BigInt(10))) // random latency
+	when(io.valid) {
+		cnt := random
+	}
+	when(state === s_instready && cnt =/= 0.U) {
+		cnt := cnt - 1.U
+	}
+	io.ready := state === s_instready && cnt === 0.U
 	io.inst := instReg
 }
