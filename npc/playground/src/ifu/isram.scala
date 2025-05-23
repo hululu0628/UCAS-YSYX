@@ -9,6 +9,21 @@ import cpu._
 class InstSRAM extends AXI4LiteBase {
 	val dpiFetch = Module(new DPIFetch())
 
-	val cnt = RegInit(0.U(32.W))
-	val lfsr = LFSR(5, io.arvalid && io.arready, Some(BigInt(0b10010)))
+	// random access latency
+	val cnt = RegInit(0.U(5.W))
+	val lfsr = LFSR(5, io.arvalid && io.arready, Some(BigInt(0b00101)))
+	when(io.arvalid && io.arready) {
+		cnt := lfsr
+	}
+	when(cnt =/= 0.U) {
+		cnt := cnt - 1.U
+	}
+	when(cnt === 0.U) {
+		dpiFetch.io.pc := raddr
+	}
+
+	io.arready := rstate === r_idle
+	io.rvalid := rstate === r_waitrdata && cnt === 0.U
+	io.rdata := dpiFetch.io.inst
+	io.rresp := RespEncoding.OKAY
 }
