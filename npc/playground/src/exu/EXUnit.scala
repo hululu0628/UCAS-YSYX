@@ -109,11 +109,20 @@ class EXU extends Module {
 	/**
 	  * Memory
 	  */
-	val e2lRAMState = Module(new StateMachine("slave")) // state machine for loading data
-	e2lRAMState.io.valid := RegNext(io.decode.fire, false.B) && (idIn.exType === ExType.Load)
-	e2lRAMState.io.ready := mem.io.ready
-
 	val memAddr = alu.io.result
+	val r_idle :: r_waitready :: r_waitrdata :: Nil = Enum(3)
+	val el2RAMState = RegInit(r_idle)
+	el2RAMState := MuxLookup(el2RAMState, r_idle)(Seq(
+		r_idle -> Mux(io.decode.fire, r_waitready, r_idle),
+		r_waitready -> Mux(mem.io.arvalid, Mux(mem.io.arready, r_waitrdata, r_waitready), Mux(io.decode.fire, r_waitready, r_idle)),
+		r_waitrdata -> Mux(mem.io.rvalid && mem.io.rready, r_idle, r_waitrdata)
+	))
+	mem.io.arvalid := idIn.exType === ExType.Load
+	mem.io.araddr := memAddr
+	mem.io.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
+	mem.io.rready := (el2RAMState === r_waitrdata) && io.out.ready
+
+	
 	mem.io.valid := (RegNext(io.decode.fire, false.B) && 
 			 (idIn.exType === ExType.Load || idIn.exType === ExType.Store)) || 
 			e2lRAMState.io.state === e2lRAMState.s_waitready
@@ -134,5 +143,5 @@ class EXU extends Module {
 	// for multi-cycle cpu
 	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := Mux(idIn.exType === ExType.Load, mem.io.ready || e2wState.io.state === e2wState.s_waitready, RegNext(io.decode.fire))
+	io.out.valid := Mux(idIn.exType === ExType.Load, mem.io.rready || e2wState.io.state === e2wState.s_waitready, RegNext(io.decode.fire))
 }
