@@ -110,6 +110,7 @@ class EXU extends Module {
 	  * Memory
 	  */
 	val memAddr = alu.io.result
+	// state machine for AXI4Lite load
 	val r_idle :: r_waitready :: r_waitrdata :: Nil = Enum(3)
 	val el2RAMState = RegInit(r_idle)
 	el2RAMState := MuxLookup(el2RAMState, r_idle)(Seq(
@@ -117,21 +118,31 @@ class EXU extends Module {
 		r_waitready -> Mux(mem.io.arvalid, Mux(mem.io.arready, r_waitrdata, r_waitready), Mux(io.decode.fire, r_waitready, r_idle)),
 		r_waitrdata -> Mux(mem.io.rvalid && mem.io.rready, r_idle, r_waitrdata)
 	))
-	mem.io.arvalid := idIn.exType === ExType.Load
-	mem.io.araddr := memAddr
+	mem.io.arvalid := idIn.exType === ExType.Load && (el2RAMState === r_waitready)
+	mem.io.araddr := mem.getAlignedAddr(memAddr, idIn.lsLength)
 	mem.io.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
 	mem.io.rready := (el2RAMState === r_waitrdata) && io.out.ready
-
-	
-	mem.io.valid := (RegNext(io.decode.fire, false.B) && 
-			 (idIn.exType === ExType.Load || idIn.exType === ExType.Store)) || 
-			e2lRAMState.io.state === e2lRAMState.s_waitready
-	mem.io.addr := mem.getAlignedAddr(memAddr, idIn.lsLength)
-	mem.io.wen := idIn.wenM
-	mem.io.wdata := mem.getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
-	mem.io.wmask := mem.getwmask(idIn.lsLength, memAddr(1, 0))
 	val ldata = mem.getldata(mem.io.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
+	// state machine for AXI4Lite store
+	val w_idle :: w_waitwfire :: w_waitbvalid :: Nil = Enum(2)
+	val es2RAMState = RegInit(w_idle)
+	es2RAMState := MuxLookup(es2RAMState, w_idle)(Seq(
+		w_idle -> Mux(io.decode.fire, w_waitwfire, w_idle),
+		w_waitwfire -> Mux(mem.io.awvalid && mem.io.wvalid, 
+			Mux(mem.io.awready && mem.io.wready, w_waitbvalid, w_waitbvalid), 
+			Mux(io.decode.fire, w_waitbvalid, w_idle)
+			),
+		w_waitbvalid -> Mux(mem.io.bvalid && mem.io.bready, w_idle, w_waitbvalid)
+	))
+	mem.io.awvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
+	mem.io.awaddr := mem.getAlignedAddr(memAddr, idIn.lsLength)
+	mem.io.awport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
+	mem.io.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
+	mem.io.wdata := mem.getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
+	mem.io.wstrb := mem.getwmask(idIn.lsLength, memAddr(1, 0))
+	mem.io.bready := (es2RAMState === w_waitbvalid) && io.out.ready
 
+	// output
 	out.info := idIn
 	out.result.alu := alu.io.result
 	out.result.csr := csrCtrlBlock.io.exuRdata
@@ -143,5 +154,8 @@ class EXU extends Module {
 	// for multi-cycle cpu
 	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := Mux(idIn.exType === ExType.Load, mem.io.rready || e2wState.io.state === e2wState.s_waitready, RegNext(io.decode.fire))
+	io.out.valid := MuxLookup(idIn.exType, RegNext(io.decode.fire))(Seq(
+		ExType.Load -> (mem.io.rvalid && mem.io.rready),
+		ExType.Store -> (mem.io.bvalid && mem.io.bready)
+	))
 }
