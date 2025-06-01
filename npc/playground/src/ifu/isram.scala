@@ -28,10 +28,4 @@ class InstSRAM extends AXI4LiteBase {
 	io.rvalid := rstate === r_waitrdata && cnt === 0.U
 	io.rdata := dpiFetch.io.inst
 	io.rresp := RespEncoding.OKAY
-
-	io.awready := DontCare
-	io.wready := DontCare
-	io.bvalid := DontCare
-	io.bresp := DontCare
-
 }

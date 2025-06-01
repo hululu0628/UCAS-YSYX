@@ -53,6 +53,7 @@ class AXI4LiteIO extends Bundle {
 
 abstract class AXI4LiteBase extends Module {
 	val io = IO(new AXI4LiteIO())
+	io <> DontCare
 	
 	// read state machine
 	val r_idle :: r_waitrdata :: r_waitrready :: Nil = Enum(3)
