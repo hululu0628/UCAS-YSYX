@@ -83,7 +83,7 @@ abstract class AXI4LiteBase extends Module {
 		w_fire -> Mux(io.bvalid && io.bready, w_idle, w_fire)
 	))
 	// write response state machine
-	val b_idle :: b_waitready :: Nil = Enum(3)
+	val b_idle :: b_waitready :: Nil = Enum(2)
 	val bstate = RegInit(b_idle)
 	bstate := MuxLookup(bstate, b_idle)(Seq(
 		b_idle -> Mux(io.bvalid, Mux(io.bready, b_idle, b_waitready), b_idle),

@@ -20,10 +20,18 @@ class InstSRAM extends AXI4LiteBase {
 	}
 	when(cnt === 0.U) {
 		dpiFetch.io.pc := raddr
+	} .otherwise {
+		dpiFetch.io.pc := 0.U
 	}
 
 	io.arready := rstate === r_idle
 	io.rvalid := rstate === r_waitrdata && cnt === 0.U
 	io.rdata := dpiFetch.io.inst
 	io.rresp := RespEncoding.OKAY
+
+	io.awready := DontCare
+	io.wready := DontCare
+	io.bvalid := DontCare
+	io.bresp := DontCare
+
 }

@@ -40,6 +40,11 @@ trait memfunc {
 
 class DataSRAM extends AXI4LiteBase with memfunc {
 	val dpiMem = Module(new DPIMem())
+	dpiMem.io.valid := false.B
+	dpiMem.io.wen := false.B
+	dpiMem.io.wmask := 0.U(4.W)
+	dpiMem.io.addr := 0.U(32.W)
+	dpiMem.io.wdata := 0.U(32.W)
 	
 	// random access latency
 	val rcnt = RegInit(0.U(5.W))

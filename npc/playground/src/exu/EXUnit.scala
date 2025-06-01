@@ -124,7 +124,7 @@ class EXU extends Module {
 	mem.io.rready := (el2RAMState === r_waitrdata) && io.out.ready
 	val ldata = mem.getldata(mem.io.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
 	// state machine for AXI4Lite store
-	val w_idle :: w_waitwfire :: w_waitbvalid :: Nil = Enum(2)
+	val w_idle :: w_waitwfire :: w_waitbvalid :: Nil = Enum(3)
 	val es2RAMState = RegInit(w_idle)
 	es2RAMState := MuxLookup(es2RAMState, w_idle)(Seq(
 		w_idle -> Mux(io.decode.fire, w_waitwfire, w_idle),

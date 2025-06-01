@@ -37,6 +37,13 @@ class InstFetch extends Module {
 	isram.io.araddr := pc
 	isram.io.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.iaccess))
 	isram.io.rready := (f2RAMState === i_waitrdata) && io.out.ready
+	isram.io.awvalid := DontCare
+	isram.io.awaddr := DontCare
+	isram.io.awport := DontCare
+	isram.io.wvalid := DontCare
+	isram.io.wdata := DontCare
+	isram.io.wstrb := DontCare
+	isram.io.bready := DontCare
 
 	// state machine for connecting different stages
 	val w2fState = Module(new StateMachine("master"))
