@@ -83,8 +83,8 @@ class DataSRAM extends AXI4LiteBase with memfunc {
 		}
 	}
 
-	io.awready := wastate === aw_idle
-	io.wready := wstate === w_idle
+	io.awready := wastate === aw_idle || wastate === aw_waitvalid
+	io.wready := wstate === w_idle || wstate === w_waitvalid
 	io.bvalid := wastate === aw_fire && wstate === w_fire && wcnt === 0.U
 	io.bresp := RespEncoding.OKAY
 }

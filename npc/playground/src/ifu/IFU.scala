@@ -28,7 +28,7 @@ class InstFetch extends Module {
 
 	// state machine for fetching from isram
 	val i_idle :: i_waitready :: i_waitrdata :: Nil = Enum(3)
-	val f2RAMState = RegInit(i_idle)
+	val f2RAMState = RegInit(i_waitready)
 	f2RAMState := MuxLookup(f2RAMState, i_idle)(Seq(
 		i_idle -> Mux(io.writeback.fire, i_waitready, i_idle),
 		i_waitready -> Mux(isram.io.arvalid && isram.io.arready, i_waitrdata, i_waitready),
