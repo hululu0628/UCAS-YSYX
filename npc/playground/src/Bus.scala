@@ -51,11 +51,35 @@ class AXI4LiteIO extends Bundle {
 	val bvalid = Output(Bool())
 	val bready = Input(Bool())
 	val bresp = Output(UInt(2.W))
+
+	def setMasterDefault() = {
+		this.arvalid := false.B
+		this.araddr := 0.U
+		this.arport := AxPortEncoding.unpriv
+		this.rready := false.B
+		this.awvalid := false.B
+		this.awaddr := 0.U
+		this.awport := AxPortEncoding.unpriv
+		this.wvalid := false.B
+		this.wdata := 0.U
+		this.wstrb := 0.U
+		this.bready := false.B
+	}
+	def setSlaveDefault() = {
+		this.arready := false.B
+		this.rvalid := false.B
+		this.rdata := 0.U
+		this.rresp := RespEncoding.OKAY
+		this.awready := false.B
+		this.wready := false.B
+		this.bvalid := false.B
+		this.bresp := RespEncoding.OKAY
+	}
 }
 
 abstract class AXI4LiteBase extends Module {
 	val io = IO(new AXI4LiteIO())
-	io <> DontCare
+	io.setSlaveDefault()
 	
 	// read state machine
 	val r_idle :: r_waitrdata :: r_waitrready :: Nil = Enum(3)
@@ -164,25 +188,29 @@ class AXIArbiter extends Module {
 		a_data -> Mux(io.dsramin.bvalid && io.dsramin.bready, a_free, a_data)
 	))
 
-	io.isramin <> DontCare
-	io.dsramin <> DontCare
-	io.out <> DontCare
+	io.isramin.setSlaveDefault()
+	io.dsramin.setSlaveDefault()
+	io.out.setMasterDefault()
 
 	when(a_state === a_inst) {
 		io.out <> io.isramin
 	} .elsewhen(a_state === a_data) {
 		io.out <> io.dsramin
-	} .otherwise {
-		io.out.arvalid := false.B
-		io.out.awvalid := false.B
-		io.out.wvalid := false.B
-		io.out.rready := false.B
-		io.out.bready := false.B
+	} .elsewhen(a_state === a_free) {
+		io.out.setMasterDefault()
+		io.isramin.setSlaveDefault()
+		io.dsramin.setSlaveDefault()
 	}
 }
 
-object AXI4Bus {
+class AXI4Bus extends Module {
+	val io = IO(new Bundle {
+		val isramin = new AXI4LiteIO()
+		val dsramin = new AXI4LiteIO()
+	})
 	val arbiter = Module(new AXIArbiter())
 	val sram = Module(new SRAMImp())
+	arbiter.io.isramin <> io.isramin
+	arbiter.io.dsramin <> io.dsramin
 	sram.io <> arbiter.io.out
 }

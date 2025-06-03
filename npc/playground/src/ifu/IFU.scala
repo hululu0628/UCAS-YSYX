@@ -16,12 +16,14 @@ class IFUOut extends Bundle {
 class IFIO extends Bundle {
 	val writeback = Flipped(Decoupled(new Bundle { val nextpc = UInt(32.W) }))
 	val out = Decoupled(new IFUOut)
+	val isramin = Flipped(new AXI4LiteIO)
 }
 
 class InstFetch extends Module {
 	val io = IO(new IFIO)
 
-	val isramin = AXI4Bus.arbiter.io.isramin
+	val isramin = io.isramin
+	isramin.setMasterDefault()
 
 	val pc = RegEnable(io.writeback.bits.nextpc, 0x80000000L.U(32.W), io.writeback.fire)
 

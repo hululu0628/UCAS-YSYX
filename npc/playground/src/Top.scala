@@ -29,6 +29,7 @@ class Top extends Module{
 	val exu = Module(new EXU())
 	val wbu = Module(new WBU())
 	val ebreak_handler = Module(new EbreakHandler())
+	val bus = Module(new AXI4Bus())
 
 	/**
 	  * Stage Connect
@@ -38,6 +39,9 @@ class Top extends Module{
 	StageConnectMulti(exu.io.out, wbu.io.in)
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
+	
+	bus.io.isramin <> ifu.io.isramin
+	bus.io.dsramin <> exu.io.dsramin
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak

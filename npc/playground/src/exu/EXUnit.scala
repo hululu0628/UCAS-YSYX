@@ -24,6 +24,7 @@ class EXUIO extends Bundle {
 	val decode = Flipped(Decoupled(new DecodedInst))
 	val writeback = Flipped(Decoupled(new W2EOut))
 	val out = Decoupled(new EXUOut)
+	val dsramin = Flipped(new AXI4LiteIO)
 }
 
 class EXU extends Module with memfunc {
@@ -31,13 +32,14 @@ class EXU extends Module with memfunc {
 	val idIn = io.decode.bits
 	val wbIn = io.writeback.bits
 	val out = io.out.bits
+	val dsramin = io.dsramin
+	dsramin.setMasterDefault()
 
 	val regfile = Module(new Regfile())
 	val csrCtrlBlock = Module(new CSR())
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
 	val alu = Module(new ALU())
-	val dsramin = AXI4Bus.arbiter.io.dsramin
 
 	val aluA = Wire(UInt(32.W))
 	val aluB = Wire(UInt(32.W))
