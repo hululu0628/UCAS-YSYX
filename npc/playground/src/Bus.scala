@@ -94,19 +94,17 @@ abstract class AXI4LiteBase extends Module {
 	val rport = RegEnable(io.arport, io.arvalid && io.arready)
 
 	// write addr state machine
-	val aw_idle :: aw_waitvalid :: aw_fire :: Nil = Enum(3)
+	val aw_idle :: aw_fire :: Nil = Enum(2)
 	val wastate = RegInit(aw_idle)
 	wastate := MuxLookup(wastate, aw_idle)(Seq(
-		aw_idle -> Mux(io.awready, Mux(io.awvalid, aw_fire, aw_waitvalid), aw_idle),
-		aw_waitvalid -> Mux(io.awvalid && io.awready, aw_fire, aw_waitvalid),
+		aw_idle -> Mux(io.awvalid && io.awready, aw_fire, aw_idle),
 		aw_fire -> Mux(io.bvalid && io.bready, aw_idle, aw_fire)
 	))
 	// write data state machine
-	val w_idle :: w_waitvalid :: w_fire :: Nil = Enum(3)
+	val w_idle :: w_fire :: Nil = Enum(2)
 	val wstate = RegInit(w_idle)
 	wstate := MuxLookup(wstate, w_idle)(Seq(
-		w_idle -> Mux(io.wready, Mux(io.wvalid, w_fire, w_waitvalid), w_idle),
-		w_waitvalid -> Mux(io.wvalid && io.wready, w_fire, w_waitvalid),
+		w_idle -> Mux(io.wvalid && io.wready, w_fire, w_idle),
 		w_fire -> Mux(io.bvalid && io.bready, w_idle, w_fire)
 	))
 	// write response state machine
@@ -167,10 +165,11 @@ class SRAMImp extends AXI4LiteBase {
 		}
 	}
 
-	io.awready := wastate === aw_idle || wastate === aw_waitvalid
-	io.wready := wstate === w_idle || wstate === w_waitvalid
+	io.awready := wastate === aw_idle
+	io.wready := wstate === w_idle
 	io.bvalid := wastate === aw_fire && wstate === w_fire && wcnt === 0.U
 	io.bresp := RespEncoding.OKAY
+
 }
 
 class AXIArbiter extends Module {
@@ -179,23 +178,26 @@ class AXIArbiter extends Module {
 		val dsramin = new AXI4LiteIO()
 		val out = Flipped(new AXI4LiteIO())
 	})
-	val a_free :: a_inst :: a_data :: Nil = Enum(3)
+	val a_free :: a_inst :: a_rdata :: a_wdata :: Nil = Enum(4)
 	val a_state = RegInit(a_free)
 	a_state := MuxLookup(a_state, a_free)(Seq(
 		a_free -> Mux(io.isramin.arvalid, a_inst,
-			   Mux(io.dsramin.arvalid || io.dsramin.awvalid || io.dsramin.wvalid, a_data, a_free)),
+			   Mux(io.dsramin.arvalid, a_rdata, 
+			   Mux(io.dsramin.awvalid || io.dsramin.wvalid, a_wdata, a_free))),
 		a_inst -> Mux(io.isramin.rvalid && io.isramin.rready, a_free, a_inst),
-		a_data -> Mux(io.dsramin.bvalid && io.dsramin.bready, a_free, a_data)
+		a_rdata -> Mux(io.dsramin.rvalid && io.dsramin.rready, a_free, a_rdata),
+		a_wdata -> Mux(io.dsramin.bvalid && io.dsramin.bready, a_free, a_wdata)
 	))
 
 	io.isramin.setSlaveDefault()
 	io.dsramin.setSlaveDefault()
 	io.out.setMasterDefault()
-
 	when(a_state === a_inst) {
 		io.out <> io.isramin
-	} .elsewhen(a_state === a_data) {
+		io.dsramin.setSlaveDefault()
+	} .elsewhen(a_state === a_rdata || a_state === a_wdata) {
 		io.out <> io.dsramin
+		io.isramin.setSlaveDefault()
 	} .elsewhen(a_state === a_free) {
 		io.out.setMasterDefault()
 		io.isramin.setSlaveDefault()

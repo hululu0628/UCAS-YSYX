@@ -131,7 +131,7 @@ class EXU extends Module with memfunc {
 	es2RAMState := MuxLookup(es2RAMState, w_idle)(Seq(
 		w_idle -> Mux(io.decode.fire, w_waitwfire, w_idle),
 		w_waitwfire -> Mux(dsramin.awvalid && dsramin.wvalid, 
-			Mux(dsramin.awready && dsramin.wready, w_waitbvalid, w_waitbvalid), 
+			Mux(dsramin.awready && dsramin.wready, w_waitbvalid, w_waitwfire), 
 			Mux(io.decode.fire, w_waitbvalid, w_idle)
 			),
 		w_waitbvalid -> Mux(dsramin.bvalid && dsramin.bready, w_idle, w_waitbvalid)
