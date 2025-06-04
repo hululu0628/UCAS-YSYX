@@ -19,7 +19,7 @@
 #include <device/map.h>
 #include <debug.h>
 
-#define IO_SPACE_MAX (32 * 1024 * 1024)
+#define IO_SPACE_MAX (32 * 1024 * 1024) // 0x2000000, 0xa0000000 ~ 0xa1ffffff
 
 static uint8_t *io_space = NULL;
 static uint8_t *p_space = NULL;

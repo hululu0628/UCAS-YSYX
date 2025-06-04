@@ -3,6 +3,7 @@ package cpu
 import chisel3._
 import chisel3.util._
 import chisel3.util.random._
+import cpu._
 import cpu.mem._
 
 object AxPortEncoding {
@@ -77,7 +78,7 @@ class AXI4LiteIO extends Bundle {
 	}
 }
 
-abstract class AXI4LiteBase extends Module {
+abstract class AXI4LiteSlaveBase extends Module {
 	val io = IO(new AXI4LiteIO())
 	io.setSlaveDefault()
 	
@@ -120,99 +121,68 @@ abstract class AXI4LiteBase extends Module {
 	val wstrb = RegEnable(io.wstrb, io.wvalid && io.wready)
 }
 
-class SRAMImp extends AXI4LiteBase {
-	val dpiMem = Module(new DPIMem())
-	dpiMem.io.valid := false.B
-	dpiMem.io.wen := false.B
-	dpiMem.io.wmask := 0.U(4.W)
-	dpiMem.io.addr := 0.U(32.W)
-	dpiMem.io.wdata := 0.U(32.W)
-	
-	// random access latency
-	val rcnt = RegInit(0.U(5.W))
-	val rlfsr = LFSR(5, io.arvalid && io.arready, Some(BigInt(0b00101)))
-	when(io.arvalid && io.arready) {
-		rcnt := rlfsr
-	}
-	when(rcnt =/= 0.U) {
-		rcnt := rcnt - 1.U
-	}
-	when(rcnt === 0.U) {
-		dpiMem.io.valid := true.B
-		dpiMem.io.wmask := io.wstrb
-		dpiMem.io.addr := raddr
-	}
-	io.arready := rstate === r_idle
-	io.rvalid := rstate === r_waitrdata && rcnt === 0.U
-	io.rdata := dpiMem.io.rdata
-	io.rresp := RespEncoding.OKAY
-
-	val wcnt = RegInit(0.U(5.W))
-	val wlfsr = LFSR(5, io.wvalid && io.wready, Some(BigInt(0b01001)))
-	when(io.arvalid && io.arready) {
-		wcnt := wlfsr
-	}
-	when(wastate === aw_fire && wstate === w_fire) {
-		when(wcnt =/= 0.U) {
-			wcnt := wcnt - 1.U
-		}
-		when(wcnt === 0.U) {
-			dpiMem.io.valid := true.B
-			dpiMem.io.wen := true.B
-			dpiMem.io.wmask := io.wstrb
-			dpiMem.io.addr := waddr
-			dpiMem.io.wdata := io.wdata
-		}
-	}
-
-	io.awready := wastate === aw_idle
-	io.wready := wstate === w_idle
-	io.bvalid := wastate === aw_fire && wstate === w_fire && wcnt === 0.U
-	io.bresp := RespEncoding.OKAY
-
-}
-
 class AXIArbiter extends Module {
 	val io = IO(new Bundle {
-		val isramin = new AXI4LiteIO()
-		val dsramin = new AXI4LiteIO()
+		val instin = new AXI4LiteIO()
+		val datain = new AXI4LiteIO()
 		val out = Flipped(new AXI4LiteIO())
 	})
 	val a_free :: a_inst :: a_rdata :: a_wdata :: Nil = Enum(4)
 	val a_state = RegInit(a_free)
 	a_state := MuxLookup(a_state, a_free)(Seq(
-		a_free -> Mux(io.isramin.arvalid, a_inst,
-			   Mux(io.dsramin.arvalid, a_rdata, 
-			   Mux(io.dsramin.awvalid || io.dsramin.wvalid, a_wdata, a_free))),
-		a_inst -> Mux(io.isramin.rvalid && io.isramin.rready, a_free, a_inst),
-		a_rdata -> Mux(io.dsramin.rvalid && io.dsramin.rready, a_free, a_rdata),
-		a_wdata -> Mux(io.dsramin.bvalid && io.dsramin.bready, a_free, a_wdata)
+		a_free -> Mux(io.instin.arvalid, a_inst,
+			   Mux(io.datain.arvalid, a_rdata, 
+			   Mux(io.datain.awvalid || io.datain.wvalid, a_wdata, a_free))),
+		a_inst -> Mux(io.instin.rvalid && io.instin.rready, a_free, a_inst),
+		a_rdata -> Mux(io.datain.rvalid && io.datain.rready, a_free, a_rdata),
+		a_wdata -> Mux(io.datain.bvalid && io.datain.bready, a_free, a_wdata)
 	))
 
-	io.isramin.setSlaveDefault()
-	io.dsramin.setSlaveDefault()
+	io.instin.setSlaveDefault()
+	io.datain.setSlaveDefault()
 	io.out.setMasterDefault()
 	when(a_state === a_inst) {
-		io.out <> io.isramin
-		io.dsramin.setSlaveDefault()
+		io.out <> io.instin
+		io.datain.setSlaveDefault()
 	} .elsewhen(a_state === a_rdata || a_state === a_wdata) {
-		io.out <> io.dsramin
-		io.isramin.setSlaveDefault()
+		io.out <> io.datain
+		io.instin.setSlaveDefault()
 	} .elsewhen(a_state === a_free) {
 		io.out.setMasterDefault()
-		io.isramin.setSlaveDefault()
-		io.dsramin.setSlaveDefault()
+		io.instin.setSlaveDefault()
+		io.datain.setSlaveDefault()
+	}
+}
+
+class AXI1x2Bar extends Module {
+	val io = IO(new Bundle {
+		val in = new AXI4LiteIO()
+		val sram = Flipped(new AXI4LiteIO())
+		val mmio = Flipped(new AXI4LiteIO())
+	})
+	when(io.in.arvalid) {
+		when(io.in.araddr >= Parameters.sramStart.U && io.in.araddr < (Parameters.sramStart + Parameters.sramSize).U) {
+			io.sram <> io.in
+			io.mmio.setMasterDefault()
+		} .elsewhen(io.in.araddr >= Parameters.mmioStart.U && io.in.araddr < (Parameters.mmioStart + Parameters.mmioSize).U) {
+			io.mmio <> io.in
+			io.sram.setMasterDefault()
+		} .otherwise {
+			printf("ERROR: Address out of range 0x%x\n", io.in.araddr)
+			io.sram.setMasterDefault()
+			io.mmio.setMasterDefault()
+		}
 	}
 }
 
 class AXI4Bus extends Module {
 	val io = IO(new Bundle {
-		val isramin = new AXI4LiteIO()
-		val dsramin = new AXI4LiteIO()
+		val instin = new AXI4LiteIO()
+		val datain = new AXI4LiteIO()
 	})
 	val arbiter = Module(new AXIArbiter())
 	val sram = Module(new SRAMImp())
-	arbiter.io.isramin <> io.isramin
-	arbiter.io.dsramin <> io.dsramin
+	arbiter.io.instin <> io.instin
+	arbiter.io.datain <> io.datain
 	sram.io <> arbiter.io.out
 }

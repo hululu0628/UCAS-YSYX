@@ -40,8 +40,8 @@ class Top extends Module{
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	
-	bus.io.isramin <> ifu.io.isramin
-	bus.io.dsramin <> exu.io.dsramin
+	bus.io.instin <> ifu.io.instin
+	bus.io.datain <> exu.io.datain
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak
