@@ -3,7 +3,6 @@ package cpu
 import chisel3._
 import chisel3.util._
 import chisel3.util.random._
-import cpu._
 import cpu.mem._
 
 object AxPortEncoding {
@@ -161,10 +160,10 @@ class AXI1x2Bar extends Module {
 		val mmio = Flipped(new AXI4LiteIO())
 	})
 	when(io.in.arvalid) {
-		when(io.in.araddr >= Parameters.sramStart.U && io.in.araddr < (Parameters.sramStart + Parameters.sramSize).U) {
+		when(io.in.araddr >= NPCParameters.sramStart.U && io.in.araddr < (NPCParameters.sramStart + NPCParameters.sramSize).U) {
 			io.sram <> io.in
 			io.mmio.setMasterDefault()
-		} .elsewhen(io.in.araddr >= Parameters.mmioStart.U && io.in.araddr < (Parameters.mmioStart + Parameters.mmioSize).U) {
+		} .elsewhen(io.in.araddr >= NPCParameters.mmioStart.U && io.in.araddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U) {
 			io.mmio <> io.in
 			io.sram.setMasterDefault()
 		} .otherwise {
@@ -181,8 +180,11 @@ class AXI4Bus extends Module {
 		val datain = new AXI4LiteIO()
 	})
 	val arbiter = Module(new AXIArbiter())
+	val xbar = Module(new AXI1x2Bar())
 	val sram = Module(new SRAMImp())
 	arbiter.io.instin <> io.instin
 	arbiter.io.datain <> io.datain
-	sram.io <> arbiter.io.out
+	xbar.io.in <> arbiter.io.out
+	sram.io <> xbar.io.sram
+
 }

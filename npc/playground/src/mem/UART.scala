@@ -5,7 +5,8 @@ import chisel3.util._
 import chisel3.util.random._
 import cpu._
 
-class UARTImp extends AXI4LiteSlaveBase {
+class UARTImp extends DeviceBase {
+	override val device = "uart"
 	// random access latency
 	val wcnt = RegInit(0.U(5.W))
 	val wlfsr = LFSR(5, io.wvalid && io.wready, Some(BigInt(0b01001)))
