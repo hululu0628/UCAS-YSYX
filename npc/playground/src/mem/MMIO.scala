@@ -14,9 +14,28 @@ class MMIO extends Module {
 	val io = IO(new Bundle{
 		val arbiterIn = new AXI4LiteIO()
 	})
+	io.arbiterIn.setSlaveDefault()
+
+	val writeEnable = io.arbiterIn.awvalid
+	val readEnable = io.arbiterIn.arvalid
+	val mmioEnable = writeEnable || readEnable
+	val addr = Mux(writeEnable, io.arbiterIn.awaddr, io.arbiterIn.araddr)
+
 	val uart = Module(new UARTImp())
 	val devicelist = List(uart)
-	val deviceVec = devicelist.map { d =>
-		NPCParameters.deviceTab(d.device)
+	val deviceVec = VecInit(devicelist.map { d =>
+		val dt = NPCParameters.deviceTab(d.device)
+		addr >= (dt.base.U) && addr < (dt.base.U + dt.size.U) && mmioEnable
+	})
+	val deviceVecReg = RegEnable[Vec[Bool]](deviceVec, mmioEnable)
+	val deviceFinalVec = Mux(deviceVec.reduce(_ || _), deviceVec, deviceVecReg)
+
+
+	devicelist.zip(deviceFinalVec).foreach { case(d, b) =>
+		when(b) {
+			d.io <> io.arbiterIn
+		} .otherwise {
+			d.io.setMasterDefault()
+		}
 	}
 }

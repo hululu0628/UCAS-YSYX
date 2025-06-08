@@ -159,11 +159,40 @@ class AXI1x2Bar extends Module {
 		val sram = Flipped(new AXI4LiteIO())
 		val mmio = Flipped(new AXI4LiteIO())
 	})
-	when(io.in.arvalid) {
-		when(io.in.araddr >= NPCParameters.sramStart.U && io.in.araddr < (NPCParameters.sramStart + NPCParameters.sramSize).U) {
+	val hitSRAM = (io.in.arvalid && 
+		(io.in.araddr >= NPCParameters.sramStart.U && 
+		 io.in.araddr < (NPCParameters.sramStart + NPCParameters.sramSize).U)) || 
+		 ((io.in.awvalid) &&
+		(io.in.awaddr >= NPCParameters.sramStart.U && 
+		 io.in.awaddr < (NPCParameters.sramStart + NPCParameters.sramSize).U))
+	val hitMMIO = (io.in.arvalid &&
+		(io.in.araddr >= NPCParameters.mmioStart.U && 
+		 io.in.araddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U)) || 
+		 ((io.in.awvalid) &&
+		(io.in.awaddr >= NPCParameters.mmioStart.U && 
+		 io.in.awaddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U))
+
+	val x_sram :: x_mmio :: Nil = Enum(2)
+	val x_state = RegInit(x_sram)
+	x_state := MuxLookup(x_state, x_sram)(Seq(
+		x_sram -> Mux(hitMMIO, x_mmio, x_sram),
+		x_mmio -> Mux(hitSRAM, x_sram, x_mmio)
+	))
+
+	io.in.setSlaveDefault()
+	io.sram.setMasterDefault()
+	io.mmio.setMasterDefault()
+	when(hitSRAM) {
+		io.sram <> io.in
+		io.mmio.setMasterDefault()
+	} .elsewhen(hitMMIO) {
+		io.mmio <> io.in
+		io.sram.setMasterDefault()
+	} .otherwise {
+		when(x_state === x_sram) {
 			io.sram <> io.in
 			io.mmio.setMasterDefault()
-		} .elsewhen(io.in.araddr >= NPCParameters.mmioStart.U && io.in.araddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U) {
+		} .elsewhen(x_state === x_mmio) {
 			io.mmio <> io.in
 			io.sram.setMasterDefault()
 		} .otherwise {
@@ -182,9 +211,10 @@ class AXI4Bus extends Module {
 	val arbiter = Module(new AXIArbiter())
 	val xbar = Module(new AXI1x2Bar())
 	val sram = Module(new SRAMImp())
-	arbiter.io.instin <> io.instin
-	arbiter.io.datain <> io.datain
-	xbar.io.in <> arbiter.io.out
-	sram.io <> xbar.io.sram
-
+	val mmio = Module(new MMIO())
+	arbiter.io.instin <> io.instin // ifu -> 2x1 arbiter in
+	arbiter.io.datain <> io.datain // mem -> 2x1 arbiter in
+	xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
+	sram.io <> xbar.io.sram // 1x2 crossbar out -> sram
+	mmio.io.arbiterIn <> xbar.io.mmio // 1x2 crossbar out -> mmio
 }
