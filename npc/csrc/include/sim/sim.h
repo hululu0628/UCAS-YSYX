@@ -21,3 +21,14 @@ extern VTop *top;
 extern word_t excuted_inst_num;
 
 extern char* wave_file;
+
+struct debug_signal {
+	bool valid;
+	bool wen;
+	word_t pc;
+	word_t npc;
+	word_t inst;
+	word_t waddr;
+	word_t data;
+};
+extern struct debug_signal debug_signal;

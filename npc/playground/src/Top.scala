@@ -30,6 +30,7 @@ class Top extends Module{
 	val wbu = Module(new WBU())
 	val ebreak_handler = Module(new EbreakHandler())
 	val bus = Module(new AXI4Bus())
+	val debug = Module(new DPIDebug())
 
 	/**
 	  * Stage Connect
@@ -49,11 +50,11 @@ class Top extends Module{
 	/**
 	  * Debug Module
 	  */
-	io.debug.valid := wbu.io.w2e.valid
-	io.debug.pc := wbu.io.w2e.bits.info.pc
-	io.debug.npc := wbu.io.w2f.bits.nextpc
-	io.debug.inst := wbu.io.w2e.bits.info.inst
-	io.debug.wen := wbu.io.w2e.bits.info.wenR
-	io.debug.waddr := wbu.io.w2e.bits.info.inst.rd
-	io.debug.data := wbu.io.w2e.bits.regWdata
+	debug.io.valid := wbu.io.w2e.valid
+	debug.io.pc := wbu.io.w2e.bits.info.pc
+	debug.io.npc := wbu.io.w2f.bits.nextpc
+	debug.io.inst := wbu.io.w2e.bits.info.inst
+	debug.io.wen := wbu.io.w2e.bits.info.wenR
+	debug.io.waddr := wbu.io.w2e.bits.info.inst.rd
+	debug.io.data := wbu.io.w2e.bits.regWdata
 }

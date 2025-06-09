@@ -14,14 +14,14 @@ void trace_instruction()
 {
 	IFDEF(CONFIG_ITRACE_OUTPUT,
 		log_write("[" << std::setw(5) << std::dec << excuted_inst_num << "]" << 
-			"PC: 0x" << std::hex << top->io_debug_pc << 
-			" wen: " << (unsigned)top->io_debug_wen << 
-			" [" << regs[top->io_debug_waddr] << 
-			"] data: 0x" << std::left << std::setw(9) << top->io_debug_data << std::right);
+			"PC: 0x" << std::hex << debug_signal.pc << 
+			" wen: " << (unsigned)debug_signal.wen << 
+			" [" << regs[debug_signal.waddr] << 
+			"] data: 0x" << std::left << std::setw(9) << debug_signal.data << std::right);
 	)
 
 	IFDEF(CONFIG_ITRACE_DISASM,
-		itrace_disasm(top->io_debug_pc, (uint8_t *)&top->io_debug_inst, 4);
+		itrace_disasm(debug_signal.pc, (uint8_t *)&debug_signal.inst, 4);
 	)
 }
 
@@ -31,11 +31,11 @@ void trace_instruction()
 
 void trace_rmem(paddr_t addr, word_t data)
 {
-	log_write("[PC: 0x" << std::hex << top->io_debug_pc << "] Aligned memory read at 0x" << addr << " with data 0x" << data);
+	log_write("[PC: 0x" << std::hex << debug_signal.pc << "] Aligned memory read at 0x" << addr << " with data 0x" << data);
 }
 void trace_wmem(paddr_t addr, word_t data, unsigned char mask)
 {
-	log_write("[PC: 0x" << std::hex << top->io_debug_pc << "] Aligned memory write at 0x" << addr << " with data 0x" << data 
+	log_write("[PC: 0x" << std::hex << debug_signal.pc << "] Aligned memory write at 0x" << addr << " with data 0x" << data 
 		<< "   Mask: 0x" << std::hex << (unsigned)mask);
 }
 
@@ -162,7 +162,7 @@ void trace_func(paddr_t addr, word_t code)
 void trace_rdevice(paddr_t addr, int len, word_t data, const char* name)
 {
 	log_write(
-		"[ SDB ]At PC = " << FMT_PADDR(top->io_debug_pc) << "   read "
+		"[ SDB ]At PC = " << FMT_PADDR(debug_signal.pc) << "   read "
 		<< len <<"-byte long Data 0x" << std::hex << data 
 		<< " from device " << name <<" at Address " << FMT_PADDR(addr)
 	);
@@ -170,7 +170,7 @@ void trace_rdevice(paddr_t addr, int len, word_t data, const char* name)
 void trace_wdevice(paddr_t addr, int len, word_t data, const char* name)
 {
 	log_write(
-		"[ SDB ]At PC = " << FMT_PADDR(top->io_debug_pc) << "   write "
+		"[ SDB ]At PC = " << FMT_PADDR(debug_signal.pc) << "   write "
 		<< len <<"-byte long Data 0x"<< std::hex << data 
 		<<" to device " << name <<" at Address " << FMT_PADDR(addr)
 	);

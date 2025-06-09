@@ -5,6 +5,12 @@ import chisel3.util._
 import chisel3.util.random._
 import cpu.mem._
 
+object BrustType {
+	def FIXED = "b00".U(2.W)
+	def INCR = "b01".U(2.W)
+	def WRAP = "b10".U(2.W)
+}
+
 object AxPortEncoding {
 	def unpriv = "b000".U(3.W)
 	def priv = "b001".U(3.W)
@@ -28,50 +34,73 @@ object RespEncoding {
 
 class AXI4LiteIO extends Bundle {
 	// Read Address Channel
+	val arid = Input(UInt(4.W))
 	val arvalid = Input(Bool())
 	val arready = Output(Bool())
 	val araddr = Input(UInt(32.W))
+	val arlen = Input(UInt(8.W))
+	val arsize = Input(UInt(3.W))
+	val arburst = Input(UInt(2.W))
 	val arport = Input(UInt(3.W))
 	// Read Data Channel
+	val rid = Output(UInt(4.W))
 	val rvalid = Output(Bool())
 	val rready = Input(Bool())
 	val rdata = Output(UInt(32.W))
+	val rlast = Output(Bool())
 	val rresp = Output(UInt(2.W))
 	// Write Address Channel
 	val awvalid = Input(Bool())
 	val awready = Output(Bool())
 	val awaddr = Input(UInt(32.W))
+	val awlen = Input(UInt(8.W))
+	val awsize = Input(UInt(3.W))
+	val awburst = Input(UInt(2.W))
 	val awport = Input(UInt(3.W))
 	// Write Data Channel
+	val wid = Input(UInt(4.W))
 	val wvalid = Input(Bool())
 	val wready = Output(Bool())
 	val wdata = Input(UInt(32.W))
 	val wstrb = Input(UInt(4.W))
+	val wlast = Input(Bool())
 	// Write Response Channel
+	val bid = Output(UInt(4.W))
 	val bvalid = Output(Bool())
 	val bready = Input(Bool())
 	val bresp = Output(UInt(2.W))
 
 	def setMasterDefault() = {
+		this.arid := 0.U
 		this.arvalid := false.B
 		this.araddr := 0.U
+		this.arlen := 0.U
+		this.arsize := 0.U
+		this.arburst := BrustType.INCR
 		this.arport := AxPortEncoding.unpriv
 		this.rready := false.B
 		this.awvalid := false.B
 		this.awaddr := 0.U
+		this.awlen := 0.U
+		this.awsize := 0.U
+		this.awburst := BrustType.INCR
 		this.awport := AxPortEncoding.unpriv
 		this.wvalid := false.B
 		this.wdata := 0.U
 		this.wstrb := 0.U
+		this.wlast := false.B
 		this.bready := false.B
 	}
 	def setSlaveDefault() = {
 		this.arready := false.B
+		this.rid := 0.U
 		this.rvalid := false.B
 		this.rdata := 0.U
+		this.rlast := false.B
 		this.rresp := RespEncoding.OKAY
 		this.awready := false.B
 		this.wready := false.B
+		this.bid := 0.U
 		this.bvalid := false.B
 		this.bresp := RespEncoding.OKAY
 	}
@@ -207,14 +236,16 @@ class AXI4Bus extends Module {
 	val io = IO(new Bundle {
 		val instin = new AXI4LiteIO()
 		val datain = new AXI4LiteIO()
+		val out = Flipped(new AXI4LiteIO())
 	})
 	val arbiter = Module(new AXIArbiter())
-	val xbar = Module(new AXI1x2Bar())
-	val sram = Module(new SRAMImp())
-	val mmio = Module(new MMIO())
+	// val xbar = Module(new AXI1x2Bar())
+	// val sram = Module(new SRAMImp())
+	// val mmio = Module(new MMIO())
 	arbiter.io.instin <> io.instin // ifu -> 2x1 arbiter in
 	arbiter.io.datain <> io.datain // mem -> 2x1 arbiter in
-	xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
-	sram.io <> xbar.io.sram // 1x2 crossbar out -> sram
-	mmio.io.arbiterIn <> xbar.io.mmio // 1x2 crossbar out -> mmio
+	// xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
+	// sram.io <> xbar.io.sram // 1x2 crossbar out -> sram
+	// mmio.io.arbiterIn <> xbar.io.mmio // 1x2 crossbar out -> mmio
+	io.out <> arbiter.io.out
 }

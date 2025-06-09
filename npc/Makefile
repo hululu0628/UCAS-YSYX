@@ -21,7 +21,7 @@ NXDC_FILES = $(NPC_HOME)/constr/top.nxdc
 
 VERILATOR = verilator
 
-VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
+VERILATOR_FLAGS = --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
 
 ARGS_DIFF = --diff=$(shell find $(NEMU_HOME)/build/ -type f -name "*-so")
 

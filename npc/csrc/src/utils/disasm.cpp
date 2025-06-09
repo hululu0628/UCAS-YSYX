@@ -60,7 +60,7 @@ void itrace_disasm(uint64_t pc, uint8_t *code, int nbyte) {
 	size_t count = cs_disasm_dl(handle, code, nbyte, pc, 0, &insn);
 	assert(count == 1);
 	log_write("[" << std::setw(5) << std::dec << excuted_inst_num << "]" << 
-		"PC: 0x" << std::hex << top->io_debug_pc << 
+		"PC: 0x" << std::hex << debug_signal.pc << 
 		"    " << std::left << std::setw(8) << insn->mnemonic << std::right << " " << insn->op_str);
 	cs_free_dl(insn, count);
 }

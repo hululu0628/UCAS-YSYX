@@ -4,6 +4,8 @@
 #include <sim/sdb.h>
 #include <sim/sim.h>
 
+struct debug_signal debug_signal;
+
 void monitor_run(VTop *top);
 void difftest_step();
 void device_update();
@@ -34,6 +36,19 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 			npc_state.state = NPC_END;
 	}
 }
+
+extern "C" void debug(unsigned valid, unsigned pc, unsigned npc, unsigned inst,
+	unsigned wen, unsigned waddr, unsigned data)
+{
+	debug_signal.valid = valid;
+	debug_signal.pc = pc;
+	debug_signal.npc = npc;
+	debug_signal.inst = inst;
+	debug_signal.wen = wen;
+	debug_signal.waddr = waddr;
+	debug_signal.data = data;
+}
+
 
 void wave_dump()
 {
@@ -66,16 +81,16 @@ void init_sim()
 
 void reg_modify(VTop *top)
 {
-	cpu.pc = top->io_debug_npc;
-	if(top->io_debug_wen && top->io_debug_waddr != 0)
+	cpu.pc = debug_signal.npc;
+	if(debug_signal.wen && debug_signal.waddr != 0)
 	{
-		cpu.gpr[top->io_debug_waddr] = top->io_debug_data;
+		cpu.gpr[debug_signal.waddr] = debug_signal.data;
 	}
 }
 
 void trace_and_difftest()
 {
-	if(!top->io_debug_valid)
+	if(!debug_signal.valid)
 	{
 		blocked_cycle++;
 		if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
@@ -91,7 +106,7 @@ void trace_and_difftest()
 		excuted_inst_num++;
 		IFDEF(CONFIG_DIFFTEST, difftest_step();)
 		IFDEF(CONFIG_ITRACE, trace_instruction();)
-		IFDEF(CONFIG_FTRACE, trace_func(top->io_debug_pc, top->io_debug_inst);)
+		IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
 		IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
 	}
 }
@@ -130,11 +145,11 @@ void sim_step(uint64_t n)
 			break;
 		case NPC_END:
 			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE 
-				<< " at PC = 0x" << std::hex << top->io_debug_pc);
+				<< " at PC = 0x" << std::hex << debug_signal.pc);
 			break;
 		case NPC_ABORT:
 			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE 
-				<< " at PC = 0x" << std::hex << top->io_debug_pc);
+				<< " at PC = 0x" << std::hex << debug_signal.pc);
 			break;
 		default:
 			assert(0);
