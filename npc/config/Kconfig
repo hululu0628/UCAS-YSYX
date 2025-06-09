@@ -279,5 +279,8 @@ endif
 
 endif
 
+config SIM_FREQ_M
+  int "Simulation frequency (MHz)"
+  range 1 1000
+  default 100
 
-  

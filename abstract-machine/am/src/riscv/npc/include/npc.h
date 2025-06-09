@@ -1,5 +1,7 @@
-#ifndef NEMU_H__
-#define NEMU_H__
+#ifndef NPC_H__
+#define NPC_H__
+
+#include <autoconf.h>
 
 #include <klib-macros.h>
 

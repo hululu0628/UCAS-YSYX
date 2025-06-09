@@ -40,7 +40,7 @@ void wave_dump()
 #ifndef CONFIG_NO_WAVE
 	if(CONFIG_WAVE_BEGIN <= excuted_inst_num && excuted_inst_num < CONFIG_WAVE_END)
 		tfp->dump(contextp->time());
-	contextp->timeInc(1);
+	contextp->timeInc(1000 / CONFIG_SIM_FREQ_M);
 #endif
 }
 
@@ -51,6 +51,7 @@ void init_sim()
 
 #ifndef CONFIG_NO_WAVE
 	contextp->traceEverOn(true);
+	tfp->set_time_unit("ns");
 	top->trace(tfp, 99);
 	tfp->open(wave_file);
 	Log("Ready for wave dump: " << wave_file);

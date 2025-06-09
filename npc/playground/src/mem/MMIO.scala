@@ -22,7 +22,8 @@ class MMIO extends Module {
 	val addr = Mux(writeEnable, io.arbiterIn.awaddr, io.arbiterIn.araddr)
 
 	val uart = Module(new UARTImp())
-	val devicelist = List(uart)
+	val clint = Module(new CLINTImp())
+	val devicelist = List(uart, clint)
 	val deviceVec = VecInit(devicelist.map { d =>
 		val dt = NPCParameters.deviceTab(d.device)
 		addr >= (dt.base.U) && addr < (dt.base.U + dt.size.U) && mmioEnable
