@@ -5,6 +5,13 @@ import chisel3.util._
 import chisel3.util.random._
 import cpu.mem._
 
+object TransferSize {
+	def BYTE = 0.U(3.W)
+	def HWORD = 1.U(3.W)
+	def WORD = 2.U(3.W)
+	def DWORD = 3.U(3.W)
+}
+
 object BrustType {
 	def FIXED = "b00".U(2.W)
 	def INCR = "b01".U(2.W)
@@ -32,7 +39,7 @@ object RespEncoding {
 	def DECERR = 3.U(2.W)
 }
 
-class AXI4LiteIO extends Bundle {
+class AXI4IO extends Bundle {
 	// Read Address Channel
 	val arid = Input(UInt(4.W))
 	val arvalid = Input(Bool())
@@ -107,7 +114,7 @@ class AXI4LiteIO extends Bundle {
 }
 
 abstract class AXI4LiteSlaveBase extends Module {
-	val io = IO(new AXI4LiteIO())
+	val io = IO(new AXI4IO())
 	io.setSlaveDefault()
 	
 	// read state machine
@@ -151,42 +158,42 @@ abstract class AXI4LiteSlaveBase extends Module {
 
 class AXIArbiter extends Module {
 	val io = IO(new Bundle {
-		val instin = new AXI4LiteIO()
-		val datain = new AXI4LiteIO()
-		val out = Flipped(new AXI4LiteIO())
+		val instSlave = new AXI4IO()
+		val dataSlave = new AXI4IO()
+		val out = Flipped(new AXI4IO())
 	})
 	val a_free :: a_inst :: a_rdata :: a_wdata :: Nil = Enum(4)
 	val a_state = RegInit(a_free)
 	a_state := MuxLookup(a_state, a_free)(Seq(
-		a_free -> Mux(io.instin.arvalid, a_inst,
-			   Mux(io.datain.arvalid, a_rdata, 
-			   Mux(io.datain.awvalid || io.datain.wvalid, a_wdata, a_free))),
-		a_inst -> Mux(io.instin.rvalid && io.instin.rready, a_free, a_inst),
-		a_rdata -> Mux(io.datain.rvalid && io.datain.rready, a_free, a_rdata),
-		a_wdata -> Mux(io.datain.bvalid && io.datain.bready, a_free, a_wdata)
+		a_free -> Mux(io.instSlave.arvalid, a_inst,
+			   Mux(io.dataSlave.arvalid, a_rdata, 
+			   Mux(io.dataSlave.awvalid || io.dataSlave.wvalid, a_wdata, a_free))),
+		a_inst -> Mux(io.instSlave.rvalid && io.instSlave.rready, a_free, a_inst),
+		a_rdata -> Mux(io.dataSlave.rvalid && io.dataSlave.rready, a_free, a_rdata),
+		a_wdata -> Mux(io.dataSlave.bvalid && io.dataSlave.bready, a_free, a_wdata)
 	))
 
-	io.instin.setSlaveDefault()
-	io.datain.setSlaveDefault()
+	io.instSlave.setSlaveDefault()
+	io.dataSlave.setSlaveDefault()
 	io.out.setMasterDefault()
 	when(a_state === a_inst) {
-		io.out <> io.instin
-		io.datain.setSlaveDefault()
+		io.out <> io.instSlave
+		io.dataSlave.setSlaveDefault()
 	} .elsewhen(a_state === a_rdata || a_state === a_wdata) {
-		io.out <> io.datain
-		io.instin.setSlaveDefault()
+		io.out <> io.dataSlave
+		io.instSlave.setSlaveDefault()
 	} .elsewhen(a_state === a_free) {
 		io.out.setMasterDefault()
-		io.instin.setSlaveDefault()
-		io.datain.setSlaveDefault()
+		io.instSlave.setSlaveDefault()
+		io.dataSlave.setSlaveDefault()
 	}
 }
 
 class AXI1x2Bar extends Module {
 	val io = IO(new Bundle {
-		val in = new AXI4LiteIO()
-		val sram = Flipped(new AXI4LiteIO())
-		val mmio = Flipped(new AXI4LiteIO())
+		val in = new AXI4IO()
+		val sram = Flipped(new AXI4IO())
+		val mmio = Flipped(new AXI4IO())
 	})
 	val hitSRAM = (io.in.arvalid && 
 		(io.in.araddr >= NPCParameters.sramStart.U && 
@@ -234,16 +241,16 @@ class AXI1x2Bar extends Module {
 
 class AXI4Bus extends Module {
 	val io = IO(new Bundle {
-		val instin = new AXI4LiteIO()
-		val datain = new AXI4LiteIO()
-		val out = Flipped(new AXI4LiteIO())
+		val instSlave = new AXI4IO()
+		val dataSlave = new AXI4IO()
+		val out = Flipped(new AXI4IO())
 	})
 	val arbiter = Module(new AXIArbiter())
 	// val xbar = Module(new AXI1x2Bar())
 	// val sram = Module(new SRAMImp())
 	// val mmio = Module(new MMIO())
-	arbiter.io.instin <> io.instin // ifu -> 2x1 arbiter in
-	arbiter.io.datain <> io.datain // mem -> 2x1 arbiter in
+	arbiter.io.instSlave <> io.instSlave // ifu -> 2x1 arbiter in
+	arbiter.io.dataSlave <> io.dataSlave // mem -> 2x1 arbiter in
 	// xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
 	// sram.io <> xbar.io.sram // 1x2 crossbar out -> sram
 	// mmio.io.arbiterIn <> xbar.io.mmio // 1x2 crossbar out -> mmio

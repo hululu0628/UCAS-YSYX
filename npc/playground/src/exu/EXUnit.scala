@@ -24,7 +24,7 @@ class EXUIO extends Bundle {
 	val decode = Flipped(Decoupled(new DecodedInst))
 	val writeback = Flipped(Decoupled(new W2EOut))
 	val out = Decoupled(new EXUOut)
-	val datain = Flipped(new AXI4LiteIO)
+	val dataMaster = Flipped(new AXI4IO)
 }
 
 class EXU extends Module with memfunc {
@@ -32,8 +32,8 @@ class EXU extends Module with memfunc {
 	val idIn = io.decode.bits
 	val wbIn = io.writeback.bits
 	val out = io.out.bits
-	val datain = io.datain
-	datain.setMasterDefault()
+	val dataMaster = io.dataMaster
+	dataMaster.setMasterDefault()
 
 	val regfile = Module(new Regfile())
 	val csrCtrlBlock = Module(new CSR())
@@ -117,32 +117,32 @@ class EXU extends Module with memfunc {
 	val el2RAMState = RegInit(r_idle)
 	el2RAMState := MuxLookup(el2RAMState, r_idle)(Seq(
 		r_idle -> Mux(io.decode.fire, r_waitready, r_idle),
-		r_waitready -> Mux(datain.arvalid, Mux(datain.arready, r_waitrdata, r_waitready), Mux(io.decode.fire, r_waitready, r_idle)),
-		r_waitrdata -> Mux(datain.rvalid && datain.rready, r_idle, r_waitrdata)
+		r_waitready -> Mux(dataMaster.arvalid, Mux(dataMaster.arready, r_waitrdata, r_waitready), Mux(io.decode.fire, r_waitready, r_idle)),
+		r_waitrdata -> Mux(dataMaster.rvalid && dataMaster.rready, r_idle, r_waitrdata)
 	))
-	datain.arvalid := idIn.exType === ExType.Load && (el2RAMState === r_waitready)
-	datain.araddr := getAlignedAddr(memAddr, idIn.lsLength)
-	datain.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
-	datain.rready := (el2RAMState === r_waitrdata) && io.out.ready
-	val ldata = getldata(datain.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
+	dataMaster.arvalid := idIn.exType === ExType.Load && (el2RAMState === r_waitready)
+	dataMaster.araddr := getAlignedAddr(memAddr, idIn.lsLength)
+	dataMaster.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
+	dataMaster.rready := (el2RAMState === r_waitrdata) && io.out.ready
+	val ldata = getldata(dataMaster.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
 	// state machine for AXI4Lite store
 	val w_idle :: w_waitwfire :: w_waitbvalid :: Nil = Enum(3)
 	val es2RAMState = RegInit(w_idle)
 	es2RAMState := MuxLookup(es2RAMState, w_idle)(Seq(
 		w_idle -> Mux(io.decode.fire, w_waitwfire, w_idle),
-		w_waitwfire -> Mux(datain.awvalid && datain.wvalid, 
-			Mux(datain.awready && datain.wready, w_waitbvalid, w_waitwfire), 
+		w_waitwfire -> Mux(dataMaster.awvalid && dataMaster.wvalid, 
+			Mux(dataMaster.awready && dataMaster.wready, w_waitbvalid, w_waitwfire), 
 			Mux(io.decode.fire, w_waitbvalid, w_idle)
 			),
-		w_waitbvalid -> Mux(datain.bvalid && datain.bready, w_idle, w_waitbvalid)
+		w_waitbvalid -> Mux(dataMaster.bvalid && dataMaster.bready, w_idle, w_waitbvalid)
 	))
-	datain.awvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
-	datain.awaddr := getAlignedAddr(memAddr, idIn.lsLength)
-	datain.awport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
-	datain.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
-	datain.wdata := getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
-	datain.wstrb := getwmask(idIn.lsLength, memAddr(1, 0))
-	datain.bready := (es2RAMState === w_waitbvalid) && io.out.ready
+	dataMaster.awvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
+	dataMaster.awaddr := getAlignedAddr(memAddr, idIn.lsLength)
+	dataMaster.awport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
+	dataMaster.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
+	dataMaster.wdata := getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
+	dataMaster.wstrb := getwmask(idIn.lsLength, memAddr(1, 0))
+	dataMaster.bready := (es2RAMState === w_waitbvalid) && io.out.ready
 
 	// output
 	out.info := idIn
@@ -157,7 +157,7 @@ class EXU extends Module with memfunc {
 	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
 	io.out.valid := MuxLookup(idIn.exType, RegNext(io.decode.fire))(Seq(
-		ExType.Load -> (datain.rvalid && datain.rready),
-		ExType.Store -> (datain.bvalid && datain.bready)
+		ExType.Load -> (dataMaster.rvalid && dataMaster.rready),
+		ExType.Store -> (dataMaster.bvalid && dataMaster.bready)
 	))
 }

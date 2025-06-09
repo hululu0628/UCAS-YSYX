@@ -16,14 +16,16 @@ class IFUOut extends Bundle {
 class IFIO extends Bundle {
 	val writeback = Flipped(Decoupled(new Bundle { val nextpc = UInt(32.W) }))
 	val out = Decoupled(new IFUOut)
-	val instin = Flipped(new AXI4LiteIO)
+	val instMaster = Flipped(new AXI4IO)
 }
 
 class InstFetch extends Module {
 	val io = IO(new IFIO)
 
-	val instin = io.instin
-	instin.setMasterDefault()
+	val instMaster = io.instMaster
+	instMaster.setMasterDefault()
+	val instReqFire = instMaster.arvalid && instMaster.arready
+	val instGet = instMaster.rvalid && instMaster.rready && instMaster.rlast
 
 	val pc = RegEnable(io.writeback.bits.nextpc, 0x80000000L.U(32.W), io.writeback.fire)
 
@@ -32,25 +34,28 @@ class InstFetch extends Module {
 	val f2RAMState = RegInit(i_waitready)
 	f2RAMState := MuxLookup(f2RAMState, i_idle)(Seq(
 		i_idle -> Mux(io.writeback.fire, i_waitready, i_idle),
-		i_waitready -> Mux(instin.arvalid && instin.arready, i_waitrdata, i_waitready),
-		i_waitrdata -> Mux(instin.rvalid && instin.rready, i_idle, i_waitrdata)
+		i_waitready -> Mux(instReqFire, i_waitrdata, i_waitready),
+		i_waitrdata -> Mux(instGet, i_idle, i_waitrdata)
 	))
-	instin.arvalid := (f2RAMState === i_waitready)
-	instin.araddr := pc
-	instin.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.iaccess))
-	instin.rready := (f2RAMState === i_waitrdata) && io.out.ready
+	instMaster.arvalid := (f2RAMState === i_waitready)
+	instMaster.araddr := pc
+	instMaster.arlen := 0.U(8.W)
+	instMaster.arsize := TransferSize.WORD
+	instMaster.arburst := BrustType.INCR
+	instMaster.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.iaccess))
+	instMaster.rready := (f2RAMState === i_waitrdata) && io.out.ready
 
 	// state machine for connecting different stages
 	val w2fState = Module(new StateMachine("master"))
 	w2fState.io.valid := io.writeback.valid
 	w2fState.io.ready := io.writeback.ready
 	val f2dState = Module(new StateMachine("slave"))
-	f2dState.io.valid := instin.rvalid && instin.rready
+	f2dState.io.valid := instGet
 	f2dState.io.ready := io.out.ready
 
-	io.out.bits.inst.code := instin.rdata
+	io.out.bits.inst.code := instMaster.rdata
 	io.out.bits.pc := pc
 
 	io.writeback.ready := io.out.ready || w2fState.io.state === w2fState.s_waitvalid
-	io.out.valid := (instin.rvalid && instin.rready) || f2dState.io.state === f2dState.s_waitready
+	io.out.valid := (instMaster.rvalid && instMaster.rready) || f2dState.io.state === f2dState.s_waitready
 }

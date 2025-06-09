@@ -8,15 +8,9 @@ import cpu.exu._
 import cpu.wb._
 
 class CPUIO extends Bundle {
-	val debug = new Bundle {
-		val valid = Output(Bool())
-		val pc = Output(UInt(32.W))
-		val npc = Output(UInt(32.W))
-		val inst = Output(new StaticInst)
-		val wen = Output(Bool())
-		val waddr = Output(UInt(5.W))
-		val data = Output(UInt(32.W))
-	}
+	val interrupt = Input(Bool())
+	val master = Flipped(new AXI4IO)
+	val slave = new AXI4IO
 }
 
 class Top extends Module{
@@ -41,11 +35,16 @@ class Top extends Module{
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	
-	bus.io.instin <> ifu.io.instin
-	bus.io.datain <> exu.io.datain
+	bus.io.instSlave <> ifu.io.instMaster
+	bus.io.dataSlave <> exu.io.dataMaster
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak
+
+	/* io out */
+	io.master <> bus.io.out
+	dontTouch(io.master)
+	dontTouch(io.slave)
 
 	/**
 	  * Debug Module

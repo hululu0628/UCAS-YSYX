@@ -12,7 +12,7 @@ abstract class DeviceBase extends AXI4LiteSlaveBase{
 // mmio arbiter
 class MMIO extends Module {
 	val io = IO(new Bundle{
-		val arbiterIn = new AXI4LiteIO()
+		val arbiterIn = new AXI4IO()
 	})
 	io.arbiterIn.setSlaveDefault()
 
