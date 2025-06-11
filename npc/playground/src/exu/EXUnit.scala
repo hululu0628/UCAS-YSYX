@@ -118,10 +118,13 @@ class EXU extends Module with memfunc {
 	el2RAMState := MuxLookup(el2RAMState, r_idle)(Seq(
 		r_idle -> Mux(io.decode.fire, r_waitready, r_idle),
 		r_waitready -> Mux(dataMaster.arvalid, Mux(dataMaster.arready, r_waitrdata, r_waitready), Mux(io.decode.fire, r_waitready, r_idle)),
-		r_waitrdata -> Mux(dataMaster.rvalid && dataMaster.rready, r_idle, r_waitrdata)
+		r_waitrdata -> Mux(dataMaster.rvalid && dataMaster.rready && dataMaster.rlast, r_idle, r_waitrdata)
 	))
 	dataMaster.arvalid := idIn.exType === ExType.Load && (el2RAMState === r_waitready)
-	dataMaster.araddr := getAlignedAddr(memAddr, idIn.lsLength)
+	dataMaster.araddr := memAddr
+	dataMaster.arlen := 0.U
+	dataMaster.arsize := getAxSize(idIn.lsLength)
+	dataMaster.arburst := BrustType.INCR
 	dataMaster.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
 	dataMaster.rready := (el2RAMState === r_waitrdata) && io.out.ready
 	val ldata = getldata(dataMaster.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
@@ -130,18 +133,22 @@ class EXU extends Module with memfunc {
 	val es2RAMState = RegInit(w_idle)
 	es2RAMState := MuxLookup(es2RAMState, w_idle)(Seq(
 		w_idle -> Mux(io.decode.fire, w_waitwfire, w_idle),
-		w_waitwfire -> Mux(dataMaster.awvalid && dataMaster.wvalid, 
-			Mux(dataMaster.awready && dataMaster.wready, w_waitbvalid, w_waitwfire), 
+		w_waitwfire -> Mux(dataMaster.awvalid && dataMaster.wvalid,
+			Mux(dataMaster.awready && dataMaster.wready, w_waitbvalid, w_waitwfire),
 			Mux(io.decode.fire, w_waitbvalid, w_idle)
 			),
 		w_waitbvalid -> Mux(dataMaster.bvalid && dataMaster.bready, w_idle, w_waitbvalid)
 	))
 	dataMaster.awvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
-	dataMaster.awaddr := getAlignedAddr(memAddr, idIn.lsLength)
+	dataMaster.awaddr := memAddr
+	dataMaster.awlen := 0.U
+	dataMaster.awsize := getAxSize(idIn.lsLength)
+	dataMaster.awburst := BrustType.INCR
 	dataMaster.awport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
 	dataMaster.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
 	dataMaster.wdata := getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
 	dataMaster.wstrb := getwmask(idIn.lsLength, memAddr(1, 0))
+	dataMaster.wlast := dataMaster.wvalid
 	dataMaster.bready := (es2RAMState === w_waitbvalid) && io.out.ready
 
 	// output

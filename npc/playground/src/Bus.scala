@@ -7,7 +7,7 @@ import cpu.mem._
 
 object TransferSize {
 	def BYTE = 0.U(3.W)
-	def HWORD = 1.U(3.W)
+	def HALF = 1.U(3.W)
 	def WORD = 2.U(3.W)
 	def DWORD = 3.U(3.W)
 }
@@ -57,6 +57,7 @@ class AXI4IO extends Bundle {
 	val rlast = Output(Bool())
 	val rresp = Output(UInt(2.W))
 	// Write Address Channel
+	val awid = Input(UInt(4.W))
 	val awvalid = Input(Bool())
 	val awready = Output(Bool())
 	val awaddr = Input(UInt(32.W))
@@ -65,7 +66,6 @@ class AXI4IO extends Bundle {
 	val awburst = Input(UInt(2.W))
 	val awport = Input(UInt(3.W))
 	// Write Data Channel
-	val wid = Input(UInt(4.W))
 	val wvalid = Input(Bool())
 	val wready = Output(Bool())
 	val wdata = Input(UInt(32.W))
@@ -86,6 +86,7 @@ class AXI4IO extends Bundle {
 		this.arburst := BrustType.INCR
 		this.arport := AxPortEncoding.unpriv
 		this.rready := false.B
+		this.awid := 0.U
 		this.awvalid := false.B
 		this.awaddr := 0.U
 		this.awlen := 0.U
