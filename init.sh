@@ -77,7 +77,7 @@ case $1 in
     addenv NPC_HOME npc
     ;;
   ysyxSoC)
-    init OSCPU/ysyxSoC master ysyxSoC false
+    init OSCPU/ysyxSoC ysyx6 ysyxSoC false
     ;;
   *)
     echo "Invalid input..."
