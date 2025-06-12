@@ -45,7 +45,7 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		|		wen,
 		|		waddr,
 		|		data
-		|	)
+		|	);
 		|end
 		|endmodule
 		""".stripMargin

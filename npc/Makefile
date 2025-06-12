@@ -1,7 +1,7 @@
 -include $(NPC_HOME)/config/include/config/auto.conf
 -include $(NPC_HOME)/config/include/config/auto.conf.cmd
 
-TOP ?= Top
+TOP ?= $(CONFIG_TOP_MODULE)
 
 PLATFORM ?= verilator
 
@@ -13,15 +13,24 @@ PRJ = playground
 
 CONFIG_DIR = $(NPC_HOME)/config
 
-CSRC = $(NPC_HOME)/csrc
+CSRC += $(NPC_HOME)/csrc
 
-VSRC = $(NPC_HOME)/vsrc
+VSRC += $(NPC_HOME)/vsrc
+# for SoC
+VSRC += $(YSYXSOC_HOME)/perip
 
 NXDC_FILES = $(NPC_HOME)/constr/top.nxdc
 
 VERILATOR = verilator
 
-VERILATOR_FLAGS = --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
+VERILATOR_FLAGS += --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing
+
+VERILATOR_FLAGS += --top-module $(TOP)
+
+ifeq ($(CONFIG_IGNORE_WARNINGS),y)
+VERILATOR_FLAGS += -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
+endif
+
 
 ARGS_DIFF = --diff=$(shell find $(NEMU_HOME)/build/ -type f -name "*-so")
 
@@ -37,6 +46,7 @@ include $(FILELIST_MK)
 # project source
 CSRCS-y += $(shell find -L $(DIRS-y) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VSRCS = $(shell find $(abspath $(VSRC)) -name "*.v" -or -name "*.sv")
+VSRCS += $(YSYXSOC_HOME)/build/ysyxSoCFull.v
 CSRCS = $(CSRCS-y)
 
 
@@ -84,8 +94,14 @@ LDFLAGS += $(LIBS)
 
 INC_PATH += $(CSRC)/include
 INC_PATH += $(CONFIG_DIR)/include/generated
+
 INCFLAGS = $(addprefix -I, $(INC_PATH))
 CXXFLAGS += $(INCFLAGS)
+
+# for verilator
+VINC_PATH += $(YSYXSOC_HOME)/perip/uart16550/rtl $(YSYXSOC_HOME)/perip/spi/rtl/
+
+VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 
 -include $(NPC_HOME)/scripts/$(PLATFORM)-sim.mk
 

@@ -13,7 +13,7 @@ class CPUIO extends Bundle {
 	val slave = new AXI4IO
 }
 
-class Top extends Module{
+class ysyxCPU extends Module{
 	val io = IO(new CPUIO)
 	/**
 	  * Modules of processor

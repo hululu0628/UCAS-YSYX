@@ -284,3 +284,11 @@ config SIM_FREQ_M
   range 1 1000
   default 100
 
+menu "Simulation Configuration"
+  config TOP_MODULE
+    string "Top module"
+    default "Top"
+  config IGNORE_WARNINGS
+    bool "Ignore warning of verilator(In fact, not all when warnings enabled)"
+    default n
+endmenu

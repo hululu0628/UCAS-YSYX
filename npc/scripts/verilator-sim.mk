@@ -14,7 +14,7 @@ endif
 
 sim:
 	@-rm -rf $(BUILD_DIR)/*
-	verilator $(VERILATOR_FLAGS) --top-module $(TOP) $(SRCS) \
+	verilator $(VERILATOR_FLAGS) $(SRCS) $(VINCFLAGS)\
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) -o $(BUILD_DIR)/$(TOP)
 
