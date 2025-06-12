@@ -43,6 +43,7 @@ class Top extends Module{
 
 	/* io out */
 	io.master <> bus.io.out
+	io.slave <> DontCare
 	dontTouch(io.master)
 	dontTouch(io.slave)
 
@@ -52,7 +53,7 @@ class Top extends Module{
 	debug.io.valid := wbu.io.w2e.valid
 	debug.io.pc := wbu.io.w2e.bits.info.pc
 	debug.io.npc := wbu.io.w2f.bits.nextpc
-	debug.io.inst := wbu.io.w2e.bits.info.inst
+	debug.io.inst := wbu.io.w2e.bits.info.inst.code
 	debug.io.wen := wbu.io.w2e.bits.info.wenR
 	debug.io.waddr := wbu.io.w2e.bits.info.inst.rd
 	debug.io.data := wbu.io.w2e.bits.regWdata

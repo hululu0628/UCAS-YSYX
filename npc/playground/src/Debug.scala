@@ -4,13 +4,13 @@ import chisel3._
 import chisel3.util._
 
 class DPIDebugIO extends Bundle {
-	val valid = Output(Bool())
-	val pc = Output(UInt(32.W))
-	val npc = Output(UInt(32.W))
-	val inst = Output(UInt(32.W))
-	val wen = Output(Bool())
-	val waddr = Output(UInt(5.W))
-	val data = Output(UInt(32.W))
+	val valid = Input(Bool())
+	val pc = Input(UInt(32.W))
+	val npc = Input(UInt(32.W))
+	val inst = Input(UInt(32.W))
+	val wen = Input(Bool())
+	val waddr = Input(UInt(5.W))
+	val data = Input(UInt(32.W))
 }
 
 class DPIDebug extends BlackBox with HasBlackBoxInline {
