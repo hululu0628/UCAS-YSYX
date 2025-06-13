@@ -48,7 +48,6 @@ class AXI4IO extends Bundle {
 	val arlen = Input(UInt(8.W))
 	val arsize = Input(UInt(3.W))
 	val arburst = Input(UInt(2.W))
-	val arport = Input(UInt(3.W))
 	// Read Data Channel
 	val rid = Output(UInt(4.W))
 	val rvalid = Output(Bool())
@@ -64,7 +63,6 @@ class AXI4IO extends Bundle {
 	val awlen = Input(UInt(8.W))
 	val awsize = Input(UInt(3.W))
 	val awburst = Input(UInt(2.W))
-	val awport = Input(UInt(3.W))
 	// Write Data Channel
 	val wvalid = Input(Bool())
 	val wready = Output(Bool())
@@ -84,7 +82,6 @@ class AXI4IO extends Bundle {
 		this.arlen := 0.U
 		this.arsize := 0.U
 		this.arburst := BrustType.INCR
-		this.arport := AxPortEncoding.unpriv
 		this.rready := false.B
 		this.awid := 0.U
 		this.awvalid := false.B
@@ -92,7 +89,6 @@ class AXI4IO extends Bundle {
 		this.awlen := 0.U
 		this.awsize := 0.U
 		this.awburst := BrustType.INCR
-		this.awport := AxPortEncoding.unpriv
 		this.wvalid := false.B
 		this.wdata := 0.U
 		this.wstrb := 0.U
@@ -128,7 +124,6 @@ abstract class AXI4LiteSlaveBase extends Module {
 	))
 	// register address and port
 	val raddr = RegEnable(io.araddr, io.arvalid && io.arready)
-	val rport = RegEnable(io.arport, io.arvalid && io.arready)
 
 	// write addr state machine
 	val aw_idle :: aw_fire :: Nil = Enum(2)
@@ -152,7 +147,6 @@ abstract class AXI4LiteSlaveBase extends Module {
 		b_waitready -> Mux(io.bvalid && io.bready, b_idle, b_waitready)
 	))
 	val waddr = RegEnable(io.awaddr, io.awvalid && io.awready)
-	val wport = RegEnable(io.awport, io.awvalid && io.awready)
 	val wdata = RegEnable(io.wdata, io.wvalid && io.wready)
 	val wstrb = RegEnable(io.wstrb, io.wvalid && io.wready)
 }

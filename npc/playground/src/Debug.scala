@@ -4,12 +4,12 @@ import chisel3._
 import chisel3.util._
 
 class DPIDebugIO extends Bundle {
-	val valid = Input(Bool())
+	val valid = Input(UInt(32.W))
 	val pc = Input(UInt(32.W))
 	val npc = Input(UInt(32.W))
 	val inst = Input(UInt(32.W))
-	val wen = Input(Bool())
-	val waddr = Input(UInt(5.W))
+	val wen = Input(UInt(32.W))
+	val waddr = Input(UInt(32.W))
 	val data = Input(UInt(32.W))
 }
 
@@ -19,12 +19,12 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		"DPIDebug.sv",
 		"""
 		|module DPIDebug(
-		|	input valid,
+		|	input [31:0] valid,
 		|	input [31:0] pc,
 		|	input [31:0] npc,
 		|	input [31:0] inst,
-		|	input wen,
-		|	input [4:0] waddr,
+		|	input [31:0] wen,
+		|	input [31:0] waddr,
 		|	input [31:0] data
 		|);
 		|import "DPI-C" function void debug(

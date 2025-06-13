@@ -125,7 +125,6 @@ class EXU extends Module with memfunc {
 	dataMaster.arlen := 0.U
 	dataMaster.arsize := getAxSize(idIn.lsLength)
 	dataMaster.arburst := BrustType.INCR
-	dataMaster.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
 	dataMaster.rready := (el2RAMState === r_waitrdata) && io.out.ready
 	val ldata = getldata(dataMaster.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
 	// state machine for AXI4Lite store
@@ -144,7 +143,6 @@ class EXU extends Module with memfunc {
 	dataMaster.awlen := 0.U
 	dataMaster.awsize := getAxSize(idIn.lsLength)
 	dataMaster.awburst := BrustType.INCR
-	dataMaster.awport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.daccess))
 	dataMaster.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
 	dataMaster.wdata := getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
 	dataMaster.wstrb := getwmask(idIn.lsLength, memAddr(1, 0))

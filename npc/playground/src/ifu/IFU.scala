@@ -42,7 +42,6 @@ class InstFetch extends Module {
 	instMaster.arlen := 0.U(8.W)
 	instMaster.arsize := TransferSize.WORD
 	instMaster.arburst := BrustType.INCR
-	instMaster.arport := AxPortEncoding.genPortCode(Seq(AxPortEncoding.unpriv, AxPortEncoding.secure, AxPortEncoding.iaccess))
 	instMaster.rready := (f2RAMState === i_waitrdata) && io.out.ready
 
 	// state machine for connecting different stages

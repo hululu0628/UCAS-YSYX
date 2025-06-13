@@ -27,7 +27,7 @@ VERILATOR_FLAGS += --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing
 
 VERILATOR_FLAGS += --top-module $(TOP)
 
-ifeq ($(CONFIG_IGNORE_WARNINGS),y)
+ifeq ($(CONFIG_IGNORE_WARNINGS),n)
 VERILATOR_FLAGS += -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
 endif
 
