@@ -53,8 +53,8 @@ CSRCS = $(CSRCS-y)
 $(shell mkdir -p $(BUILD_DIR))
 
 
-test:
-	mill -i $(PRJ).test
+#test:
+#	mill -i $(PRJ).test
 
 verilog:
 # $(call git_commit, "generate verilog")
@@ -105,5 +105,6 @@ VINCFLAGS = $(addprefix -I, $(VINC_PATH))
 
 -include $(NPC_HOME)/scripts/$(PLATFORM)-sim.mk
 
+-include $(NPC_HOME)/scripts/test.mk
 
 -include ../Makefile

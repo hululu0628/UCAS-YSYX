@@ -12,12 +12,12 @@ override ARGS += --wave=wave/log.fst
 endif
 
 
-sim:
+build:
 	@-rm -rf $(BUILD_DIR)/*
 	verilator $(VERILATOR_FLAGS) $(SRCS) $(VINCFLAGS)\
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) -o $(BUILD_DIR)/$(TOP)
 
-run: sim
+run: build
 	@echo ${ARGS}
 	$(BUILD_DIR)/$(TOP) $(ARGS) $(IMG)
