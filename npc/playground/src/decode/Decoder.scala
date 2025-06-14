@@ -282,5 +282,5 @@ class Decoder extends Module{
 
 	// for multi-cycle cpu
 	io.in.ready := io.out.ready || f2dState.io.state === f2dState.s_waitvalid
-	io.out.valid := RegNext(io.in.fire) || d2eState.io.state === d2eState.s_waitready
+	io.out.valid := RegNext(io.in.fire, 0.B) || d2eState.io.state === d2eState.s_waitready
 }

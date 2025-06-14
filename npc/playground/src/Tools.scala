@@ -13,7 +13,7 @@ object StageConnectMulti {
 	def apply[T <: Data](curr: DecoupledIO[T], next: DecoupledIO[T]) = {
 		next.valid := curr.valid
 		curr.ready := next.ready
-		next.bits := RegEnable(curr.bits, curr.fire)
+		next.bits := RegEnable(curr.bits, 0.U.asTypeOf(curr.bits), curr.fire)
 	}
 }
 

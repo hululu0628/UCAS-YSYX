@@ -76,12 +76,6 @@ void init_sim()
 	top->eval();
 	wave_dump();
 	// wait for SoC full reset(donot konw the reason)
-	for(int i = 0; i < 20; i++)
-	{
-		top->clock = !top->clock;
-		top->eval();
-		wave_dump();
-	}
 	Log("Reset CPU successfully");
 }
 

@@ -123,7 +123,7 @@ abstract class AXI4LiteSlaveBase extends Module {
 		r_waitrready -> Mux(io.rvalid && io.rready, r_idle, r_waitrready)
 	))
 	// register address and port
-	val raddr = RegEnable(io.araddr, io.arvalid && io.arready)
+	val raddr = RegEnable(io.araddr, 0.U.asTypeOf(io.araddr), io.arvalid && io.arready)
 
 	// write addr state machine
 	val aw_idle :: aw_fire :: Nil = Enum(2)
@@ -146,9 +146,9 @@ abstract class AXI4LiteSlaveBase extends Module {
 		b_idle -> Mux(io.bvalid, Mux(io.bready, b_idle, b_waitready), b_idle),
 		b_waitready -> Mux(io.bvalid && io.bready, b_idle, b_waitready)
 	))
-	val waddr = RegEnable(io.awaddr, io.awvalid && io.awready)
-	val wdata = RegEnable(io.wdata, io.wvalid && io.wready)
-	val wstrb = RegEnable(io.wstrb, io.wvalid && io.wready)
+	val waddr = RegEnable(io.awaddr, 0.U.asTypeOf(io.awaddr), io.awvalid && io.awready)
+	val wdata = RegEnable(io.wdata, 0.U.asTypeOf(io.wdata),  io.wvalid && io.wready)
+	val wstrb = RegEnable(io.wstrb, 0.U.asTypeOf(io.wstrb),  io.wvalid && io.wready)
 }
 
 class AXIArbiter extends Module {

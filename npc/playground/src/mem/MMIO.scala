@@ -28,7 +28,7 @@ class MMIO extends Module {
 		val dt = NPCParameters.deviceTab(d.device)
 		addr >= (dt.base.U) && addr < (dt.base.U + dt.size.U) && mmioEnable
 	})
-	val deviceVecReg = RegEnable[Vec[Bool]](deviceVec, mmioEnable)
+	val deviceVecReg = RegEnable[Vec[Bool]](deviceVec, 0.U.asTypeOf(deviceVec), mmioEnable)
 	val deviceFinalVec = Mux(deviceVec.reduce(_ || _), deviceVec, deviceVecReg)
 
 

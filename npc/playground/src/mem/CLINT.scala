@@ -12,7 +12,7 @@ class CLINTImp extends DeviceBase {
 
 	val rcnt = RegInit(0.U(5.W))
 	val rlfsr = LFSR(5, io.arvalid && io.arready, Some(BigInt(0b00101)))
-	val addr = RegEnable(io.araddr, io.arvalid && io.arready)
+	val addr = RegEnable(io.araddr, 0.B.asTypeOf(io.araddr), io.arvalid && io.arready)
 	when(io.arvalid && io.arready) {
 		rcnt := rlfsr
 	}

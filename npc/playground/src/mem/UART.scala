@@ -11,7 +11,7 @@ class UARTImp extends DeviceBase {
 	val wcnt = RegInit(0.U(5.W))
 	val wlfsr = LFSR(5, io.wvalid && io.wready, Some(BigInt(0b01001)))
 	val writtenFlag = RegInit(false.B)
-	val dataReg = RegEnable(io.wdata, io.wvalid && io.wready)
+	val dataReg = RegEnable(io.wdata, 0.B.asTypeOf(io.wdata), io.wvalid && io.wready)
 	when(io.awvalid && io.awready) {
 		wcnt := wlfsr
 	}

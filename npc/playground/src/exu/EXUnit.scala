@@ -161,7 +161,7 @@ class EXU extends Module with memfunc {
 	// for multi-cycle cpu
 	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := MuxLookup(idIn.exType, RegNext(io.decode.fire))(Seq(
+	io.out.valid := MuxLookup(idIn.exType, RegNext(io.decode.fire, 0.B))(Seq(
 		ExType.Load -> (dataMaster.rvalid && dataMaster.rready),
 		ExType.Store -> (dataMaster.bvalid && dataMaster.bready)
 	))
