@@ -74,14 +74,12 @@ config MTRACE
 config MTRACE_START
   depends on MTRACE
   hex "When memory tracing is enabled"
-  range 0x80000000 0x88000000
-  default 0x80000000
+  default 0x20000000
 
 config MTRACE_END
   depends on MTRACE
   hex "When memory tracing is disabled"
-  range 0x80000000 0x88000000
-  default 0x88000000
+  default 0x20001000
 
 config FTRACE
   depends on TRACE

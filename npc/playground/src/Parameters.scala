@@ -15,6 +15,7 @@ object NPCParameters {
 	val deviceTab = Map(
 		"mrom" -> DevicePara(0x20000000L, 0x1000L),
 		"uart" -> DevicePara(0x10000000L,0x1000L),
+		"sram" -> DevicePara(0x0f000000L, 0x10000000L),
 		"clint" -> DevicePara(0xa0000048L, 0x8L)
 	)
 }
