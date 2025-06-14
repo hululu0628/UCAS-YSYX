@@ -25,12 +25,6 @@ VTop *top;
 
 static bool is_end = false;
 
-extern "C" void flash_read(int32_t addr, int32_t *data) { assert(0); }
-extern "C" void mrom_read(int32_t addr, int32_t *data) 
-{ 
-	*data = 0x00100073; // ebreak
-}
-
 extern "C" void ebreak_handler(unsigned char inst_ebreak)
 {
 	if(inst_ebreak)
@@ -77,11 +71,17 @@ void init_sim()
 	tfp->open(wave_file);
 	Log("Ready for wave dump: " << wave_file);
 #endif
-
 	top->reset = 1;
 	top->clock = 0;
 	top->eval();
 	wave_dump();
+	// wait for SoC full reset(donot konw the reason)
+	for(int i = 0; i < 20; i++)
+	{
+		top->clock = !top->clock;
+		top->eval();
+		wave_dump();
+	}
 	Log("Reset CPU successfully");
 }
 

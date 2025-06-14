@@ -16,8 +16,8 @@
 #define NR_GPR 32
 #define NR_CSR 4
 
-#define PMEM_START 0x80000000
-#define PMEM_SIZE 0x8000000
+#define PMEM_START CONFIG_MBASE
+#define PMEM_SIZE CONFIG_MSIZE
 #define PROGRAM_ENTRY PMEM_START
 
 #define FMT_PADDR(addr) "0x" << std::hex << std::setw(8) << std::setfill('0') << addr << std::setfill(' ')

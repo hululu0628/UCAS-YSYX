@@ -14,7 +14,7 @@ object NPCParameters {
 	val mmioNum = 1
 	val deviceTab = Map(
 		"mrom" -> DevicePara(0x20000000L, 0x1000L),
-		"uart" -> DevicePara(0xa00003f8L, 0x8L),
+		"uart" -> DevicePara(0x10000000L,0x1000L),
 		"clint" -> DevicePara(0xa0000048L, 0x8L)
 	)
 }
