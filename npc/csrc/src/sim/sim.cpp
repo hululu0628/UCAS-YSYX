@@ -75,7 +75,6 @@ void init_sim()
 	top->clock = 0;
 	top->eval();
 	wave_dump();
-	// wait for SoC full reset(donot konw the reason)
 	Log("Reset CPU successfully");
 }
 
