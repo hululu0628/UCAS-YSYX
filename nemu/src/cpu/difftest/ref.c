@@ -14,6 +14,7 @@
 ***************************************************************************************/
 
 #include "isa-def.h"
+#include "memory/soc.h"
 #include <isa.h>
 #include <cpu/cpu.h>
 #include <difftest-def.h>
@@ -21,9 +22,9 @@
 
 __EXPORT void difftest_memcpy(paddr_t addr, void *buf, size_t n, bool direction) {
 	if(direction == DIFFTEST_TO_REF)
-		memcpy(guest_to_host(addr), buf, n);
+		memcpy(guest_to_host(addr, get_soc_index(addr)), buf, n);
 	else
-		memcpy(buf, guest_to_host(addr), n);
+		memcpy(buf, guest_to_host(addr, get_soc_index(addr)), n);
 }
 
 __EXPORT void difftest_regcpy(void *dut, bool direction) {
@@ -51,8 +52,8 @@ __EXPORT void difftest_raise_intr(word_t NO) {
 }
 
 __EXPORT void difftest_init(int port) {
-  void init_mem();
-  init_mem();
+  void init_soc();
+  init_soc();
   /* Perform ISA dependent initialization. */
   init_isa();
 }

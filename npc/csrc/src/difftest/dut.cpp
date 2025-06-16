@@ -35,6 +35,7 @@ void init_difftest(const char *ref_so_file, long img_size, int port) {
 	assert(ref_difftest_init);
 
 	ref_difftest_init(port);
+	// can not initialize SRAM for it is on the SoC
 	ref_difftest_memcpy(PMEM_START, guest_to_host(PMEM_START), img_size, DIFFTEST_TO_REF);
 	ref_difftest_regcpy(&cpu, DIFFTEST_TO_REF);
 

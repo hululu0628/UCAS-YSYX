@@ -13,6 +13,7 @@
 * See the Mulan PSL v2 for more details.
 ***************************************************************************************/
 
+#include "memory/soc.h"
 #include <isa.h>
 #include <memory/paddr.h>
 
@@ -36,10 +37,10 @@ static void restart() {
 
 void init_isa() {
   /* Load built-in image. */
-  memcpy(guest_to_host(RESET_VECTOR), img, sizeof(img));
+  memcpy(guest_to_host(RESET_VECTOR, get_soc_index(RESET_VECTOR)), img, sizeof(img));
 
   /* Initialize this virtual computer system. */
   restart();
 
-  printf("ISA initialized\n");
+  Log("ISA initialized");
 }

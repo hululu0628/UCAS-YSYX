@@ -161,18 +161,6 @@ config MTRACE
   bool "Enable memory tracer"
   default n
 
-config MTRACE_START
-  depends on MTRACE
-  hex "When memory tracing is enabled"
-  range 0x80000000 0x88000000
-  default 0x80000000
-
-config MTRACE_END
-  depends on MTRACE
-  hex "When memory tracing is disabled"
-  range 0x80000000 0x88000000
-  default 0x88000000
-
 config FTRACE
   depends on TRACE
   bool "Enable function tracer"

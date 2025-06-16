@@ -23,6 +23,7 @@ extern word_t excuted_inst_num;
 extern char* wave_file;
 
 struct debug_signal {
+	bool reset; 
 	bool valid;
 	bool wen;
 	word_t pc;

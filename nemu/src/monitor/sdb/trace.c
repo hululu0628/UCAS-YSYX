@@ -91,13 +91,10 @@ void print_ringbuf()
 // called in paddr.c
 void trace_mem(int op, paddr_t addr, int len, word_t data)
 {
-	if(addr < CONFIG_MTRACE_END && addr >= CONFIG_MTRACE_START)
-	{
-		if(op == MEM_READ)
-			log_write("SDB: (" FMT_PADDR ") Memory read at " FMT_PADDR " with data " FMT_WORD "\n", cpu.pc, addr, data);
-		else
-			log_write("SDB: (" FMT_PADDR ") Memory write at " FMT_PADDR " with data " FMT_WORD "\n", cpu.pc, addr, data);
-	}
+	if(op == MEM_READ)
+		log_write("SDB: (" FMT_PADDR ") Memory read at " FMT_PADDR " with data " FMT_WORD "\n", cpu.pc, addr, data);
+	else
+		log_write("SDB: (" FMT_PADDR ") Memory write at " FMT_PADDR " with data " FMT_WORD "\n", cpu.pc, addr, data);
 }
 
 #endif

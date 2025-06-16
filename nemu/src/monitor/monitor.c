@@ -14,13 +14,14 @@
 ***************************************************************************************/
 
 #include <isa.h>
+#include <memory/soc.h>
 #include <memory/paddr.h>
 
 extern const char nemu_logo[];
 
 void init_rand();
 void init_log(const char *log_file);
-void init_mem();
+void init_soc();
 void init_difftest(char *ref_so_file, long img_size, int port);
 void init_device();
 void init_sdb();
@@ -64,7 +65,7 @@ static long load_img() {
   Log("The image is %s, size = %ld", img_file, size);
 
   fseek(fp, 0, SEEK_SET);
-  int ret = fread(guest_to_host(RESET_VECTOR), size, 1, fp);
+  int ret = fread(guest_to_host(RESET_VECTOR, get_soc_index(RESET_VECTOR)), size, 1, fp);
   assert(ret == 1);
 
   fclose(fp);
@@ -117,7 +118,7 @@ void init_monitor(int argc, char *argv[]) {
   init_log(log_file);
 
   /* Initialize memory. */
-  init_mem();
+  init_soc();
 
   /* Initialize devices. */
   IFDEF(CONFIG_DEVICE, init_device());

@@ -1,13 +1,34 @@
-menu "Memory Configuration"
+menu "SoC Configuration"
 
-config MBASE
-  hex "Memory base address"
-  default 0x0        if ISA_x86
-  default 0x80000000
+config MROM
+  bool "Enable MROM
 
-config MSIZE
-  hex "Memory size"
-  default 0x8000000
+config MROM_BASE
+  depends on MROM
+  hex "MROM base address"
+  default 0x20000000
+
+config MROM_SIZE
+  depends on MROM
+  hex "MROM size"
+  default 0x1000
+
+config SRAM
+  bool "Enable SRAM"
+
+config SRAM_BASE
+  depends on SRAM
+  hex "SRAM base address"
+  default 0xf000000
+
+config SRAM_SIZE
+  depends on SRAM
+  hex "SRAM size"
+  default 0x1000000
+
+config RESET_BASE
+  hex "Base of reset vector"
+  default 0x20000000
 
 config PC_RESET_OFFSET
   hex "Offset of reset vector from the base of memory"

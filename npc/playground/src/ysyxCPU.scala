@@ -50,6 +50,7 @@ class ysyxCPU extends Module{
 	/**
 	  * Debug Module
 	  */
+	debug.io.reset := reset.asUInt
 	debug.io.valid := wbu.io.w2e.valid
 	debug.io.pc := wbu.io.w2e.bits.info.pc
 	debug.io.npc := wbu.io.w2f.bits.nextpc

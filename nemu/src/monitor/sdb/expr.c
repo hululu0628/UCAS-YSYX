@@ -297,7 +297,7 @@ static sword_t eval(int l, int r, bool *success)
 			case TK_DIV: return val1 / val2;
 			case TK_EQ: return val1 == val2;
 			case TK_NEQ: return val1 != val2;
-			case TK_DEREF: return *((word_t *)guest_to_host(val2));
+			case TK_DEREF: return *((word_t *)guest_to_host(val2, get_soc_index(val2)));
 			default: break;
 		}
 	}

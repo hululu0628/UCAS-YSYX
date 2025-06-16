@@ -1,3 +1,4 @@
+#include "difftest/difftest.h"
 #include "verilated.h"
 #include <isa.h>
 #include <debug.h>
@@ -37,9 +38,10 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 	}
 }
 
-extern "C" void debug(unsigned valid, unsigned pc, unsigned npc, unsigned inst,
+extern "C" void set_debug(unsigned reset, unsigned valid, unsigned pc, unsigned npc, unsigned inst,
 	unsigned wen, unsigned waddr, unsigned data)
 {
+	debug_signal.reset = reset;
 	debug_signal.valid = valid;
 	debug_signal.pc = pc;
 	debug_signal.npc = npc;
@@ -89,24 +91,31 @@ void reg_modify(VTop *top)
 
 void trace_and_difftest()
 {
-	if(!debug_signal.valid)
+	if(debug_signal.reset)
 	{
-		blocked_cycle++;
-		if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
-		{
-			npc_state.state = NPC_ABORT;
-			Log_Error("Quit because of blocked cycle");
-			return;
-		}
+		difftest_skip_ref();
 	}
 	else
 	{
-		blocked_cycle = 0;
-		excuted_inst_num++;
-		IFDEF(CONFIG_DIFFTEST, difftest_step();)
-		IFDEF(CONFIG_ITRACE, trace_instruction();)
-		IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
-		IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
+		if(!debug_signal.valid)
+		{
+			blocked_cycle++;
+			if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
+			{
+				npc_state.state = NPC_ABORT;
+				Log_Error("Quit because of blocked cycle");
+				return;
+			}
+		}
+		else
+		{
+			blocked_cycle = 0;
+			excuted_inst_num++;
+			IFDEF(CONFIG_DIFFTEST, difftest_step();)
+			IFDEF(CONFIG_ITRACE, trace_instruction();)
+			IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
+			IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
+		}
 	}
 }
 

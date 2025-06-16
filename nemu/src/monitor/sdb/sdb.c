@@ -111,7 +111,7 @@ static int cmd_x(char *args)
 				{
 					if(j + i >= n)
 						break;
-					printf("0x%08x    ", (*(uint32_t *)(guest_to_host(addr))));
+					printf("0x%08x    ", (*(uint32_t *)(guest_to_host(addr, get_soc_index(addr)))));
 					addr += 4;
 				}
 				printf("\n");
