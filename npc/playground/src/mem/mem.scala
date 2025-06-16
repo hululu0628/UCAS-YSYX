@@ -24,6 +24,13 @@ trait memfunc {
 			LSLen.byte -> Cat(Fill(24, sign && memdata((offset << 3) + 7.U)), (memdata >> (offset << 3))(7, 0))
 		))
 	}
+	def getldataNew(memdata: UInt, ltype: UInt, sign: Bool, offset: UInt): UInt = {
+		MuxLookup(ltype, 0.U(32.W))(Seq(
+			LSLen.word -> memdata,
+			LSLen.half -> Cat(Fill(16, sign && memdata(15)), memdata(15, 0)),
+			LSLen.byte -> Cat(Fill(24, sign && memdata(7)), memdata(7, 0))
+		))
+	}
 	def getAxSize(lstype: UInt): UInt = {
 		MuxLookup(lstype, 0.U(3.W))(Seq(
 			LSLen.word -> TransferSize.WORD,
@@ -43,6 +50,13 @@ trait memfunc {
 			LSLen.word -> "b1111".U,
 			LSLen.half -> (Cat(0.U(2.W), "b11".U) << offset(1, 0)),
 			LSLen.byte -> (Cat(0.U(3.W), "b1".U) << offset(1, 0))
+		))
+	}
+	def getwmaskNew(stype: UInt, offset: UInt): UInt = {
+		MuxLookup(stype, 0.U(4.W))(Seq(
+			LSLen.word -> "b1111".U,
+			LSLen.half -> "b0011".U,
+			LSLen.byte -> "b0001".U
 		))
 	}
 }

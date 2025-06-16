@@ -126,7 +126,7 @@ class EXU extends Module with memfunc {
 	dataMaster.arsize := getAxSize(idIn.lsLength)
 	dataMaster.arburst := BrustType.INCR
 	dataMaster.rready := (el2RAMState === r_waitrdata) && io.out.ready
-	val ldata = getldata(dataMaster.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
+	val ldata = getldataNew(dataMaster.rdata, idIn.lsLength, idIn.loadSignExt, memAddr(1, 0))
 	// state machine for AXI4Lite store
 	val w_idle :: w_waitwfire :: w_waitbvalid :: Nil = Enum(3)
 	val es2RAMState = RegInit(w_idle)
@@ -144,8 +144,8 @@ class EXU extends Module with memfunc {
 	dataMaster.awsize := getAxSize(idIn.lsLength)
 	dataMaster.awburst := BrustType.INCR
 	dataMaster.wvalid := idIn.exType === ExType.Store && (es2RAMState === w_waitwfire)
-	dataMaster.wdata := getwdata(regfile.io.rdata2, idIn.lsLength, memAddr(1, 0))
-	dataMaster.wstrb := getwmask(idIn.lsLength, memAddr(1, 0))
+	dataMaster.wdata := regfile.io.rdata2
+	dataMaster.wstrb := getwmaskNew(idIn.lsLength, memAddr(1, 0))
 	dataMaster.wlast := dataMaster.wvalid
 	dataMaster.bready := (es2RAMState === w_waitbvalid) && io.out.ready
 
