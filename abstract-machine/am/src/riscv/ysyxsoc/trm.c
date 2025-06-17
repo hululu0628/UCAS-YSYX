@@ -2,6 +2,8 @@
 #include <klib-macros.h>
 #include <ysyxsoc.h>
 
+extern char _etext, _erodata, _data, _edata, _bss_start, _bss_end;
+
 extern char _heap_start;
 int main(const char *args);
 
@@ -25,7 +27,20 @@ void halt(int code) {
 	while(1);
 }
 
+void bootloader()
+{
+	char *src, *dst;
+	src = &_erodata;
+	dst = &_data;
+	while (dst < &_edata)
+		*dst++ = *src++;
+	// Initialize BSS Segment
+	for(dst = &_bss_start; dst < &_bss_end; dst++)
+		*dst = 0;
+}
+
 void _trm_init() {
-  int ret = main(mainargs);
-  halt(ret);
+	bootloader();
+	int ret = main(mainargs);
+	halt(ret);
 }

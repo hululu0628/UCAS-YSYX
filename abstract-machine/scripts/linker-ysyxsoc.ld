@@ -7,36 +7,33 @@ MEMORY {
 
 SECTIONS {
   /* _pmem_start and _entry_offset are defined in LDFLAGS */
-  . = ORIGIN(mrom);
   .text : {
     *(entry)
     *(.text*)
-    etext = .;
     _etext = .;
   } > mrom AT> mrom : text
   .rodata : {
     *(.rodata*)
+    _erodata = .;
   } > mrom AT> mrom
 
-  . = ORIGIN(sram);
   .data : 
-  AT (ADDR(.rodata) + SIZEOF(.rodata))
   {
-    *(.data)
-    edata = .;
     _data = .;
-  } : data
+    *(.data*)
+    *(.sdata*)
+    _edata = .;
+  } > sram AT > mrom : data
   .bss :
-  AT (LOADADDR(.data) + SIZEOF(.data))
   {
     _bss_start = .;
     *(.bss*)
     *(.sbss*)
     *(.scommon)
-  }
+    _bss_end = .;
+  } > sram AT > mrom
   _stack_top = .;
-  _stack_pointer = ALIGN(0x1000);
-  end = .;
+  _stack_pointer = . + 0x1000;
   _end = .;
-  _heap_start = ALIGN(0x1000);
+  _heap_start = ALIGN(0x10);
 }
