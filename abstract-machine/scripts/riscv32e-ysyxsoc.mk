@@ -1,7 +1,7 @@
 include $(AM_HOME)/scripts/isa/riscv.mk
 include $(AM_HOME)/scripts/platform/ysyxsoc.mk
 INC_PATH += $(NPC_HOME)/config/include/generated
-CFLAGS  += -DISA_H=\"riscv/riscv.h\"
+CFLAGS  += -DISA_H=\"$(AM_HOME)/am/src/riscv/riscv.h\"
 COMMON_CFLAGS += -march=rv32e_zicsr -mabi=ilp32e  # overwrite
 LDFLAGS       += -melf32lriscv                    # overwrite
 LDFLAGS       += --defsym=_pmem_start=0x20000000

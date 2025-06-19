@@ -4,6 +4,7 @@
 #include <am.h>
 #include <klib.h>
 #include <klib-macros.h>
+#include <ysyxsoc.h>
 
 __attribute__((noinline))
 void check(bool cond) {
