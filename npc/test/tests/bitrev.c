@@ -3,6 +3,7 @@
 void send_byte(uint8_t byte)
 {
 	outl(SPI_BASE + SPI_CTRL, SPI_CTRL_LSB | SPI_CTRL_RXNEG | 0x10);
+	outl(SPI_BASE + SPI_DIVIDER, 10);
 	outl(SPI_BASE + SPI_TX_0, byte);
 	outl(SPI_BASE + SPI_SS, (1 << 7));
 	// set go_busy
