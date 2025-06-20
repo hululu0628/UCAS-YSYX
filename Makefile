@@ -24,6 +24,10 @@ define git_commit
 	-@sync $(LOCK_DIR)
 endef
 
+
+sub-update:
+	git submodule update --init --recursive --remote --merge
+
 .git_commit:
 	-@while (test -e .git/index.lock); do sleep 0.1; done;               `# wait for other git instances`
 	-@git branch $(TRACER_BRANCH) -q 2>/dev/null || true                 `# create tracer branch if not existent`
