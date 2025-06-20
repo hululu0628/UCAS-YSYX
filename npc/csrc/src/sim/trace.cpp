@@ -35,7 +35,7 @@ void trace_rmem(paddr_t addr, word_t data)
 }
 void trace_wmem(paddr_t addr, word_t data, unsigned char mask)
 {
-	log_write("[PC: 0x" << std::hex << debug_signal.pc << "] Aligned memory write at 0x" << addr << " with data 0x" << data 
+	log_write("[PC: 0x" << std::hex << debug_signal.pc << "] Memory write at 0x" << addr << " with data 0x" << data 
 		<< "   Mask: 0x" << std::hex << (unsigned)mask);
 }
 

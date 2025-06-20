@@ -16,6 +16,9 @@ void host_write(void *addr, int len, word_t data);
 uint8_t* guest_to_host(paddr_t paddr);
 paddr_t host_to_guest(uint8_t *haddr);
 
+uint8_t* guest_to_host_flash(paddr_t paddr);
+paddr_t host_to_guest_flash(uint8_t *haddr);
+
 word_t paddr_read(paddr_t addr, int len);
 void paddr_write(paddr_t addr, int len, word_t data);
 
@@ -25,3 +28,6 @@ void paddr_write(paddr_t addr, int len, word_t data);
 #define PAGE_SHIFT        12
 #define PAGE_SIZE         (1ul << PAGE_SHIFT)
 #define PAGE_MASK         (PAGE_SIZE - 1)
+
+// SoC flash api
+extern void flash_write(uint32_t addr, uint32_t *data, int len);

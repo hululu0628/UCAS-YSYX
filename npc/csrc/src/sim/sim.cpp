@@ -1,4 +1,6 @@
+#include <signal.h>
 #include "difftest/difftest.h"
+#include "utils.h"
 #include "verilated.h"
 #include <isa.h>
 #include <debug.h>
@@ -25,6 +27,11 @@ VerilatedContext* contextp;
 VTop *top;
 
 static bool is_end = false;
+
+void sig_handler(int signum)
+{
+	npc_state.state = NPC_ABORT;
+}
 
 extern "C" void ebreak_handler(unsigned char inst_ebreak)
 {
@@ -63,6 +70,8 @@ void wave_dump()
 
 void init_sim()
 {
+	signal(SIGINT, sig_handler);
+
 	contextp = new VerilatedContext;
 	top = new VTop{contextp};
 

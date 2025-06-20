@@ -1,13 +1,33 @@
 menu "Memory Configuration"
 
+config MROM
+  bool "Enable MROM"
+  default y
+
 config MBASE
-  hex "Memory base address"
+  depends on MROM
+  hex "MROM base address"
   default 0x0        if ISA_x86
   default 0x20000000
 
 config MSIZE
-  hex "Memory size"
+  depends on MROM
+  hex "MROM size"
   default 0x1000
+
+config FLASH
+  bool "Enable Flash"
+  default y
+
+config FBASE
+  depends on FLASH
+  hex "Flash base address"
+  default 0x30000000
+
+config FSIZE
+  depends on FLASH
+  hex "Flash size"
+  default 0x10000000
 
 choice
   prompt "Physical memory definition"
@@ -66,16 +86,6 @@ config MTRACE
   bool "Enable memory tracer"
   default n
 
-config MTRACE_START
-  depends on MTRACE
-  hex "When memory tracing is enabled"
-  default 0x20000000
-
-config MTRACE_END
-  depends on MTRACE
-  hex "When memory tracing is disabled"
-  default 0x20001000
-
 config FTRACE
   depends on TRACE
   bool "Enable function tracer"
@@ -90,7 +100,6 @@ config ETRACE
   depends on TRACE
   bool "Enable exception tracer (waiting for the implementation)"
   default n
-
 
 config DIFFTEST
   bool "Enable differential testing"

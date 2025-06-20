@@ -33,7 +33,8 @@ SECTIONS {
     _bss_end = .;
   } > sram AT > mrom
   _stack_top = .;
-  _stack_pointer = . + 0x1000;
+  . = . + 0x1000;
+  _stack_pointer = .;
   _end = .;
   _heap_start = ALIGN(0x10);
 }
