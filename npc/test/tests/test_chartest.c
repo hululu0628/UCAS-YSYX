@@ -33,7 +33,7 @@ int main()
 	uint32_t * q = (uint32_t *)malloc(32);
 	for(int i = 0; i < 8; i++)
 	{
-		q[i] = flash_read((uint32_t)&p[i]);
+		q[i] = p[i];
 	}
 	asm volatile (
 		"jalr ra, %0, 0\n\t"

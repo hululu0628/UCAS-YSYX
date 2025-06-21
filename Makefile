@@ -26,7 +26,7 @@ endef
 
 
 sub-update:
-	git submodule update --init --recursive --remote --merge
+	git submodule update --remote --merge
 
 .git_commit:
 	-@while (test -e .git/index.lock); do sleep 0.1; done;               `# wait for other git instances`
