@@ -102,7 +102,7 @@ config ETRACE
   default n
 
 config DIFFTEST
-  bool "Enable differential testing"
+  bool "Enable differential testing(Can not enable because there's no uart and spi in nemu)"
   default n
 
 config WATCHPOINT
