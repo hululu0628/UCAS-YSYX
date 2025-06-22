@@ -80,8 +80,8 @@ word_t load_image(const char *img_file)
 	input.seekg(0, input.beg);
 	Log("Loading image file: " << img_file);
 	Log("Image file size: 0x" << std::hex << length);
-	assert(length < PMEM_SIZE);
-	input.read((char *)guest_to_host(PMEM_START), length);
+	assert(length < FLASH_SIZE);
+	input.read((char *)guest_to_host_flash(FLASH_START), length);
 	input.close();
 
 	return length;

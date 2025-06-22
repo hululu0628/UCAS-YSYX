@@ -16,9 +16,11 @@
 #define NR_GPR 32
 #define NR_CSR 4
 
-#define PMEM_START CONFIG_MBASE
-#define PMEM_SIZE CONFIG_MSIZE
-#define PROGRAM_ENTRY PMEM_START
+#define MROM_START CONFIG_MBASE
+#define MROM_SIZE CONFIG_MSIZE
+#define FLASH_START CONFIG_FBASE
+#define FLASH_SIZE CONFIG_FSIZE
+#define PROGRAM_ENTRY FLASH_START
 
 #define FMT_PADDR(addr) "0x" << std::hex << std::setw(8) << std::setfill('0') << addr << std::setfill(' ')
 #define FMT_WORD(data) "0x" << std::hex << std::setw(8) << std::setfill('0') << data << std::setfill(' ')

@@ -12,10 +12,10 @@ extern "C" void flash_read(int32_t addr, int32_t *data)
 
 void flash_write(uint32_t addr, uint32_t *data, int len)
 {
-	if(addr < CONFIG_FBASE || addr + len > CONFIG_FBASE + CONFIG_FSIZE)
+	if(addr < FLASH_START || addr + len > FLASH_START + FLASH_SIZE)
 	{
-		Log_Error("address = " << FMT_PADDR(addr) << " is out of bound of pmem ["
-	  		<< FMT_PADDR(CONFIG_FBASE) << ", " << FMT_PADDR(CONFIG_FBASE + CONFIG_FSIZE) << "] at pc = " FMT_WORD(cpu.pc));
+		Log_Error("address = " << FMT_PADDR(addr) << " is out of bound of flash ["
+	  		<< FMT_PADDR(FLASH_START) << ", " << FMT_PADDR(FLASH_START + FLASH_SIZE) << "] at pc = " FMT_WORD(cpu.pc));
 		assert(0);
 	}
 	for(int i = 0; i < len; i++)

@@ -27,7 +27,7 @@ class InstFetch extends Module {
 	val instReqFire = instMaster.arvalid && instMaster.arready
 	val instGet = instMaster.rvalid && instMaster.rready && instMaster.rlast
 
-	val pc = RegEnable(io.writeback.bits.nextpc, NPCParameters.deviceTab("mrom").base.U(32.W), io.writeback.fire)
+	val pc = RegEnable(io.writeback.bits.nextpc, NPCParameters.deviceTab("flash").base.U(32.W), io.writeback.fire)
 
 	// state machine for fetching from isram
 	val i_idle :: i_waitready :: i_waitrdata :: Nil = Enum(3)

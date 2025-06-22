@@ -3,6 +3,7 @@ PHDRS { text PT_LOAD; data PT_LOAD; }
 MEMORY {
   mrom : ORIGIN = 0x20000000, LENGTH = 4K
   sram : ORIGIN = 0x0f000000, LENGTH = 8K
+  flash : ORIGIN = 0x30000000, LENGTH = 256M
 }
 
 SECTIONS {
@@ -11,11 +12,11 @@ SECTIONS {
     *(entry)
     *(.text*)
     _etext = .;
-  } > mrom AT> mrom : text
+  } > flash AT> flash : text
   .rodata : {
     *(.rodata*)
     _erodata = .;
-  } > mrom AT> mrom
+  } > flash AT> flash
 
   .data : 
   {
@@ -23,7 +24,7 @@ SECTIONS {
     *(.data*)
     *(.sdata*)
     _edata = .;
-  } > sram AT > mrom : data
+  } > sram AT > flash : data
   .bss :
   {
     _bss_start = .;
@@ -31,7 +32,7 @@ SECTIONS {
     *(.sbss*)
     *(.scommon)
     _bss_end = .;
-  } > sram AT > mrom
+  } > sram AT > flash
   _stack_top = .;
   . = . + 0x1000;
   _stack_pointer = .;

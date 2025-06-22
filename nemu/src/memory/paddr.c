@@ -29,6 +29,7 @@ soc_device_t soc_devices[MAX_SOC_DEVICES] = {0}; // 16 devices max
 
 IFDEF(CONFIG_MROM, static uint8_t mrom[CONFIG_MROM_SIZE] PG_ALIGN = {};)
 IFDEF(CONFIG_SRAM, static uint8_t sram[CONFIG_SRAM_SIZE] PG_ALIGN = {};)
+IFDEF(CONFIG_FLASH, static uint8_t flash[CONFIG_FLASH_SIZE] PG_ALIGN = {};)
 #endif
 
 int get_soc_index(paddr_t addr)
@@ -89,6 +90,15 @@ void init_soc()
 		.base = CONFIG_SRAM_BASE,
 		.size = CONFIG_SRAM_SIZE,
 		.mem = sram,
+		.priv = PRIV_R | PRIV_W
+	};
+	#endif
+	#ifdef CONFIG_FLASH
+	soc_devices[soc_device_num++] = (soc_device_t) {
+		.name = "flash",
+		.base = CONFIG_FLASH_BASE,
+		.size = CONFIG_FLASH_SIZE,
+		.mem = flash,
 		.priv = PRIV_R | PRIV_W
 	};
 	#endif

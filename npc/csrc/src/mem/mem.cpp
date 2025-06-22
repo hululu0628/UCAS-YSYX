@@ -5,8 +5,8 @@
 #include <mem/mem.h>
 #include <device/mmio.h>
 
-static uint8_t pmem[PMEM_SIZE] __attribute((aligned(4096)));
-static uint8_t flash[CONFIG_FSIZE] __attribute((aligned(4096)));
+static uint8_t pmem[MROM_SIZE] __attribute((aligned(4096)));
+static uint8_t flash[FLASH_SIZE] __attribute((aligned(4096)));
 
 static uint32_t flash_test[] = {
 	0x100007b7, 
@@ -17,20 +17,20 @@ static uint32_t flash_test[] = {
 	0x00008067
 };
 
-uint8_t* guest_to_host(uint32_t paddr) { return paddr - PMEM_START + pmem; }
-uint32_t host_to_guest(uint8_t *haddr) { return haddr - pmem + PMEM_START; }
+uint8_t* guest_to_host(uint32_t paddr) { return paddr - MROM_START + pmem; }
+uint32_t host_to_guest(uint8_t *haddr) { return haddr - pmem + MROM_START; }
 
-uint8_t* guest_to_host_flash(paddr_t paddr) { return paddr - CONFIG_FBASE + flash; }
-paddr_t host_to_guest_flash(uint8_t *haddr) { return haddr - flash + CONFIG_FBASE; }
+uint8_t* guest_to_host_flash(paddr_t paddr) { return paddr - FLASH_START + flash; }
+paddr_t host_to_guest_flash(uint8_t *haddr) { return haddr - flash + FLASH_START; }
 
 void init_mem()
 {
-	memset(pmem, 0, PMEM_SIZE);
-	memset(flash, 0, CONFIG_FSIZE);
+	memset(pmem, 0, MROM_SIZE);
+	memset(flash, 0, FLASH_SIZE);
 	// Initialize flash for testing
 	flash_write(CONFIG_FBASE, flash_test, sizeof(flash_test)/4);
 
-	Log("Physical memory area [0x" << std::hex << PMEM_START << ", 0x" << PMEM_START + PMEM_SIZE << "]");
+	Log("FLASH area [0x" << std::hex << FLASH_START << ", 0x" << FLASH_START + FLASH_SIZE - 1 << "]");
 }
 
 word_t host_read(void * addr, int len)
