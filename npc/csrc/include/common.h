@@ -20,6 +20,8 @@
 #define MROM_SIZE CONFIG_MSIZE
 #define FLASH_START CONFIG_FBASE
 #define FLASH_SIZE CONFIG_FSIZE
+#define PSRAM_START CONFIG_PBASE
+#define PSRAM_SIZE CONFIG_PSIZE
 #define PROGRAM_ENTRY FLASH_START
 
 #define FMT_PADDR(addr) "0x" << std::hex << std::setw(8) << std::setfill('0') << addr << std::setfill(' ')

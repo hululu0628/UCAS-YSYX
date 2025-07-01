@@ -4,9 +4,11 @@
 #include <sim/sdb.h>
 #include <mem/mem.h>
 #include <device/mmio.h>
+#include <stdint.h>
 
 static uint8_t pmem[MROM_SIZE] __attribute((aligned(4096)));
 static uint8_t flash[FLASH_SIZE] __attribute((aligned(4096)));
+static uint8_t psram[PSRAM_SIZE] __attribute((aligned(4096)));
 
 static uint32_t flash_test[] = {
 	0x100007b7, 
@@ -22,6 +24,9 @@ uint32_t host_to_guest(uint8_t *haddr) { return haddr - pmem + MROM_START; }
 
 uint8_t* guest_to_host_flash(paddr_t paddr) { return paddr - FLASH_START + flash; }
 paddr_t host_to_guest_flash(uint8_t *haddr) { return haddr - flash + FLASH_START; }
+
+uint8_t* guest_to_host_psram(paddr_t paddr) { return paddr - PSRAM_START + psram; }
+paddr_t host_to_guest_psram(uint8_t *haddr) { return haddr - psram + PSRAM_START; }
 
 void init_mem()
 {

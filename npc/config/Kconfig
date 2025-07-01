@@ -29,6 +29,20 @@ config FSIZE
   hex "Flash size"
   default 0x10000000
 
+config PSRAM
+  bool "Enable PSRAM"
+  default y
+
+config PBASE
+  depends on PSRAM
+  hex "PSRAM base address"
+  default 0x80000000
+
+config PSIZE
+  depends on PSRAM
+  hex "PSRAM size"
+  default 0x400000
+
 choice
   prompt "Physical memory definition"
   default PMEM_GARRAY
