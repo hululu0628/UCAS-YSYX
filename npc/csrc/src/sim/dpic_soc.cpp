@@ -35,12 +35,14 @@ extern "C" void psram_read(int32_t addr, int32_t *data)
 {
 	uint32_t paddr = (uint32_t)addr;
 	*(uint32_t *)data = host_read(guest_to_host_psram(paddr & ~0x3), 4);
+	printf("read: %x\n", *(uint32_t *)data);
 	IFDEF(CONFIG_MTRACE, trace_rmem((paddr_t)paddr, *(word_t *)data);)
 }
 
 extern "C" void psram_write(int32_t addr, int32_t data)
 {
 	uint32_t paddr = (uint32_t)addr;
+	printf("write: %x\n", (uint32_t)data);
 	host_write(guest_to_host_psram(paddr), 1, (uint32_t)data);
 	IFDEF(CONFIG_MTRACE, trace_wmem((paddr_t)(paddr), data, 0x1);)
 }
