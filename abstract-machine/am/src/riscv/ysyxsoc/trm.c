@@ -4,14 +4,14 @@
 
 extern char _etext, _erodata, _data, _edata, _bss_start, _bss_end;
 
-extern char _heap_start;
+extern char _heap_start, _heap_end;
 int main(const char *args);
 
 extern char _pmem_start;
 #define PMEM_SIZE (128 * 1024 * 1024)
 #define PMEM_END  ((uintptr_t)&_pmem_start + PMEM_SIZE)
 
-Area heap = RANGE(&_heap_start, 0xf002000);
+Area heap = RANGE(&_heap_start, &_heap_end);
 static const char mainargs[MAINARGS_MAX_LEN] = TOSTRING(MAINARGS_PLACEHOLDER); // defined in CFLAGS
 
 void putch(char ch) {
