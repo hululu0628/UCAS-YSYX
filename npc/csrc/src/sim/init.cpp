@@ -83,7 +83,6 @@ word_t load_image(const char *img_file)
 	assert(length < FLASH_SIZE);
 	input.read((char *)guest_to_host_flash(FLASH_START), length);
 	input.close();
-
 	return length;
 }
 

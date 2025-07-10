@@ -10,14 +10,15 @@ MEMORY {
 SECTIONS {
   /* _pmem_start and _entry_offset are defined in LDFLAGS */
   .text : {
+    _text = .;
     *(entry)
     *(.text*)
     _etext = .;
-  } > flash AT> flash : text
+  } > psram AT> flash : text
   .rodata : {
     *(.rodata*)
     _erodata = .;
-  } > flash AT> flash
+  } > psram AT> flash
 
   .data : 
   {
@@ -34,10 +35,8 @@ SECTIONS {
     *(.scommon)
     _bss_end = .;
   } > psram AT > flash
-  _stack_top = .;
-  . = . + 0x1000;
-  _stack_pointer = .;
-  _end = .;
+  _stack_top = ORIGIN(sram);
+  _stack_pointer = ORIGIN(sram) + LENGTH(sram);
   _heap_start = ALIGN(0x1000);
   _heap_end = ORIGIN(psram) + LENGTH(psram);
 }
