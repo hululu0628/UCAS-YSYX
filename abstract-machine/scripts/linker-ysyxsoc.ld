@@ -20,13 +20,13 @@ SECTIONS {
     _erodata = .;
   } > psram AT> flash
 
-  .data : 
+  .data : ALIGN(16)
   {
     _data = .;
     *(.data*)
     *(.sdata*)
     _edata = .;
-  } > psram AT > flash : data
+  } > psram AT> flash : data
   .bss :
   {
     _bss_start = .;

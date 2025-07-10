@@ -159,15 +159,6 @@ void sim_step(uint64_t n)
 		if(npc_state.state != NPC_RUNNING) break;
 		IFDEF(CONFIG_DEVICE, device_update());
 	}
-	for(int i = 0; i < 64; i++)
-	{
-		printf("0x%02x ", *(uint8_t *)(guest_to_host_flash(FLASH_START + 0x420 + i)));
-	}
-	printf("\n");
-	for(int i = 0; i < 64; i++)
-	{
-		printf("0x%02x ", *(uint8_t *)(guest_to_host_psram(PSRAM_START + 0x420 + i)));
-	}
 	if(npc_state.state == NPC_RUNNING)
 	{
 		npc_state.state = NPC_STOP;
