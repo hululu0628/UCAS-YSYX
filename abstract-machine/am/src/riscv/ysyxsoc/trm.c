@@ -40,7 +40,8 @@ static inline int check_pc()
 	return (pc & 0x80000000) ? 1 : 0; // if PC is in psram
 }
 
-static inline void bootloader()
+
+static inline void bootloader_lv2()
 {
 	char *src, *dst, *dst_end;
 	// set src
@@ -100,8 +101,6 @@ static inline void uart_init()
 }
 
 void _trm_init() {
-	if(!check_pc())
-		bootloader();
 	uart_init();
 	int ret = main(mainargs);
 	halt(ret);

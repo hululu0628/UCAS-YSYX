@@ -54,7 +54,7 @@ static int cmd_c(char *args)
 {
 	sim_step(-1);
 
-	return npc_state.state == NPC_ABORT ? -1 : 0;
+	return 0;
 }
 
 static int cmd_s(char *args)
@@ -63,7 +63,7 @@ static int cmd_s(char *args)
 	uint64_t n = steps ? atoi(steps) : 1;
 	sim_step(n);
 	
-	return npc_state.state == NPC_ABORT ? -1 : 0;
+	return 0;
 }
 
 static int cmd_info(char *args)

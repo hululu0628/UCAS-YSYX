@@ -129,6 +129,7 @@ void trace_and_difftest()
 		{
 			blocked_cycle = 0;
 			excuted_inst_num++;
+
 			IFDEF(CONFIG_DIFFTEST, difftest_step();)
 			IFDEF(CONFIG_ITRACE, trace_instruction();)
 			IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
@@ -151,6 +152,11 @@ void sim_once()
 
 void sim_step(uint64_t n)
 {
+	if(npc_state.state == NPC_END)
+	{
+		stdout_write("No running simulatioon");
+		return;
+	}
 	npc_state.state = NPC_RUNNING;
 	for(; n > 0; n--)
 	{

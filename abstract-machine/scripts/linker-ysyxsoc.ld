@@ -1,5 +1,5 @@
 ENTRY(_start)
-PHDRS { text PT_LOAD; data PT_LOAD; }
+PHDRS { fsbl PT_LOAD; ssbl PT_LOAD; text PT_LOAD; data PT_LOAD; }
 MEMORY {
   mrom (rx) : ORIGIN = 0x20000000, LENGTH = 4K
   sram (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
@@ -9,9 +9,22 @@ MEMORY {
 
 SECTIONS {
   /* _pmem_start and _entry_offset are defined in LDFLAGS */
-  .text : {
+  .fsbl : {
+	_fsbl_start = .;
+	*(entry)
+	*(fsbl*)
+	_fsbl_end = .;
+  } > flash AT> flash : fsbl
+  .ssbl : {
+	_ssbl_start = .;
+	*(ssbl*)
+	_ssbl_end = .;
+  } > sram AT> flash : ssbl
+  _lossbl_start = LOADADDR(.ssbl);
+
+  .text : ALIGN(16)
+  {
     _text = .;
-    *(entry)
     *(.text*)
     _etext = .;
   } > psram AT> flash : text
@@ -20,6 +33,7 @@ SECTIONS {
     *(.srodata*)
     _erodata = .;
   } > psram AT> flash
+  _lotext = LOADADDR(.text);
 
   .data : ALIGN(16)
   {
