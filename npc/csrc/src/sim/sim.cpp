@@ -172,10 +172,12 @@ void sim_step(uint64_t n)
 		case NPC_END:
 			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE 
 				<< " at PC = 0x" << std::hex << debug_signal.pc);
+			stdout_write("insts: " << std::dec << excuted_inst_num);
 			break;
 		case NPC_ABORT:
 			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE 
 				<< " at PC = 0x" << std::hex << debug_signal.pc);
+			stdout_write("insts: " << std::dec << excuted_inst_num);
 			break;
 		default:
 			assert(0);
