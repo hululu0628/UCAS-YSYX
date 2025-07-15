@@ -18,6 +18,6 @@ build:
 		$(addprefix -CFLAGS , $(CXXFLAGS)) $(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) -o $(BUILD_DIR)/$(TOP)
 
-run: build
+run: 
 	@echo ${ARGS}
 	$(BUILD_DIR)/$(TOP) $(ARGS) $(IMG)

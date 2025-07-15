@@ -94,8 +94,8 @@ static inline void bootloader_lv2()
 static inline void uart_init()
 {
 	outb(UART_BASE + UART_LCR, UART_LCR_BITS_8 | UART_LCR_DLAB); // write dll dlm
-	// set baud rate
-	outb(UART_BASE + UART_DLL, 0x01);
+	// set baud rate, nvboard uart's divisor must be 16 times the real divisor
+	outb(UART_BASE + UART_DLL, 0x10);
 	outb(UART_BASE + UART_DLM, 0x00);
 	outb(UART_BASE + UART_LCR, UART_LCR_BITS_8); // clear dlab and set 8 bits
 }

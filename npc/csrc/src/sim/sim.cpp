@@ -150,12 +150,10 @@ void sim_once()
 {
 	top->clock = !top->clock;
 	top->eval();
-	nvboard_update();
 	wave_dump();
 	top->reset = 0;
 	top->clock = !top->clock;
 	top->eval();
-	nvboard_update();
 	wave_dump();
 	reg_modify(top);
 }
@@ -171,6 +169,7 @@ void sim_step(uint64_t n)
 	for(; n > 0; n--)
 	{
 		sim_once();
+		nvboard_update();
 		trace_and_difftest();
 		if(npc_state.state != NPC_RUNNING) break;
 		IFDEF(CONFIG_DEVICE, device_update());
