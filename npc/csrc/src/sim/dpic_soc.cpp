@@ -44,3 +44,33 @@ extern "C" void psram_write(int32_t addr, int32_t data)
 	host_write(guest_to_host_psram(paddr), 1, (uint32_t)data);
 	IFDEF(CONFIG_MTRACE, trace_wmem((paddr_t)(paddr), data, 0x1);)
 }
+
+extern "C" void sdram_read(int32_t addr, int32_t *data)
+{
+	uint32_t paddr = (uint32_t)addr;
+	*(uint32_t *)data = host_read(guest_to_host_sdram(paddr & ~0x1), 2);
+	printf("Addr %x, data %x\n", paddr, *data);
+	IFDEF(CONFIG_MTRACE, trace_rmem((paddr_t)paddr, *(word_t *)data);)
+}
+
+extern "C" void sdram_write(int32_t addr, int32_t data, int32_t mask)
+{
+	uint32_t paddr = (uint32_t)addr;
+	printf("Addr %x, data %x, mask %x   ", paddr, data, mask);
+	switch(mask)
+	{
+		case 0x0:
+			host_write(guest_to_host_sdram(paddr & ~0x1), 2, (uint32_t)data);
+			break;
+		case 0x1:
+			host_write(guest_to_host_sdram(paddr | 0x1), 1, ((uint32_t)data >> 8));
+			break;
+		case 0x2:
+			host_write(guest_to_host_sdram(paddr & ~0x1), 1, (uint32_t)data);
+			break;
+		case 0x3: default:
+			break;
+	}
+	printf("%x\n", *(uint32_t *)guest_to_host_sdram(paddr & ~0x1));
+	IFDEF(CONFIG_MTRACE, trace_wmem((paddr_t)(paddr), data, 0x1);)
+}

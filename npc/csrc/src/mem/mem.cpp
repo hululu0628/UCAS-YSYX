@@ -9,6 +9,7 @@
 static uint8_t pmem[MROM_SIZE] __attribute((aligned(4096)));
 static uint8_t flash[FLASH_SIZE] __attribute((aligned(4096)));
 static uint8_t psram[PSRAM_SIZE] __attribute((aligned(4096)));
+static uint8_t sdram[SDRAM_SIZE] __attribute((aligned(4096)));
 
 static uint32_t flash_test[] = {
 	0x100007b7, 
@@ -27,6 +28,9 @@ paddr_t host_to_guest_flash(uint8_t *haddr) { return haddr - flash + FLASH_START
 
 uint8_t* guest_to_host_psram(paddr_t paddr) { return paddr - PSRAM_START + psram; }
 paddr_t host_to_guest_psram(uint8_t *haddr) { return haddr - psram + PSRAM_START; }
+
+uint8_t* guest_to_host_sdram(paddr_t paddr) { return paddr - SDRAM_START + sdram; }
+paddr_t host_to_guest_sdram(uint8_t *haddr) { return haddr - sdram + SDRAM_START; }
 
 void init_mem()
 {

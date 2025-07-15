@@ -22,6 +22,8 @@
 #define FLASH_SIZE CONFIG_FSIZE
 #define PSRAM_START CONFIG_PBASE
 #define PSRAM_SIZE CONFIG_PSIZE
+#define SDRAM_START CONFIG_SBASE
+#define SDRAM_SIZE CONFIG_SSIZE
 #define PROGRAM_ENTRY FLASH_START
 
 #define FMT_PADDR(addr) "0x" << std::hex << std::setw(8) << std::setfill('0') << addr << std::setfill(' ')
