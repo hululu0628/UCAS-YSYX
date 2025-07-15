@@ -23,7 +23,7 @@ NXDC_FILES = $(NPC_HOME)/constr/top.nxdc
 
 VERILATOR = verilator
 
-VERILATOR_FLAGS += --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing
+VERILATOR_FLAGS += -MMD --cc --exe --build -j 0 --timescale "1ns/1ns" --no-timing
 
 VERILATOR_FLAGS += --top-module $(TOP)
 
@@ -96,7 +96,7 @@ INC_PATH += $(CSRC)/include
 INC_PATH += $(CONFIG_DIR)/include/generated
 
 INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS)
+CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOP)\""
 
 # for verilator
 VINC_PATH += $(YSYXSOC_HOME)/perip/uart16550/rtl $(YSYXSOC_HOME)/perip/spi/rtl/

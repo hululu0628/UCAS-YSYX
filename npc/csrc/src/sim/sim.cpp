@@ -8,8 +8,11 @@
 #include <mem/mem.h>
 #include <sim/sdb.h>
 #include <sim/sim.h>
+#include <nvboard.h>
 
 struct debug_signal debug_signal;
+
+void nvboard_bind_all_pins(VTop* top);
 
 void monitor_run(VTop *top);
 void difftest_step();
@@ -77,6 +80,9 @@ void init_sim()
 	contextp = new VerilatedContext;
 	top = new VTop{contextp};
 
+	nvboard_bind_all_pins(top);
+	nvboard_init();
+
 #ifndef CONFIG_NO_WAVE
 	contextp->traceEverOn(true);
 	tfp->set_time_unit("ns");
@@ -88,12 +94,14 @@ void init_sim()
 	top->clock = 0;
 	top->eval();
 	wave_dump();
+	nvboard_update();
 	// 10 cycles delay waiting chiplink reset
 	for(int i = 0; i < 20; i++)
 	{
 		top->clock = !top->clock;
 		top->eval();
 		wave_dump();
+		nvboard_update();
 	}
 	Log("Reset CPU successfully");
 }
@@ -142,10 +150,12 @@ void sim_once()
 {
 	top->clock = !top->clock;
 	top->eval();
+	nvboard_update();
 	wave_dump();
 	top->reset = 0;
 	top->clock = !top->clock;
 	top->eval();
+	nvboard_update();
 	wave_dump();
 	reg_modify(top);
 }
@@ -194,5 +204,6 @@ void sim_end()
 {
 	delete top;
 	delete contextp;
+	nvboard_quit();
 	IFNDEF(CONFIG_NO_WAVE, tfp->close();)
 }
