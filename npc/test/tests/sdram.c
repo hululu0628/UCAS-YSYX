@@ -54,7 +54,7 @@ int main()
 	check_buffer_half((uint16_t *)buf, test_size / 2);
 	fill_buffer_word((uint32_t *)buf, test_size / 4);
 	check_buffer_word((uint32_t *)buf, test_size / 4);
-	buf = (char *)0xa0fffe00;
+	buf = (char *)0xa7000000;
 	fill_buffer_byte((uint8_t *)buf, test_size);
 	check_buffer_byte((uint8_t *)buf, test_size);
 	fill_buffer_half((uint16_t *)buf, test_size / 2);
