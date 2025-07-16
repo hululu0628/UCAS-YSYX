@@ -29,6 +29,8 @@ VERILATOR_FLAGS += --top-module $(TOP)
 
 ifeq ($(CONFIG_IGNORE_WARNINGS),n)
 VERILATOR_FLAGS += -Wall -Wno-PINCONNECTEMPTY -Wno-UNUSEDSIGNAL
+else
+VERILATOR_FLAGS += -Wno-fatal
 endif
 
 

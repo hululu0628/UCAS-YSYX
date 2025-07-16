@@ -22,8 +22,6 @@ int is_exit_status_bad()
 
 int main(int argc, char *argv[])
 {
-	Verilated::commandArgs(argc, argv);
-
 	init_sim(argc, argv);
 
 	monitor_start();

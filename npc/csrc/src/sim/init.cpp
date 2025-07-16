@@ -20,7 +20,7 @@ void init_rand();
 void init_mem();
 void init_log(const char *log_file);
 void init_device();
-void init_monitor();
+void init_monitor(int argc, char **argv);
 void init_difftest(const char *ref_so_file, long img_size, int port);
 
 static int parse_args(int argc, char **argv)
@@ -100,7 +100,7 @@ void init_sim(int argc, char **argv)
 
 	word_t img_size = load_image(img_file);
 
-	init_monitor();
+	init_monitor(argc, argv);
 
 	IFDEF(CONFIG_DIFFTEST, init_difftest(diff_file, img_size, 1234);)
 }

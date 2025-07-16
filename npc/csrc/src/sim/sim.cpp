@@ -77,11 +77,12 @@ void wave_dump()
 #endif
 }
 
-void init_sim()
+void init_emu(int argc, char **argv)
 {
 	signal(SIGINT, sig_handler);
 
 	contextp = new VerilatedContext;
+	contextp->commandArgs(argc, argv);
 	top = new VTop{contextp};
 
 #ifdef CONFIG_NVBOARD

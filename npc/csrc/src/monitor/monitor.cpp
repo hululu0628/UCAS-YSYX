@@ -6,7 +6,7 @@
 
 CPU_state cpu = {};
 
-void init_sim();
+void init_emu(int argc, char **argv);
 void init_sdb();
 void init_disasm();
 void sdb_mainloop();
@@ -21,10 +21,10 @@ void init_cpu()
 	Log("Registers initialized");
 }
 
-void init_monitor()
+void init_monitor(int argc, char **argv)
 {
 	init_cpu();
-	init_sim();
+	init_emu(argc, argv);
 	init_sdb();
 	IFDEF(CONFIG_TRACE, init_disasm();)
 	IFDEF(CONFIG_FTRACE, init_ftrace(elf_file);)
