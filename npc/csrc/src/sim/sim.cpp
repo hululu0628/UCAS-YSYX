@@ -8,11 +8,15 @@
 #include <mem/mem.h>
 #include <sim/sdb.h>
 #include <sim/sim.h>
+#ifdef CONFIG_NVBOARD
 #include <nvboard.h>
+#endif
 
 struct debug_signal debug_signal;
 
+#ifdef CONFIG_NVBOARD
 void nvboard_bind_all_pins(VTop* top);
+#endif
 
 void monitor_run(VTop *top);
 void difftest_step();
@@ -80,8 +84,10 @@ void init_sim()
 	contextp = new VerilatedContext;
 	top = new VTop{contextp};
 
+#ifdef CONFIG_NVBOARD
 	nvboard_bind_all_pins(top);
 	nvboard_init();
+#endif
 
 #ifndef CONFIG_NO_WAVE
 	contextp->traceEverOn(true);
@@ -94,14 +100,16 @@ void init_sim()
 	top->clock = 0;
 	top->eval();
 	wave_dump();
-	nvboard_update();
+
+	IFDEF(CONFIG_NVBOARD, nvboard_update();)
+
 	// 10 cycles delay waiting chiplink reset
 	for(int i = 0; i < 20; i++)
 	{
 		top->clock = !top->clock;
 		top->eval();
 		wave_dump();
-		nvboard_update();
+		IFDEF(CONFIG_NVBOARD, nvboard_update();)
 	}
 	Log("Reset CPU successfully");
 }
@@ -169,7 +177,7 @@ void sim_step(uint64_t n)
 	for(; n > 0; n--)
 	{
 		sim_once();
-		nvboard_update();
+		IFDEF(CONFIG_NVBOARD, nvboard_update();)
 		trace_and_difftest();
 		if(npc_state.state != NPC_RUNNING) break;
 		IFDEF(CONFIG_DEVICE, device_update());
@@ -203,6 +211,6 @@ void sim_end()
 {
 	delete top;
 	delete contextp;
-	nvboard_quit();
+	IFDEF(CONFIG_NVBOARD, nvboard_quit();)
 	IFNDEF(CONFIG_NO_WAVE, tfp->close();)
 }

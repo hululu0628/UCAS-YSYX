@@ -1,5 +1,5 @@
 ENTRY(_start)
-PHDRS { fsbl PT_LOAD; ssbl PT_LOAD; text PT_LOAD; data PT_LOAD; }
+PHDRS { fsbl PT_LOAD; ssbl PT_LOAD; text PT_LOAD; rodata PT_LOAD ; data PT_LOAD; }
 MEMORY {
   mrom (rx) : ORIGIN = 0x20000000, LENGTH = 4K
   sram (rwx) : ORIGIN = 0x0f000000, LENGTH = 8K
@@ -33,7 +33,7 @@ SECTIONS {
     *(.rodata*)
     *(.srodata*)
     _erodata = .;
-  } > sdram AT> flash
+  } > sdram AT> flash : rodata
   _lotext = LOADADDR(.text);
 
   .data : ALIGN(16)
