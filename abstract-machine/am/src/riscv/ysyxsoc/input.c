@@ -1,10 +1,10 @@
 #include <am.h>
+#include <sys/cdefs.h>
 #include "ysyxsoc.h"
 
 #define KEYDOWN_MASK 0x8000
 
 ps2_map_t ps2lut[] = {
-	{AM_KEY_NONE, 0x0},
 	{AM_KEY_ESCAPE, 0x76},
 	{AM_KEY_F1, 0x05},
 	{AM_KEY_F2, 0x06},
@@ -90,22 +90,25 @@ ps2_map_t ps2lut[] = {
 
 uint32_t lookup_ps2_key(uint32_t key)
 {
-	for(int i = 0; i <= AM_KEY_PAGEDOWN; i++)
+	uint32_t res = 0;
+	for(int i = 0; i < AM_KEY_PAGEDOWN - 1; i++)
 	{
 		if(ps2lut[i].ps2code == key)
 		{
-			return ps2lut[i].amcode;
+			res = ps2lut[i].amcode;
+			break;
 		}
 	}
-	return AM_KEY_NONE;
+	return res;
 }
 
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
 	uint32_t key = inb(PS2_BASE + 0x0);
 
-	kbd->keydown = true;
-  	if(key == 0xF0)
+	if(key == 0xF0)
 		kbd->keydown = false;
+	else
+		kbd->keydown = true;
 	key = inb(PS2_BASE + 0x0);
 	if(key == 0xE0)
 		key = (key << 8) | inb(PS2_BASE + 0x0);
