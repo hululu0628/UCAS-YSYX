@@ -97,6 +97,7 @@ uint32_t lookup_ps2_key(uint32_t key)
 			return ps2lut[i].amcode;
 		}
 	}
+	return AM_KEY_NONE;
 }
 
 void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {

@@ -4,7 +4,7 @@
 #include "amdev.h"
 #include <am.h>
 
-#define PS2_BASE	0x10001000L
+#define PS2_BASE	0x10011000L
 
 typedef struct {
 	uint32_t amcode;
