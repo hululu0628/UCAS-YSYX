@@ -1,3 +1,12 @@
 [submodule "ysyxSoC"]
 	path = ysyxSoC
 	url = git@github.com:hululu0628/UCAS-YSYXSOC.git
+[submodule "rt-thread-am"]
+	path = rt-thread-am
+	url = git@github.com:hululu0628/rt-thread-am.git
+[submodule "nvboard"]
+	path = nvboard
+	url = git@github.com:hululu0628/nvboard.git
+[submodule "fceux-am"]
+	path = fceux-am
+	url = git@github.com:hululu0628/fceux-am.git
