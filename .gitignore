@@ -8,12 +8,12 @@
 !/npc/*
 !/rtt-am-modified/*
 !/ysyxSoC
+!/rt-thread-am
+!/fceux-am
+!/nvboard
 !Makefile
 !README.md
 !.gitignore
 !init.sh
 /test
-/fceux-am
-/nvboard
 /am-kernels
-/rt-thread-am
