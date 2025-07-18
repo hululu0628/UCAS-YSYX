@@ -124,6 +124,7 @@ abstract class AXI4LiteSlaveBase extends Module {
 	))
 	// register address and port
 	val raddr = RegEnable(io.araddr, 0.U.asTypeOf(io.araddr), io.arvalid && io.arready)
+	io.rlast := io.rvalid && io.rready
 
 	// write addr state machine
 	val aw_idle :: aw_fire :: Nil = Enum(2)
@@ -187,49 +188,42 @@ class AXIArbiter extends Module {
 class AXI1x2Bar extends Module {
 	val io = IO(new Bundle {
 		val in = new AXI4IO()
-		val sram = Flipped(new AXI4IO())
-		val mmio = Flipped(new AXI4IO())
+		val soc = Flipped(new AXI4IO())
+		val clint = Flipped(new AXI4IO())
 	})
-	val hitSRAM = (io.in.arvalid && 
-		(io.in.araddr >= NPCParameters.sramStart.U && 
-		 io.in.araddr < (NPCParameters.sramStart + NPCParameters.sramSize).U)) || 
-		 ((io.in.awvalid) &&
-		(io.in.awaddr >= NPCParameters.sramStart.U && 
-		 io.in.awaddr < (NPCParameters.sramStart + NPCParameters.sramSize).U))
-	val hitMMIO = (io.in.arvalid &&
-		(io.in.araddr >= NPCParameters.mmioStart.U && 
-		 io.in.araddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U)) || 
-		 ((io.in.awvalid) &&
-		(io.in.awaddr >= NPCParameters.mmioStart.U && 
-		 io.in.awaddr < (NPCParameters.mmioStart + NPCParameters.mmioSize).U))
+	
+	val hitCLINT = (io.in.arvalid &&
+		(io.in.araddr >= NPCParameters.deviceTab("clint").base.U && 
+		 io.in.araddr < (NPCParameters.deviceTab("clint").base + NPCParameters.deviceTab("clint").size).U))
+	val hitSoC = !hitCLINT && (io.in.arvalid || io.in.awvalid)
 
-	val x_sram :: x_mmio :: Nil = Enum(2)
-	val x_state = RegInit(x_sram)
-	x_state := MuxLookup(x_state, x_sram)(Seq(
-		x_sram -> Mux(hitMMIO, x_mmio, x_sram),
-		x_mmio -> Mux(hitSRAM, x_sram, x_mmio)
+	val x_soc :: x_clint :: Nil = Enum(2)
+	val x_state = RegInit(x_soc)
+	x_state := MuxLookup(x_state, x_soc)(Seq(
+		x_soc -> Mux(hitCLINT, x_clint, x_soc),
+		x_clint -> Mux(hitSoC, x_soc, x_clint)
 	))
 
 	io.in.setSlaveDefault()
-	io.sram.setMasterDefault()
-	io.mmio.setMasterDefault()
-	when(hitSRAM) {
-		io.sram <> io.in
-		io.mmio.setMasterDefault()
-	} .elsewhen(hitMMIO) {
-		io.mmio <> io.in
-		io.sram.setMasterDefault()
+	io.soc.setMasterDefault()
+	io.clint.setMasterDefault()
+	when(hitSoC) {
+		io.soc <> io.in
+		io.clint.setMasterDefault()
+	} .elsewhen(hitCLINT) {
+		io.clint <> io.in
+		io.soc.setMasterDefault()
 	} .otherwise {
-		when(x_state === x_sram) {
-			io.sram <> io.in
-			io.mmio.setMasterDefault()
-		} .elsewhen(x_state === x_mmio) {
-			io.mmio <> io.in
-			io.sram.setMasterDefault()
+		when(x_state === x_soc) {
+			io.soc <> io.in
+			io.clint.setMasterDefault()
+		} .elsewhen(x_state === x_clint) {
+			io.clint <> io.in
+			io.soc.setMasterDefault()
 		} .otherwise {
 			printf("ERROR: Address out of range 0x%x\n", io.in.araddr)
-			io.sram.setMasterDefault()
-			io.mmio.setMasterDefault()
+			io.soc.setMasterDefault()
+			io.clint.setMasterDefault()
 		}
 	}
 }
@@ -241,13 +235,12 @@ class AXI4Bus extends Module {
 		val out = Flipped(new AXI4IO())
 	})
 	val arbiter = Module(new AXIArbiter())
-	// val xbar = Module(new AXI1x2Bar())
-	// val sram = Module(new SRAMImp())
-	// val mmio = Module(new MMIO())
+	val xbar = Module(new AXI1x2Bar())
+	val mmio = Module(new MMIO())
 	arbiter.io.instSlave <> io.instSlave // ifu -> 2x1 arbiter in
 	arbiter.io.dataSlave <> io.dataSlave // mem -> 2x1 arbiter in
-	// xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
+	xbar.io.in <> arbiter.io.out // 2x1 arbiter out -> 1x2 crossbar in
 	// sram.io <> xbar.io.sram // 1x2 crossbar out -> sram
-	// mmio.io.arbiterIn <> xbar.io.mmio // 1x2 crossbar out -> mmio
-	io.out <> arbiter.io.out
+	mmio.io.arbiterIn <> xbar.io.clint // 1x2 crossbar out -> mmio
+	io.out <> xbar.io.soc
 }

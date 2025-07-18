@@ -106,11 +106,17 @@ void __am_input_keybrd(AM_INPUT_KEYBRD_T *kbd) {
 	uint32_t key = inb(PS2_BASE + 0x0);
 
 	if(key == 0xF0)
+	{
 		kbd->keydown = false;
+		while((key = inb(PS2_BASE + 0x0)) == 0x00);
+	}
 	else
 		kbd->keydown = true;
-	key = inb(PS2_BASE + 0x0);
 	if(key == 0xE0)
-		key = (key << 8) | inb(PS2_BASE + 0x0);
+	{
+		uint32_t temp;
+		while((temp = inb(PS2_BASE + 0x0)) == 0x00);
+		key = (key << 8) | temp;
+	}
 	kbd->keycode = lookup_ps2_key(key);
 }
