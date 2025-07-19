@@ -1,38 +1,13 @@
 # NEMU
 
-NEMU(NJU Emulator) is a simple but complete full-system emulator designed for teaching purpose.
-Currently it supports x86, mips32, riscv32 and riscv64.
-To build programs run above NEMU, refer to the [AM project](https://github.com/NJU-ProjectN/abstract-machine).
+**注意：本文档主要针对一生一芯所使用的部分进行描述**
 
-The main features of NEMU include
-* a small monitor with a simple debugger
-  * single step
-  * register/memory examination
-  * expression evaluation without the support of symbols
-  * watch point
-  * differential testing with reference design (e.g. QEMU)
-  * snapshot
-* CPU core with support of most common used instructions
-  * x86
-    * real mode is not supported
-    * x87 floating point instructions are not supported
-  * mips32
-    * CP1 floating point instructions are not supported
-  * riscv32
-    * only RV32IM
-  * riscv64
-    * only RV64IM
-* memory
-* paging
-  * TLB is optional (but necessary for mips32)
-  * protection is not supported
-* interrupt and exception
-  * protection is not supported
-* 5 devices
-  * serial, timer, keyboard, VGA, audio
-  * most of them are simplified and unprogrammable
-* 2 types of I/O
-  * port-mapped I/O and memory-mapped I/O
+### 简介
+NEMU的核心功能就是进行指令级的软件仿真，提供了一个可以运行在宿主机上的RISC-V CPU模拟器。可以用于验证和调试处理器设计
 
+### 支持的调试功能
+NJU-PA要求的基本上都有，详细可以`make menuconfig`或看各个目录下的`Kconfig`文件
 
-[ISA相关API](https://ysyx.oscc.cc/docs/ics-pa/nemu-isa-api.html)
+### 问题
+在npc加入ysyxSoC之后，nemu作为difftest的金标准并没有进行更新，也就是说“在difftest时，nemu应该跳过对于外设的访问指令”这一功能目前并没有实现。因此nemu暂时不能用于SoC以及之后的阶段的npc调试
+

@@ -165,4 +165,7 @@ class EXU extends Module with memfunc {
 		ExType.Load -> (dataMaster.rvalid && dataMaster.rready),
 		ExType.Store -> (dataMaster.bvalid && dataMaster.bready)
 	))
+
+	val Perf_memAccess = PerfCnt("memAcc", "memAcc", 
+		(dataMaster.rvalid || dataMaster.rready) && (dataMaster.bvalid || dataMaster.bready), 64)
 }

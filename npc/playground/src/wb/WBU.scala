@@ -5,6 +5,7 @@ import chisel3.util._
 import cpu._
 import cpu.decode._
 import cpu.exu._
+import upack.Ext
 
 class W2EOut extends Bundle {
 	val regWdata = UInt(32.W)
@@ -70,4 +71,13 @@ class WBU extends Module {
 	io.in.ready := true.B
 	io.w2e.valid := RegNext(io.in.fire, 0.B) || w2eState.io.state === w2eState.s_waitready
 	io.w2f.valid := RegNext(io.in.fire, 0.B) || w2fState.io.state === w2fState.s_waitready
+
+	val commit = io.w2e.fire
+	val Perf_loadNum = PerfCnt("loadNum", "loadNum", commit && in.info.exType === ExType.Load, 64)
+	val Perf_storeNum = PerfCnt("storeNum", "storeNum", commit && in.info.exType === ExType.Store, 64)
+	val Perf_csrNUM = PerfCnt("csrNum", "csrNum", commit && in.info.exType === ExType.CSR, 64)
+	val Perf_branchNum = PerfCnt("branchNum", "branchNum", commit && in.info.exType === ExType.Branch, 64)
+	val Perf_calcNum = PerfCnt("calcNum", "calcNum", 
+		commit && (in.info.exType === ExType.AluR || in.info.exType === ExType.AluI ||
+		in.info.exType === ExType.Lui || in.info.exType === ExType.Auipc), 64)
 }
