@@ -4,9 +4,12 @@
 [submodule "rt-thread-am"]
 	path = rt-thread-am
 	url = git@github.com:hululu0628/rt-thread-am.git
+	branch = hululu-modify
 [submodule "nvboard"]
 	path = nvboard
 	url = git@github.com:hululu0628/nvboard.git
+	branch = hululu-modify
 [submodule "fceux-am"]
 	path = fceux-am
 	url = git@github.com:hululu0628/fceux-am.git
+	branch = hululu-modify
