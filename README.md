@@ -2,5 +2,17 @@
 
 这是"一生一芯"的工程项目.
 
-### 接入ysyxSoC
-将CPU.scala中的BlackBox模块设置为ysyxCPU，将Top.scala中的顶层模块设置为Top（Elaborate当然也要改动），将Makefile的V_FILE_GEN值设为Top
+### 项目初始化
+```C
+cd /path/to/your/ysyx-workbench
+// 拉取子模块
+git submodule update --init --recursive
+// 设置环境变量并且把am-kernels拉下来
+./init.sh ysyxworkbench
+./init.sh nemu
+./init.sh abstract-machine
+./init.sh npc
+./init.sh ysyxSoC
+./init.sh nvboard
+./init.sh am-kernels
+// 各个子模块的操作在子模块对应的README中（还没写）

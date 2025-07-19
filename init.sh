@@ -21,6 +21,9 @@ function addenv() {
 function init() {
   if [ -d $3 ]; then
     echo "$3 is already initialized, skipping..."
+    if [ $5 ] ; then
+      addenv $5 $3
+    fi
     return
   fi
 
@@ -78,6 +81,9 @@ case $1 in
     ;;
   ysyxSoC)
     init OSCPU/ysyxSoC ysyx6 ysyxSoC false YSYXSOC_HOME
+    ;;
+  ysyxworkbench)
+    addenv YSYX_HOME .
     ;;
   *)
     echo "Invalid input..."
