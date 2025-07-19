@@ -23,6 +23,7 @@ void difftest_step();
 void device_update();
 
 word_t blocked_cycle = 0;
+word_t total_cycle = 0;
 word_t excuted_inst_num = 0;
 
 #ifdef CONFIG_FST
@@ -165,6 +166,8 @@ void sim_once()
 	top->eval();
 	wave_dump();
 	reg_modify(top);
+
+	total_cycle++;
 }
 
 void sim_step(uint64_t n)
@@ -196,12 +199,14 @@ void sim_step(uint64_t n)
 		case NPC_END:
 			stdout_write("[NPC] " << ANSI_FG_GREEN << "Hit GOOD Trap" << ANSI_NONE 
 				<< " at PC = 0x" << std::hex << debug_signal.pc);
-			stdout_write("insts: " << std::dec << excuted_inst_num);
+			stdout_write("insts: " << std::dec << excuted_inst_num << ", cycles: " << total_cycle);
+			stdout_write("IPC: " << (double)excuted_inst_num / total_cycle);
 			break;
 		case NPC_ABORT:
 			stdout_write("[NPC] " << ANSI_FG_RED << "Hit BAD Trap" << ANSI_NONE 
 				<< " at PC = 0x" << std::hex << debug_signal.pc);
-			stdout_write("insts: " << std::dec << excuted_inst_num);
+			stdout_write("insts: " << std::dec << excuted_inst_num << ", cycles: " << total_cycle);
+			stdout_write("IPC: " << (double)excuted_inst_num / total_cycle);
 			break;
 		default:
 			assert(0);

@@ -18,6 +18,7 @@ extern unsigned blocked_cycle;
 extern VerilatedContext* contextp;
 extern VTop *top;
 
+extern word_t total_cycle;
 extern word_t excuted_inst_num;
 
 extern char* wave_file;
