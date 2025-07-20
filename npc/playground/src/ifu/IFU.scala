@@ -59,6 +59,7 @@ class InstFetch extends Module {
 	io.out.valid := (instMaster.rvalid && instMaster.rready) || f2dState.io.state === f2dState.s_waitready
 
 	// perf counter
-	val Perf_instFetchNum = PerfCnt("instFetchNum", "Number of instruction fetches", 
-					instMaster.rvalid && instMaster.rready, 64)
+	val Perf_instFetchNum = PerfCnt("instFetchNum", instMaster.rvalid && instMaster.rready, 64)
+	val Perf_ifuLat = PerfCnt("ifuLat", true.B, 64, io.writeback.fire, io.out.fire)
+	val Perf_fetchLat = PerfCnt("fetchLat", true.B, 64, instMaster.arvalid, instMaster.rready && instMaster.rlast)
 }

@@ -215,6 +215,7 @@ void sim_step(uint64_t n)
 
 void sim_end()
 {
+	top->final();
 	delete top;
 	delete contextp;
 	IFDEF(CONFIG_NVBOARD, nvboard_quit();)

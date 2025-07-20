@@ -4,42 +4,56 @@ import chisel3._
 import chisel3.util._
 
 class PerfCntBaseIO extends Bundle {
-	val clock = Input(Clock())
-	val reset = Input(Bool())
 	val enable = Input(Bool())
+	val disable = Input(Bool())
+	val cond = Input(Bool())
 }
 
-class PerfCnt(name: String, width: Int) extends BlackBox with HasBlackBoxInline {
-	val io = IO(new PerfCntBaseIO)
-	override val desiredName = s"PerfCnt_$name"
+class PerfCntPrint(name: String, width: Int) extends BlackBox with HasBlackBoxInline {
+	val io = IO(new Bundle{
+		val cnt = Input(UInt(width.W))
+	})
+	override val desiredName = s"PerfCntPrint_$name"
 	setInline(
-		s"PerfCnt_$name.sv",
+		s"PerfCntPrint_$name.sv",
 		s"""
-		|module PerfCnt_$name (
-		|	input clk,
-		|	input reset,
-		|	input enable
+		|module PerfCntPrint_$name (
+		|	input [$width - 1:0] cnt
 		|);
-		|	reg [$width - 1:0] cnt;
-		|	always @(posedge clk or posedge reset) begin
-		|		if (reset) begin
-		|			cnt <= 0;
-		|		end else if (enable) begin
-		|			cnt <= cnt + 1;
-		|		end
-		|	end
 		|	final begin
-		|		$$display("[Performance counter %s]: %ld", "$name", cnt);
+		|		$$display("\\033[34m[Performance counter %-15s]: %d\\033[0m", "$name", cnt);
 		|	end
 		|endmodule
 		""".stripMargin
 	)
 }
 
+class PerfCnt(name: String, width: Int) extends Module {
+	val io = IO(new PerfCntBaseIO)
+	override val desiredName = s"PerfCnt_$name"
+
+	val s_idle :: s_counting :: Nil = Enum(2)
+	val state = RegInit(s_idle)
+	when(io.enable) {
+		state := s_counting
+	} .elsewhen(io.disable) {
+		state := s_idle
+	}
+
+	val cnt = RegInit(0.U(width.W))
+	when(io.cond && state === s_counting) {
+		cnt := cnt + 1.U
+	}
+	val print = Module(new PerfCntPrint(name, width))
+	print.io.cnt := cnt
+}
+
 object PerfCnt {
-	def apply(name: String, info: String, enable: Bool, width: Int): PerfCnt = {
+	def apply(name: String, cond: Bool, width: Int, enable: Bool = true.B, disable: Bool = false.B): PerfCnt = {
 		val cnt = Module(new PerfCnt(name, width))
 		cnt.io.enable := enable
+		cnt.io.disable := disable
+		cnt.io.cond := cond
 		cnt
 	}
 }

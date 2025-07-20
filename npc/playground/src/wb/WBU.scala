@@ -73,11 +73,11 @@ class WBU extends Module {
 	io.w2f.valid := RegNext(io.in.fire, 0.B) || w2fState.io.state === w2fState.s_waitready
 
 	val commit = io.w2e.fire
-	val Perf_loadNum = PerfCnt("loadNum", "loadNum", commit && in.info.exType === ExType.Load, 64)
-	val Perf_storeNum = PerfCnt("storeNum", "storeNum", commit && in.info.exType === ExType.Store, 64)
-	val Perf_csrNUM = PerfCnt("csrNum", "csrNum", commit && in.info.exType === ExType.CSR, 64)
-	val Perf_branchNum = PerfCnt("branchNum", "branchNum", commit && in.info.exType === ExType.Branch, 64)
-	val Perf_calcNum = PerfCnt("calcNum", "calcNum", 
+	val Perf_loadNum = PerfCnt("loadNum", commit && in.info.exType === ExType.Load, 64)
+	val Perf_storeNum = PerfCnt("storeNum", commit && in.info.exType === ExType.Store, 64)
+	val Perf_csrNUM = PerfCnt("csrNum", commit && in.info.exType === ExType.CSR, 64)
+	val Perf_branchNum = PerfCnt("branchNum", commit && in.info.exType === ExType.Branch, 64)
+	val Perf_calcNum = PerfCnt("calcNum", 
 		commit && (in.info.exType === ExType.AluR || in.info.exType === ExType.AluI ||
 		in.info.exType === ExType.Lui || in.info.exType === ExType.Auipc), 64)
 }

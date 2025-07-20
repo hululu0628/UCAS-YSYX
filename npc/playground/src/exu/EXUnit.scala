@@ -35,6 +35,13 @@ class EXU extends Module with memfunc {
 	val dataMaster = io.dataMaster
 	dataMaster.setMasterDefault()
 
+	val currvalid = RegInit(false.B)
+	when(io.decode.fire) {
+		currvalid := true.B
+	} .elsewhen(io.out.fire) {
+		currvalid := false.B
+	}
+
 	val regfile = Module(new Regfile())
 	val csrCtrlBlock = Module(new CSR())
 	val immgen = Module(new ImmGen())
@@ -161,11 +168,19 @@ class EXU extends Module with memfunc {
 	// for multi-cycle cpu
 	io.decode.ready := io.out.ready || d2eState.io.state === d2eState.s_waitvalid
 	io.writeback.ready := true.B
-	io.out.valid := MuxLookup(idIn.exType, RegNext(io.decode.fire, 0.B))(Seq(
+	io.out.valid := MuxLookup(idIn.exType, currvalid)(Seq(
 		ExType.Load -> (dataMaster.rvalid && dataMaster.rready),
 		ExType.Store -> (dataMaster.bvalid && dataMaster.bready)
 	))
 
-	val Perf_memAccess = PerfCnt("memAcc", "memAcc", 
-		(dataMaster.rvalid || dataMaster.rready) && (dataMaster.bvalid || dataMaster.bready), 64)
+	val Perf_memAccess = PerfCnt("memAcc", (dataMaster.rvalid && dataMaster.rready) || (dataMaster.bvalid && dataMaster.bready), 64)
+	val Perf_memLatR = PerfCnt("memLatR", true.B, 64, dataMaster.arvalid, dataMaster.rlast && dataMaster.rready)
+	val Perf_memLatW = PerfCnt("memLatW", true.B, 64, dataMaster.awvalid || dataMaster.wvalid, dataMaster.bvalid && dataMaster.bready)
+	
+	val Perf_loadEXLat = PerfCnt("loadExLat", idIn.exType === ExType.Load, 64, io.decode.fire, io.out.fire)
+	val Perf_storeEXLat = PerfCnt("storeExLat", idIn.exType === ExType.Store, 64, io.decode.fire, io.out.fire)
+	val Perf_csrEXLat = PerfCnt("csrExLat", idIn.exType === ExType.CSR, 64, io.decode.fire, io.out.fire)
+	val Perf_branchLat = PerfCnt("branchLat", idIn.exType === ExType.Branch, 64, io.decode.fire, io.out.fire)
+	val Perf_calcLat = PerfCnt("calcLat", (idIn.exType === ExType.AluR || idIn.exType === ExType.AluI ||
+		idIn.exType === ExType.Lui || idIn.exType === ExType.Auipc), 64, io.decode.fire, io.out.fire)
 }
