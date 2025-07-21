@@ -19,4 +19,7 @@ object NPCParameters {
 		"flash" -> DevicePara(0x30000000L, 0x10000000L),
 		"clint" -> DevicePara(0x02000000L, 0x10000L)
 	)
+	val debugEnable = true
+	val perfEnable = true
+	val simHalt = true
 }

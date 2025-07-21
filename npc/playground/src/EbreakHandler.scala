@@ -7,7 +7,7 @@ class EbreakHandler extends BlackBox with HasBlackBoxInline{
 	val io = IO(new Bundle {
 		val inst_ebreak = Input(Bool())
 	})
-	
+	if(NPCParameters.simHalt) {
 	setInline(
 		"EbreakHandler.sv",
 		"""
@@ -23,4 +23,15 @@ class EbreakHandler extends BlackBox with HasBlackBoxInline{
 		|endmodule
 		""".stripMargin
 	)
+	} else {
+		setInline(
+			"EbreakHandler.sv",
+			"""
+			|module EbreakHandler(
+			|	input inst_ebreak
+			|);
+			|endmodule
+			""".stripMargin
+		)
+	}
 }

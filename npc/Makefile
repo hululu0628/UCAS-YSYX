@@ -60,7 +60,13 @@ $(shell mkdir -p $(BUILD_DIR))
 
 verilog:
 # $(call git_commit, "generate verilog")
+	@rm -rf $(NPC_HOME)/vsrc
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) --split-verilog
+
+sta: 
+	make -C $(YSYX_HOME)/yosys-sta sta DESIGN=ysyxCPU \
+	CLK_FREQ_MHZ=100 CLK_PORT_NAME=clock \
+	RTL_FILES="$(filter-out %ysyxSoCFull.v, $(VSRCS))" \
 
 help:
 	mill -i $(PRJ).runMain Elaborate --help

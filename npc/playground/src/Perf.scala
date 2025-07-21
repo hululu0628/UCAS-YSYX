@@ -14,6 +14,7 @@ class PerfCntPrint(name: String, width: Int) extends BlackBox with HasBlackBoxIn
 		val cnt = Input(UInt(width.W))
 	})
 	override val desiredName = s"PerfCntPrint_$name"
+	if(NPCParameters.perfEnable) {
 	setInline(
 		s"PerfCntPrint_$name.sv",
 		s"""
@@ -26,26 +27,41 @@ class PerfCntPrint(name: String, width: Int) extends BlackBox with HasBlackBoxIn
 		|endmodule
 		""".stripMargin
 	)
+	} else {
+		setInline(
+			s"PerfCntPrint_$name.sv",
+			s"""
+			|module PerfCntPrint_$name (
+			|	input [$width - 1:0] cnt
+			|);
+			|endmodule
+			""".stripMargin
+		)
+	}
 }
 
 class PerfCnt(name: String, width: Int) extends Module {
 	val io = IO(new PerfCntBaseIO)
 	override val desiredName = s"PerfCnt_$name"
+	if(NPCParameters.perfEnable) {
+		val s_idle :: s_counting :: Nil = Enum(2)
+		val state = RegInit(s_idle)
+		when(io.enable) {
+			state := s_counting
+		} .elsewhen(io.disable) {
+			state := s_idle
+		}
 
-	val s_idle :: s_counting :: Nil = Enum(2)
-	val state = RegInit(s_idle)
-	when(io.enable) {
-		state := s_counting
-	} .elsewhen(io.disable) {
-		state := s_idle
+		val cnt = RegInit(0.U(width.W))
+		when(io.cond && state === s_counting) {
+			cnt := cnt + 1.U
+		}
+		val print = Module(new PerfCntPrint(name, width))
+		print.io.cnt := cnt
+	} else {
+		val print = Module(new PerfCntPrint(name, width))
+		print.io.cnt := 0.U
 	}
-
-	val cnt = RegInit(0.U(width.W))
-	when(io.cond && state === s_counting) {
-		cnt := cnt + 1.U
-	}
-	val print = Module(new PerfCntPrint(name, width))
-	print.io.cnt := cnt
 }
 
 object PerfCnt {

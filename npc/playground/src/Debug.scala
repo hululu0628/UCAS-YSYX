@@ -16,6 +16,7 @@ class DPIDebugIO extends Bundle {
 
 class DPIDebug extends BlackBox with HasBlackBoxInline {
 	val io = IO(new DPIDebugIO)
+	if(NPCParameters.debugEnable) {
 	setInline(
 		"DPIDebug.sv",
 		"""
@@ -54,4 +55,22 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		|endmodule
 		""".stripMargin
 	)
+	} else {
+		setInline(
+			"DPIDebug.sv",
+			"""
+			|module DPIDebug(
+			|	input [31:0] reset,
+			|	input [31:0] valid,
+			|	input [31:0] pc,
+			|	input [31:0] npc,
+			|	input [31:0] inst,
+			|	input [31:0] wen,
+			|	input [31:0] waddr,
+			|	input [31:0] data
+			|);
+			|endmodule
+			""".stripMargin
+		)
+	}
 }
