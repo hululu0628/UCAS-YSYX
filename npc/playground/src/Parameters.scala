@@ -22,4 +22,13 @@ object NPCParameters {
 	val debugEnable = true
 	val perfEnable = true
 	val simHalt = true
+
+	val cache = {
+		val addrWidth = 32
+		val taglen = 26
+		val indexlen = 4
+		val offsetlen = 2
+		val blockSize = 1 << offsetlen
+		val blockNum = 1 << indexlen
+	}
 }
