@@ -11,6 +11,8 @@ OBJ_DIR = $(BUILD_DIR)/obj_dir
 
 PRJ = playground
 
+TESTCLASS ?= FormalTest
+
 CONFIG_DIR = $(NPC_HOME)/config
 
 CSRC += $(NPC_HOME)/csrc
@@ -54,14 +56,12 @@ CSRCS = $(CSRCS-y)
 
 $(shell mkdir -p $(BUILD_DIR))
 
-
-#test:
-#	mill -i $(PRJ).test
-
 verilog:
 # $(call git_commit, "generate verilog")
 	@rm -rf $(NPC_HOME)/vsrc
 	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) --split-verilog
+test:
+	mill -i $(PRJ).test.testOnly $(TESTCLASS)
 
 sta: 
 	make -C $(YSYX_HOME)/yosys-sta sta DESIGN=ysyxCPU \

@@ -86,6 +86,11 @@ class ICache extends Module {
 		io.icacheMaster.arburst := BrustType.INCR
 		io.icacheMaster.rready := (state === c_recv)
 	}
+
+	val Perf_icacheHit = PerfCnt("icacheHit", cacheHit, 64)
+	val Perf_icacheAcc = PerfCnt("icacheAcc", true.B, 64, state === c_check, state =/= c_check)
+	val Perf_accTime = PerfCnt("accTime", true.B, 64, state === c_check, state =/= c_check)
+	val Perf_missPenalty = PerfCnt("missPenalty", true.B, 64, state === c_miss, state === c_hit)
 }
 
 class ICacheData extends BlackBox with HasBlackBoxInline {
