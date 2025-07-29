@@ -30,6 +30,8 @@ soc_device_t soc_devices[MAX_SOC_DEVICES] = {0}; // 16 devices max
 IFDEF(CONFIG_MROM, static uint8_t mrom[CONFIG_MROM_SIZE] PG_ALIGN = {};)
 IFDEF(CONFIG_SRAM, static uint8_t sram[CONFIG_SRAM_SIZE] PG_ALIGN = {};)
 IFDEF(CONFIG_FLASH, static uint8_t flash[CONFIG_FLASH_SIZE] PG_ALIGN = {};)
+IFDEF(CONFIG_PSRAM, static uint8_t psram[CONFIG_PSRAM_SIZE] PG_ALIGN = {};)
+IFDEF(CONFIG_SDRAM, static uint8_t sdram[CONFIG_SDRAM_SIZE] PG_ALIGN = {};)
 #endif
 
 int get_soc_index(paddr_t addr)
@@ -90,7 +92,7 @@ void init_soc()
 		.base = CONFIG_SRAM_BASE,
 		.size = CONFIG_SRAM_SIZE,
 		.mem = sram,
-		.priv = PRIV_R | PRIV_W
+		.priv = PRIV_R | PRIV_W | PRIV_X
 	};
 	#endif
 	#ifdef CONFIG_FLASH
@@ -99,7 +101,25 @@ void init_soc()
 		.base = CONFIG_FLASH_BASE,
 		.size = CONFIG_FLASH_SIZE,
 		.mem = flash,
-		.priv = PRIV_R | PRIV_W
+		.priv = PRIV_R | PRIV_X
+	};
+	#endif
+	#ifdef CONFIG_PSRAM
+	soc_devices[soc_device_num++] = (soc_device_t) {
+		.name = "psram",
+		.base = CONFIG_PSRAM_BASE,
+		.size = CONFIG_PSRAM_SIZE,
+		.mem = psram,
+		.priv = PRIV_R | PRIV_W | PRIV_X
+	};
+	#endif
+	#ifdef CONFIG_SDRAM
+	soc_devices[soc_device_num++] = (soc_device_t) {
+		.name = "sdram",
+		.base = CONFIG_SDRAM_BASE,
+		.size = CONFIG_SDRAM_SIZE,
+		.mem = sdram,
+		.priv = PRIV_R | PRIV_W | PRIV_X
 	};
 	#endif
 

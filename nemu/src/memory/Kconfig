@@ -39,6 +39,32 @@ config FLASH_SIZE
   hex "FLASH size"
   default 0x10000000
 
+config PSRAM
+  bool "Enable PSRAM"
+
+config PSRAM_BASE
+  depends on PSRAM
+  hex "PSRAM base address"
+  default 0x80000000
+
+config PSRAM_SIZE
+  depends on PSRAM
+  hex "PSRAM size"
+  default 0x400000
+
+config SDRAM
+  bool "Enable SDRAM"
+
+config SDRAM_BASE
+  depends on SDRAM
+  hex "SDRAM base address"
+  default 0xa0000000
+
+config SDRAM_SIZE
+  depends on SDRAM
+  hex "SDRAM size"
+  default 0x8000000
+
 config RESET_BASE
   hex "Base of reset vector"
   default 0x30000000

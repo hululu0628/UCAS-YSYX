@@ -14,10 +14,11 @@ object NPCParameters {
 	val mmioNum = 1
 	val deviceTab = Map(
 		"mrom" -> DevicePara(0x20000000L, 0x1000L),
-		"uart" -> DevicePara(0x10000000L,0x1000L),
 		"sram" -> DevicePara(0x0f000000L, 0x2000L),
 		"flash" -> DevicePara(0x30000000L, 0x10000000L),
+		"psram" -> DevicePara(0x80000000L, 0x400000L),
 		"sdram" -> DevicePara(0xa0000000L, 0x8000000L),
+		"uart" -> DevicePara(0x10000000L,0x1000L),
 		"clint" -> DevicePara(0x02000000L, 0x10000L)
 	)
 	val debugEnable = true
