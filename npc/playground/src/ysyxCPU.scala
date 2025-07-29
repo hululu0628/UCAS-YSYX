@@ -5,6 +5,7 @@ import chisel3.util._
 import cpu.ifu._
 import cpu.decode._
 import cpu.exu._
+import cpu.mem.cache._
 import cpu.wb._
 
 class CPUIO extends Bundle {
@@ -35,7 +36,14 @@ class ysyxCPU extends Module{
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	
-	bus.io.instSlave <> ifu.io.instMaster
+	if(NPCParameters.cache.enableICache) {
+		val icache = Module(new ICache())
+		icache.io.instSlave <> ifu.io.instMaster
+		bus.io.instSlave <> icache.io.icacheMaster
+	} else {
+		bus.io.instSlave <> ifu.io.instMaster
+	}
+	
 	bus.io.dataSlave <> exu.io.dataMaster
 	
 	/* ebreak */
