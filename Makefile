@@ -25,6 +25,10 @@ define git_commit
 endef
 
 
+sub-init:
+	git submodule init
+	git submodule update --init --recursive
+
 sub-update:
 	git submodule update --remote --merge
 
