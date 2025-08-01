@@ -38,7 +38,7 @@ endif
 
 ARGS_DIFF = --diff=$(shell find $(NEMU_HOME)/build/ -type f -name "*-so")
 
-override ARGS ?= --log=$(shell pwd)/build/npc-log.txt
+override ARGS ?= --log=$(shell pwd)/build/npc-log.log
 override ARGS += $(ARGS_DIFF)
 override ARGS +=
 
