@@ -9,3 +9,15 @@ config OFFSET_LEN
 config BLOCK_NUM
   int "block number"
   default 1
+
+choice
+  prompt "Replacement Algorithm"
+  default LRU
+config LRU
+  bool "Least Recently Used"
+config PLRU
+  bool "Pseudo Least Recently Used"
+config FIFO
+  bool "First In First Out"
+
+endchoice

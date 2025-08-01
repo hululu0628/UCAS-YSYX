@@ -28,9 +28,17 @@ typedef struct {
 } cache_line_t;
 
 typedef struct {
+#ifdef CONFIG_LRU
 	uint32_t order;
+#elifdef CONFIG_FIFO
+	uint64_t entry_time;
+#endif
 	cache_line_t line;
 } cache_block_t;
+
+#ifdef CONFIG_PLRU
+extern uint32_t acc_bits[NUM_SETS];
+#endif 
 
 extern cache_block_t cache_sets[NUM_SETS][NUM_BLOCKS];
 

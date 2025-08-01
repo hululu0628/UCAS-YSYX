@@ -6,6 +6,7 @@
 !/nanos-lite/*
 !/navy-apps/*
 !/npc/*
+!/cachesim/*
 !/rtt-am-modified/*
 !/ysyxSoC
 !/rt-thread-am

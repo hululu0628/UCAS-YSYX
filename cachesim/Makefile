@@ -1,3 +1,6 @@
+-include $(YSYX_HOME)/cachesim/config/include/config/auto.conf
+-include $(YSYX_HOME)/cachesim/config/include/config/auto.conf.cmd
+
 BUILD_DIR = $(YSYX_HOME)/cachesim/build
 SRC_DIR += $(YSYX_HOME)/cachesim/src
 INC_DIR += $(YSYX_HOME)/cachesim/include $(YSYX_HOME)/cachesim/config/include/generated
@@ -8,7 +11,9 @@ CFLAGS = -Wall -O2
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-ARGS ?= 
+TRACE = 
+
+ARGS += $(TRACE)
 
 menuconfig:
 	make -C config menuconfig
