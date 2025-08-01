@@ -12,7 +12,7 @@ CFLAGS    += -I$(AM_HOME)/am/src/platform/nemu/include
 LDSCRIPTS += $(AM_HOME)/scripts/linker-ysyxsoc.ld
 LDFLAGS   += --defsym=_pmem_start=0x30000000 --defsym=_entry_offset=0x0
 LDFLAGS   += --gc-sections -e _start
-NEMUFLAGS += --log=$(shell dirname $(IMAGE).elf)/nemu-log.log -e $(IMAGE).elf
+NEMUFLAGS += --log=$(shell dirname $(IMAGE).elf)/nemu-log.log -e $(IMAGE).elf --cachetrace=$(YSYX_HOME)/cachesim/$(IMAGE_REL)-cache-trace.log
 
 MAINARGS_MAX_LEN = 64
 MAINARGS_PLACEHOLDER = the_insert-arg_rule_in_Makefile_will_insert_mainargs_here

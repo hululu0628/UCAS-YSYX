@@ -176,6 +176,11 @@ config ETRACE
   bool "Enable exception tracer"
   default n
 
+config CACHESIM_TRACE
+  depends on TRACE
+  bool "Enable cache simulator trace"
+  default n
+
 
 config DIFFTEST
   depends on TARGET_NATIVE_ELF

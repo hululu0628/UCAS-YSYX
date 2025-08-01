@@ -31,6 +31,10 @@ void inst_log(Decode * s)
 	void disassemble(char *str, int size, uint64_t pc, uint8_t *code, int nbyte);
 	disassemble(p, s->logbuf + sizeof(s->logbuf) - p,
 		MUXDEF(CONFIG_ISA_x86, s->snpc, s->pc), (uint8_t *)&s->isa.inst, ilen);
+#ifdef CONFIG_CACHESIM_TRACE
+	void trace_pc(Decode * s);
+	trace_pc(s);
+#endif
 }
 #endif
 
