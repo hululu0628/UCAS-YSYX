@@ -1,0 +1,11 @@
+config INDEX_LEN
+  int "length of index"
+  default 4
+
+config OFFSET_LEN
+  int "offset length"
+  default 5
+
+config BLOCK_NUM
+  int "block number"
+  default 1

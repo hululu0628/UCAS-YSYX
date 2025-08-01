@@ -1,0 +1,12 @@
+*.*
+*
+!*/
+!Kconfig
+!Makefile
+!*.mk
+!*.[cSh]
+!.gitignore
+!README.md
+build/
+config/include/config/*
+config/include/generated/*
