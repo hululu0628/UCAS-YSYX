@@ -177,7 +177,7 @@ config ETRACE
   default n
 
 config CACHESIM_TRACE
-  depends on TRACE
+  depends on ITRACE
   bool "Enable cache simulator trace"
   default n
 

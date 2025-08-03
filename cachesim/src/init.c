@@ -12,9 +12,10 @@ int parse_args(int argc, char *argv[]) {
 		{0          , 0                , NULL,  0 },
 	};
 	int o;
-	while ( (o = getopt_long(argc, argv, "c:", table, NULL)) != -1) {
+	while ( (o = getopt_long(argc, argv, "-c:", table, NULL)) != -1) {
 		switch (o) {
 			case 'c': pc_trace_file = optarg; break;
+			case 1: pc_trace_file = optarg; break;
 			default: return 0;
 		}
 	}

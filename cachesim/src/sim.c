@@ -26,16 +26,17 @@ static void update_set(uint32_t index, uint32_t block_idx)
 			}
 		}
 	}
-#elifdef CONFIG_PLRU
+#endif
+#ifdef CONFIG_PLRU
 	uint32_t acc = acc_bits[index];
 	acc = acc | (1 << block_idx);
 	if(acc == ((1 << NUM_BLOCKS) - 1))
 		acc = 1 << block_idx;
-#elifdef CONFIG_FIFO
-	cache_sets[index][block_idx].entry_time = global_time++;
-#else
-	;
 #endif
+#ifdef CONFIG_FIFO
+	cache_sets[index][block_idx].entry_time = global_time++;
+#endif
+	;
 }
 
 static uint32_t find_block(uint32_t index)
@@ -53,7 +54,8 @@ static uint32_t find_block(uint32_t index)
 		}
 	}
 	return block_idx;
-#elifdef CONFIG_PLRU
+#endif
+#ifdef CONFIG_PLRU
 	uint32_t acc = acc_bits[index];
 	for(int i = 0; i < NUM_BLOCKS; i++) {
 		if (!(acc & (1 << i))) {
@@ -61,7 +63,8 @@ static uint32_t find_block(uint32_t index)
 		}
 	}
 	assert(0);
-#elifdef CONFIG_FIFO
+#endif
+#ifdef CONFIG_FIFO
 	uint64_t min_time = UINT64_MAX;
 	uint32_t block_idx = 0;
 	for (int i = 0; i < NUM_BLOCKS; i++)
@@ -72,9 +75,8 @@ static uint32_t find_block(uint32_t index)
 		}
 	}
 	return block_idx;
-#else
-	;
 #endif
+	;
 }
 
 static void sim_cache(uint32_t pc)
@@ -104,7 +106,11 @@ void run_cachesim(FILE *cache_fp)
 	while((ret = fread(&pc_trace, sizeof(pc_trace), MAX_SIZE, cache_fp)) > 0)
 	{
 		for(int i = 0; i < ret; i++)
+		{
+			if(pc_trace[i] >= 0x0f000000L && pc_trace[i] < 0x0f002000L)
+				continue;
 			sim_cache(pc_trace[i]);
+		}
 	}
 }
 

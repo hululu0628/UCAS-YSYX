@@ -30,7 +30,8 @@ typedef struct {
 typedef struct {
 #ifdef CONFIG_LRU
 	uint32_t order;
-#elifdef CONFIG_FIFO
+#endif
+#ifdef CONFIG_FIFO
 	uint64_t entry_time;
 #endif
 	cache_line_t line;
