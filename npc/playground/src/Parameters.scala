@@ -29,9 +29,10 @@ object NPCParameters {
 		val enableICache = true
 		val addrWidth = 32
 		val indexlen = 4
-		val offsetlen =2
+		val offsetlen = 4
 		val taglen = addrWidth - indexlen - offsetlen
-		val blockSize = 8 << offsetlen
-		val blockNum = 1 << indexlen
+		val lineSize = 8 << offsetlen
+		val setNum = 1 << indexlen
+		val blockNum = 1
 	}
 }
