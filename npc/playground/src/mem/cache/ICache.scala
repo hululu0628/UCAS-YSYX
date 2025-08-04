@@ -20,7 +20,6 @@ class ICache extends Module {
 	val index = addr(NPCParameters.cache.addrWidth - NPCParameters.cache.taglen - 1, NPCParameters.cache.offsetlen)
 	val offset = addr(NPCParameters.cache.offsetlen - 1, 0)
 
-	val len = RegInit(0.U(4.W))
 	val dataWriteIn = RegInit(0.U(NPCParameters.cache.lineSize.W))
 
 	val cache_data = Module(new ICacheData())
@@ -41,17 +40,11 @@ class ICache extends Module {
 		c_hit -> Mux(io.instSlave.rvalid && io.instSlave.rready, c_idle, c_hit),
 		c_miss -> Mux(io.icacheMaster.arready && io.icacheMaster.arvalid, c_recv, c_miss),
 		c_recv -> Mux(
-			io.icacheMaster.rvalid && io.icacheMaster.rready, 
-			Mux(len === ((1 << (NPCParameters.cache.offsetlen - 2)) - 1).U, c_hit, c_miss), 
+			io.icacheMaster.rvalid && io.icacheMaster.rready && io.icacheMaster.rlast,
+			c_hit,
 			c_recv
 		)
 	))
-
-	when(cacheHit || state === c_hit) {
-		len := 0.U
-	} .elsewhen(state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready) {
-		len := len + 1.U
-	}
 
 	when(state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready) {
 		if(NPCParameters.cache.lineSize <= 32) {
@@ -62,8 +55,7 @@ class ICache extends Module {
 	}
 
 	cache_data.io.valid := true.B
-	cache_data.io.wen := (len === ((1 << (NPCParameters.cache.offsetlen - 2)) - 1).U) && 
-		state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready
+	cache_data.io.wen := state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready && io.icacheMaster.rlast
 	cache_data.io.idx := index
 	if(NPCParameters.cache.lineSize <= 32) {
 		cache_data.io.wdata := io.icacheMaster.rdata
@@ -71,17 +63,16 @@ class ICache extends Module {
 		cache_data.io.wdata := Cat(io.icacheMaster.rdata, dataWriteIn(NPCParameters.cache.lineSize - 1, 32))
 	}
 	cache_meta.io.valid := true.B
-	cache_meta.io.wen := (len === ((1 << (NPCParameters.cache.offsetlen - 2)) - 1).U) &&
-		(state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready)
+	cache_meta.io.wen := state === c_recv && io.icacheMaster.rvalid && io.icacheMaster.rready && io.icacheMaster.rlast
 	cache_meta.io.idx := index
 	cache_meta.io.wtag := tag
 
 	when(state === c_idle && io.instSlave.arvalid) {
-		addrHit := (io.instSlave.araddr < NPCParameters.deviceTab("sram").base.U) ||
-			(io.instSlave.araddr >= NPCParameters.deviceTab("sram").base.U + NPCParameters.deviceTab("sram").size.U)
+		addrHit := (io.instSlave.araddr >= NPCParameters.deviceTab("sdram").base.U) &&
+			(io.instSlave.araddr < NPCParameters.deviceTab("sdram").base.U + NPCParameters.deviceTab("sdram").size.U)
 	} .otherwise {
-		addrHit := (addr < NPCParameters.deviceTab("sram").base.U) ||
-			(addr >= NPCParameters.deviceTab("sram").base.U + NPCParameters.deviceTab("sram").size.U)
+		addrHit := (addr >= NPCParameters.deviceTab("sdram").base.U) &&
+			(addr < NPCParameters.deviceTab("sdram").base.U + NPCParameters.deviceTab("sdram").size.U)
 	}
 	cacheHit := (state === c_check) && (cache_meta.io.rtag === tag) && cache_meta.io.isValid
 
@@ -98,9 +89,8 @@ class ICache extends Module {
 		io.instSlave.rresp := RespEncoding.OKAY
 
 		io.icacheMaster.arvalid := (state === c_miss)
-		io.icacheMaster.araddr := (addr(NPCParameters.cache.addrWidth - 1, NPCParameters.cache.offsetlen) << NPCParameters.cache.offsetlen) +
-						(len << 2)
-		io.icacheMaster.arlen := 0.U(8.W)
+		io.icacheMaster.araddr := (addr(NPCParameters.cache.addrWidth - 1, NPCParameters.cache.offsetlen) << NPCParameters.cache.offsetlen)
+		io.icacheMaster.arlen := (NPCParameters.cache.lineSize / 32 - 1).U
 		io.icacheMaster.arsize := TransferSize.WORD
 		io.icacheMaster.arburst := BrustType.INCR
 		io.icacheMaster.rready := (state === c_recv)

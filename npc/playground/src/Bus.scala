@@ -164,8 +164,8 @@ class AXIArbiter extends Module {
 		a_free -> Mux(io.instSlave.arvalid, a_inst,
 			   Mux(io.dataSlave.arvalid, a_rdata, 
 			   Mux(io.dataSlave.awvalid || io.dataSlave.wvalid, a_wdata, a_free))),
-		a_inst -> Mux(io.instSlave.rvalid && io.instSlave.rready, a_free, a_inst),
-		a_rdata -> Mux(io.dataSlave.rvalid && io.dataSlave.rready, a_free, a_rdata),
+		a_inst -> Mux(io.instSlave.rvalid && io.instSlave.rready && io.instSlave.rlast, a_free, a_inst),
+		a_rdata -> Mux(io.dataSlave.rvalid && io.dataSlave.rready && io.dataSlave.rlast, a_free, a_rdata),
 		a_wdata -> Mux(io.dataSlave.bvalid && io.dataSlave.bready, a_free, a_wdata)
 	))
 
