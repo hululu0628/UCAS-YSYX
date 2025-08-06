@@ -8,6 +8,7 @@ import cpu.regfile.CSROp.set
 import cpu.NPCParameters.cache
 
 class ICacheIO extends Bundle {
+	val flush = Input(Bool())
 	val instSlave = new AXI4IO
 	val icacheMaster = Flipped(new AXI4IO)
 }
@@ -27,7 +28,7 @@ class ICache extends Module {
 	cache_data.io.clock := clock
 	cache_data.io.reset := reset
 	cache_meta.io.clock := clock
-	cache_meta.io.reset := reset
+	cache_meta.io.reset := reset.asBool || io.flush
 
 	val addrHit = WireInit(false.B)
 	val cacheHit = WireInit(false.B)

@@ -85,6 +85,9 @@ object RV32IDecode {
 	def CSRRSI 	= BitPat("b?????????????????110?????1110011")
 	def CSRRCI 	= BitPat("b?????????????????111?????1110011")
 
+	// Zifencei extension
+	def FENCEI 	= BitPat("b?????????????????001?????0001111")
+
 	def MRET 	= BitPat("b00110000001000000000000001110011")
 
 	// for R_shifter instructions, src2 type is imm
@@ -135,6 +138,7 @@ object RV32IDecode {
 		CSRRSI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrsi, LSLen.word, wenR = true.B).generate,
 		CSRRCI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.CSR, ImmType.IType, CSRType.csrrci, LSLen.word, wenR = true.B).generate,
 		MRET -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.Mret, ImmType.NType, AluType.add, LSLen.word).generate,
+		FENCEI -> DecodeBase(SrcFrom.Imm, SrcFrom.Imm, ExType.FENCEI, ImmType.NType, AluType.add, LSLen.word).generate
 	)
 }
 
@@ -171,6 +175,8 @@ object ExType {
 
 	def CSR = "b1011".U
 	def Mret = "b1100".U
+
+	def FENCEI = "b1101".U
 
 	def apply() = UInt(5.W)
 }

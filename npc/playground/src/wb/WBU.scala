@@ -16,6 +16,7 @@ class W2EOut extends Bundle {
 
 class WBUIO extends Bundle {
 	val in = Flipped(Decoupled(new EXUOut))
+	val fromWbFlushICache = Output(Bool())
 	val w2f = Decoupled(new Bundle {val nextpc = UInt(32.W)})
 	val w2e = Decoupled(new W2EOut)
 }
@@ -71,6 +72,8 @@ class WBU extends Module {
 	io.in.ready := true.B
 	io.w2e.valid := RegNext(io.in.fire, 0.B) || w2eState.io.state === w2eState.s_waitready
 	io.w2f.valid := RegNext(io.in.fire, 0.B) || w2fState.io.state === w2fState.s_waitready
+
+	io.fromWbFlushICache := in.info.exType === ExType.FENCEI
 
 	val commit = io.w2e.fire
 	val Perf_loadNum = PerfCnt("loadNum", commit && in.info.exType === ExType.Load, 64)

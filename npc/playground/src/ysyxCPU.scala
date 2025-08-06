@@ -38,6 +38,7 @@ class ysyxCPU extends Module{
 	
 	if(NPCParameters.cache.enableICache) {
 		val icache = Module(new ICache())
+		icache.io.flush := wbu.io.fromWbFlushICache
 		icache.io.instSlave <> ifu.io.instMaster
 		bus.io.instSlave <> icache.io.icacheMaster
 	} else {
