@@ -35,8 +35,9 @@ class ysyxCPU extends Module{
 	StageConnectPipe(idu.io.out, exu.io.decode, false.B)
 	StageConnectPipe(exu.io.out, lsu.io.exu, false.B)
 	StageConnectPipe(lsu.io.out, wbu.io.in, false.B)
-	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
+	StageConnectSingle(wbu.io.w2d, idu.io.writeback)
+	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	
 	if(NPCParameters.cache.enableICache) {
 		val icache = Module(new ICache())

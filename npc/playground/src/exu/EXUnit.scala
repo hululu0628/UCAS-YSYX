@@ -21,7 +21,7 @@ class EXUOut extends Bundle {
 }
 
 class EXUIO extends Bundle {
-	val decode = Flipped(Decoupled(new DecodedInst))
+	val decode = Flipped(Decoupled(new IDOut))
 	val writeback = Flipped(Decoupled(new W2EOut))
 	val out = Decoupled(new EXUOut)
 }
@@ -29,10 +29,10 @@ class EXUIO extends Bundle {
 class EXU extends Module with memfunc {
 	val io = IO(new EXUIO)
 	val idIn = io.decode.bits
+	val decoded = idIn.decoded
 	val wbIn = io.writeback.bits
 	val out = io.out.bits
 
-	val regfile = Module(new Regfile())
 	val csrCtrlBlock = Module(new CSR())
 	val immgen = Module(new ImmGen())
 	val bru = Module(new BRU())
@@ -44,23 +44,14 @@ class EXU extends Module with memfunc {
 	/**
 	  * ImmGen
 	  */
-	immgen.io.inst := idIn.inst
-	immgen.io.immType := idIn.immType
-
-	/**
-	  * Regfile
-	  */
-	regfile.io.wen := wbIn.info.wenR && io.writeback.fire
-	regfile.io.waddr := wbIn.info.inst.rd
-	regfile.io.wdata := wbIn.regWdata
-	regfile.io.raddr1 := idIn.inst.rs1
-	regfile.io.raddr2 := idIn.inst.rs2
+	immgen.io.inst := decoded.inst
+	immgen.io.immType := decoded.immType
 
 	/**
 	  * CSR
 	  */
-	csrCtrlBlock.io.exuAddr := idIn.inst.imm12
-	csrCtrlBlock.io.exuExType := idIn.exType
+	csrCtrlBlock.io.exuAddr := decoded.inst.imm12
+	csrCtrlBlock.io.exuExType := decoded.exType
 	csrCtrlBlock.io.wen := io.writeback.fire
 	csrCtrlBlock.io.wbuAddr := wbIn.info.inst.imm12
 	csrCtrlBlock.io.wbuExType := wbIn.info.exType
@@ -72,49 +63,49 @@ class EXU extends Module with memfunc {
 	/**
 	  * ALU
 	  */
-	aluA := MuxLookup(idIn.src1From, 0.U(32.W))(Seq(
-		SrcFrom.RS1 -> regfile.io.rdata1,
-		SrcFrom.RS2 -> regfile.io.rdata2,
-		SrcFrom.PC -> idIn.pc,
+	aluA := MuxLookup(decoded.src1From, 0.U(32.W))(Seq(
+		SrcFrom.RS1 -> idIn.rdata1,
+		SrcFrom.RS2 -> idIn.rdata2,
+		SrcFrom.PC -> decoded.pc,
 		SrcFrom.Imm -> immgen.io.imm
 	))
-	aluB := MuxLookup(idIn.src2From, 0.U(32.W))(Seq(
-		SrcFrom.RS1 -> regfile.io.rdata1,
-		SrcFrom.RS2 -> regfile.io.rdata2,
-		SrcFrom.PC -> idIn.pc,
+	aluB := MuxLookup(decoded.src2From, 0.U(32.W))(Seq(
+		SrcFrom.RS1 -> idIn.rdata1,
+		SrcFrom.RS2 -> idIn.rdata2,
+		SrcFrom.PC -> decoded.pc,
 		SrcFrom.Imm -> immgen.io.imm
 	))
 	alu.io.A := aluA
 	alu.io.B := aluB
-	alu.io.aluType := MuxLookup(idIn.exType, idIn.fuType)(Seq(
+	alu.io.aluType := MuxLookup(decoded.exType, decoded.fuType)(Seq(
 		ExType.Branch -> AluType.add,
 	))
 
 	/**
 	  * BRU
 	  */
-	bru.io.src1 := regfile.io.rdata1
-	bru.io.src2 := regfile.io.rdata2
-	bru.io.fuType := idIn.fuType
+	bru.io.src1 := idIn.rdata1
+	bru.io.src2 := idIn.rdata2
+	bru.io.fuType := decoded.fuType
 
 	// output
-	out.info := idIn
+	out.info := decoded
 	out.result.alu := alu.io.result
 	out.result.csr := csrCtrlBlock.io.exuRdata
 	out.result.imm := immgen.io.imm
 	out.result.bruFlag := bru.io.br_flag
-	out.result.rdata1 := regfile.io.rdata1
-	out.result.rdata2 := regfile.io.rdata2
+	out.result.rdata1 := idIn.rdata1
+	out.result.rdata2 := idIn.rdata2
 
 	// for multi-cycle cpu
 	io.decode.ready := io.out.fire || !io.decode.valid
 	io.writeback.ready := true.B
 	io.out.valid := io.decode.valid
 	
-	val Perf_loadEXLat = PerfCnt("loadExLat", idIn.exType === ExType.Load, 64, io.decode.fire, io.out.fire)
-	val Perf_storeEXLat = PerfCnt("storeExLat", idIn.exType === ExType.Store, 64, io.decode.fire, io.out.fire)
-	val Perf_csrEXLat = PerfCnt("csrExLat", idIn.exType === ExType.CSR, 64, io.decode.fire, io.out.fire)
-	val Perf_branchLat = PerfCnt("branchLat", idIn.exType === ExType.Branch, 64, io.decode.fire, io.out.fire)
-	val Perf_calcLat = PerfCnt("calcLat", (idIn.exType === ExType.AluR || idIn.exType === ExType.AluI ||
-		idIn.exType === ExType.Lui || idIn.exType === ExType.Auipc), 64, io.decode.fire, io.out.fire)
+	val Perf_loadEXLat = PerfCnt("loadExLat", decoded.exType === ExType.Load, 64, io.decode.fire, io.out.fire)
+	val Perf_storeEXLat = PerfCnt("storeExLat", decoded.exType === ExType.Store, 64, io.decode.fire, io.out.fire)
+	val Perf_csrEXLat = PerfCnt("csrExLat", decoded.exType === ExType.CSR, 64, io.decode.fire, io.out.fire)
+	val Perf_branchLat = PerfCnt("branchLat", decoded.exType === ExType.Branch, 64, io.decode.fire, io.out.fire)
+	val Perf_calcLat = PerfCnt("calcLat", (decoded.exType === ExType.AluR || decoded.exType === ExType.AluI ||
+		decoded.exType === ExType.Lui || decoded.exType === ExType.Auipc), 64, io.decode.fire, io.out.fire)
 }

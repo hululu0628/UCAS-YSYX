@@ -4,7 +4,9 @@ import chisel3._
 import chisel3.util._
 
 import cpu._
+import cpu.regfile._
 import cpu.ifu._
+import cpu.wb._
 
 class StaticInst extends Bundle {
 	val code = UInt(32.W)
@@ -264,22 +266,46 @@ class DecodedInst extends Bundle {
 	}
 }
 
+class IDOut extends Bundle {
+	val decoded = new DecodedInst
+	val rdata1 = UInt(32.W) // read data from regfile rs1
+	val rdata2 = UInt(32.W) // read data from regfile rs2
+}
+
 class DecoderIO extends Bundle {
 	val in = Flipped(Decoupled(new IFUOut))
-	val out = Decoupled(new DecodedInst)
+	val writeback = Flipped(Decoupled(new W2DOut))
+	val out = Decoupled(new IDOut)
 }
 
 class Decoder extends Module{
 	val io = IO(new DecoderIO)
+	val regfile = Module(new Regfile())
 
-	// state machine for connecting different stages
-	io.out.bits.inst := io.in.bits.inst
-	io.out.bits.decode(RV32IDecode.table)
+	val wbIn = io.writeback.bits
+	val idOut = io.out.bits
 
-	io.out.bits.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
-	io.out.bits.pc := io.in.bits.pc
+	idOut.decoded.inst := io.in.bits.inst
+	idOut.decoded.decode(RV32IDecode.table)
+
+	idOut.decoded.isEbreak := io.in.bits.inst.code === RV32IDecode.EBREAK
+	idOut.decoded.pc := io.in.bits.pc
+
+	/**
+	  * Regfile
+	  */
+	regfile.io.wen := wbIn.info.wenR && io.writeback.fire
+	regfile.io.waddr := wbIn.info.inst.rd
+	regfile.io.wdata := wbIn.regWdata
+	regfile.io.raddr1 := idOut.decoded.inst.rs1
+	regfile.io.raddr2 := idOut.decoded.inst.rs2
+
+	idOut.rdata1 := regfile.io.rdata1
+	idOut.rdata2 := regfile.io.rdata2
 
 	// for multi-cycle cpu
 	io.in.ready := io.out.fire || !io.in.valid
 	io.out.valid := io.in.valid
+
+	io.writeback.ready := true.B
 }

@@ -7,6 +7,13 @@ import cpu.decode._
 import cpu.exu._
 import upack.Ext
 
+class W2DOut extends Bundle {
+	val regWdata = UInt(32.W)
+	val Imm = UInt(32.W)
+	val regRdata = UInt(32.W)
+	val info = new DecodedInst
+}
+
 class W2EOut extends Bundle {
 	val regWdata = UInt(32.W)
 	val Imm = UInt(32.W)
@@ -18,6 +25,7 @@ class WBUIO extends Bundle {
 	val in = Flipped(Decoupled(new LSUOut))
 	val fromWbFlushICache = Output(Bool())
 	val w2f = Decoupled(new Bundle {val nextpc = UInt(32.W)})
+	val w2d = Decoupled(new W2DOut)
 	val w2e = Decoupled(new W2EOut)
 }
 
@@ -25,10 +33,12 @@ class WBU extends Module {
 	val io = IO(new WBUIO)
 
 	val in = io.in.bits
+	val w2d = io.w2d.bits
 	val w2e = io.w2e.bits
 	val w2f = io.w2f.bits
 	val nextpc = io.w2f.bits.nextpc
-	val result = w2e.regWdata
+	val result = w2d.regWdata
+	val resultEXU = result
 
 	/**
 	  * PC next
@@ -51,18 +61,24 @@ class WBU extends Module {
 		ExType.CSR -> (in.result.csr),
 	))
 
+	w2d.info := in.info
+	w2d.Imm := in.result.imm
+	w2d.regRdata := in.result.rdata1
+
 	w2e.info := in.info
 	w2e.Imm := in.result.imm
 	w2e.regRdata := in.result.rdata1
+	w2e.regWdata := resultEXU
 
 	// for single cpu
 	io.in.ready := true.B
-	io.w2e.valid := io.in.valid
 	io.w2f.valid := io.in.valid
+	io.w2d.valid := io.in.valid
+	io.w2e.valid := io.in.valid
 
 	io.fromWbFlushICache := in.info.exType === ExType.FENCEI
 
-	val commit = io.w2e.fire
+	val commit = io.w2d.fire
 	val Perf_loadNum = PerfCnt("loadNum", commit && in.info.exType === ExType.Load, 64)
 	val Perf_storeNum = PerfCnt("storeNum", commit && in.info.exType === ExType.Store, 64)
 	val Perf_csrNUM = PerfCnt("csrNum", commit && in.info.exType === ExType.CSR, 64)
