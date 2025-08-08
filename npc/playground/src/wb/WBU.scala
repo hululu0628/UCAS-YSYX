@@ -15,7 +15,7 @@ class W2EOut extends Bundle {
 }
 
 class WBUIO extends Bundle {
-	val in = Flipped(Decoupled(new EXUOut))
+	val in = Flipped(Decoupled(new LSUOut))
 	val fromWbFlushICache = Output(Bool())
 	val w2f = Decoupled(new Bundle {val nextpc = UInt(32.W)})
 	val w2e = Decoupled(new W2EOut)
@@ -29,19 +29,6 @@ class WBU extends Module {
 	val w2f = io.w2f.bits
 	val nextpc = io.w2f.bits.nextpc
 	val result = w2e.regWdata
-
-	/**
-	  * State machine for connecting different stages
-	  */
-	val e2wState = Module(new StateMachine("master"))
-	e2wState.io.valid := io.in.valid
-	e2wState.io.ready := io.in.ready
-	val w2fState = Module(new StateMachine("slave"))
-	w2fState.io.valid := io.w2f.valid
-	w2fState.io.ready := io.w2f.ready
-	val w2eState = Module(new StateMachine("slave"))
-	w2eState.io.valid := io.w2e.valid
-	w2eState.io.ready := io.w2e.ready
 
 	/**
 	  * PC next
@@ -70,8 +57,8 @@ class WBU extends Module {
 
 	// for single cpu
 	io.in.ready := true.B
-	io.w2e.valid := RegNext(io.in.fire, 0.B) || w2eState.io.state === w2eState.s_waitready
-	io.w2f.valid := RegNext(io.in.fire, 0.B) || w2fState.io.state === w2fState.s_waitready
+	io.w2e.valid := io.in.valid
+	io.w2f.valid := io.in.valid
 
 	io.fromWbFlushICache := in.info.exType === ExType.FENCEI
 

@@ -19,7 +19,7 @@ CSRC += $(NPC_HOME)/csrc
 
 VSRC += $(NPC_HOME)/vsrc
 # for SoC
-VSRC += $(YSYXSOC_HOME)/perip
+VSRC_YSYX += $(YSYXSOC_HOME)/perip
 
 NXDC_FILES = $(NPC_HOME)/constr/top.nxdc
 
@@ -50,6 +50,7 @@ include $(FILELIST_MK)
 # project source
 CSRCS-y += $(shell find -L $(DIRS-y) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
 VSRCS = $(shell find $(abspath $(VSRC)) -name "*.v" -or -name "*.sv")
+VSRCS += $(shell find $(abspath $(VSRC_YSYX)) -name "*.v" -or -name "*.sv")
 VSRCS += $(YSYXSOC_HOME)/build/ysyxSoCFull.v
 CSRCS = $(CSRCS-y)
 
@@ -59,7 +60,7 @@ $(shell mkdir -p $(BUILD_DIR))
 verilog:
 # $(call git_commit, "generate verilog")
 	@rm -rf $(NPC_HOME)/vsrc
-	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) --split-verilog
+	mill -i $(PRJ).runMain Elaborate --target-dir $(VSRC) --split-verilog --throw-on-first-error
 test:
 	mill -i $(PRJ).test.testOnly $(TESTCLASS)
 

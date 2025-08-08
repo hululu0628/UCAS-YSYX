@@ -17,6 +17,23 @@ object StageConnectMulti {
 	}
 }
 
+object StageConnectPipe {
+	def apply[T <: Data](curr: DecoupledIO[T], next: DecoupledIO[T], flush: Bool) = {
+		val pipeReg = RegInit(0.U.asTypeOf(curr.bits))
+		val pipeOutValid = RegInit(false.B)
+
+		when(curr.fire) {
+			pipeReg := curr.bits
+			pipeOutValid := true.B
+		}.elsewhen(next.ready || flush) {
+			pipeOutValid := false.B
+		}
+		curr.ready := next.ready
+		next.valid := pipeOutValid
+		next.bits := pipeReg
+	}
+}
+
 class StateMachine(direct: String) extends Module {
 	val io = IO(new Bundle {
 		val valid = Input(Bool())

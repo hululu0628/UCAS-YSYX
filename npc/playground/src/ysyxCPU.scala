@@ -22,6 +22,7 @@ class ysyxCPU extends Module{
 	val ifu = Module(new InstFetch())
 	val idu = Module(new Decoder())
 	val exu = Module(new EXU())
+	val lsu = Module(new LSU())
 	val wbu = Module(new WBU())
 	val ebreak_handler = Module(new EbreakHandler())
 	val bus = Module(new AXI4Bus())
@@ -30,9 +31,10 @@ class ysyxCPU extends Module{
 	/**
 	  * Stage Connect
 	  */
-	StageConnectMulti(ifu.io.out, idu.io.in)
-	StageConnectMulti(idu.io.out, exu.io.decode)
-	StageConnectMulti(exu.io.out, wbu.io.in)
+	StageConnectPipe(ifu.io.out, idu.io.in, false.B)
+	StageConnectPipe(idu.io.out, exu.io.decode, false.B)
+	StageConnectPipe(exu.io.out, lsu.io.exu, false.B)
+	StageConnectPipe(lsu.io.out, wbu.io.in, false.B)
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	
@@ -45,7 +47,7 @@ class ysyxCPU extends Module{
 		bus.io.instSlave <> ifu.io.instMaster
 	}
 	
-	bus.io.dataSlave <> exu.io.dataMaster
+	bus.io.dataSlave <> lsu.io.dataMaster
 	
 	/* ebreak */
 	ebreak_handler.io.inst_ebreak := wbu.io.w2e.bits.info.isEbreak

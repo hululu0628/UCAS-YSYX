@@ -273,13 +273,6 @@ class Decoder extends Module{
 	val io = IO(new DecoderIO)
 
 	// state machine for connecting different stages
-	val f2dState = Module(new StateMachine("master"))
-	val d2eState = Module(new StateMachine("slave"))
-	f2dState.io.valid := io.in.valid
-	f2dState.io.ready := io.in.ready
-	d2eState.io.valid := io.out.valid
-	d2eState.io.ready := io.out.ready
-
 	io.out.bits.inst := io.in.bits.inst
 	io.out.bits.decode(RV32IDecode.table)
 
@@ -287,6 +280,6 @@ class Decoder extends Module{
 	io.out.bits.pc := io.in.bits.pc
 
 	// for multi-cycle cpu
-	io.in.ready := io.out.ready || f2dState.io.state === f2dState.s_waitvalid
-	io.out.valid := RegNext(io.in.fire, 0.B) || d2eState.io.state === d2eState.s_waitready
+	io.in.ready := io.out.fire || !io.in.valid
+	io.out.valid := io.in.valid
 }

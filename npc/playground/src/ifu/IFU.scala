@@ -44,19 +44,11 @@ class InstFetch extends Module {
 	instMaster.arburst := BrustType.INCR
 	instMaster.rready := (f2RAMState === i_waitrdata) && io.out.ready
 
-	// state machine for connecting different stages
-	val w2fState = Module(new StateMachine("master"))
-	w2fState.io.valid := io.writeback.valid
-	w2fState.io.ready := io.writeback.ready
-	val f2dState = Module(new StateMachine("slave"))
-	f2dState.io.valid := instGet
-	f2dState.io.ready := io.out.ready
-
 	io.out.bits.inst.code := instMaster.rdata
 	io.out.bits.pc := pc
 
-	io.writeback.ready := io.out.ready || w2fState.io.state === w2fState.s_waitvalid
-	io.out.valid := (instMaster.rvalid && instMaster.rready) || f2dState.io.state === f2dState.s_waitready
+	io.writeback.ready := f2RAMState === i_idle
+	io.out.valid := (instMaster.rvalid && instMaster.rready)
 
 	// perf counter
 	val Perf_instFetchNum = PerfCnt("instFetchNum", instMaster.rvalid && instMaster.rready, 64)
