@@ -130,34 +130,28 @@ void reg_modify(VTop *top)
 void trace_and_difftest()
 {
 	if(debug_signal.reset)
-	{
 		difftest_skip_ref();
-	} else if(checkAccBound(debug_signal.accValid && debug_signal.valid, debug_signal.accAddr) == -1)
-	{
+	if(checkAccBound(debug_signal.accValid && debug_signal.valid, debug_signal.accAddr) == -1)
 		difftest_skip_ref();
+	if(!debug_signal.valid)
+	{
+		blocked_cycle++;
+		if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
+		{
+			npc_state.state = NPC_ABORT;
+			Log_Error("Quit because of blocked cycle");
+			return;
+		}
 	}
 	else
 	{
-		if(!debug_signal.valid)
-		{
-			blocked_cycle++;
-			if(blocked_cycle > CONFIG_AUTOQUIT_CYCLE)
-			{
-				npc_state.state = NPC_ABORT;
-				Log_Error("Quit because of blocked cycle");
-				return;
-			}
-		}
-		else
-		{
-			blocked_cycle = 0;
-			excuted_inst_num++;
+		blocked_cycle = 0;
+		excuted_inst_num++;
 
-			IFDEF(CONFIG_DIFFTEST, difftest_step();)
-			IFDEF(CONFIG_ITRACE, trace_instruction();)
-			IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
-			IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
-		}
+		IFDEF(CONFIG_DIFFTEST, difftest_step();)
+		IFDEF(CONFIG_ITRACE, trace_instruction();)
+		IFDEF(CONFIG_FTRACE, trace_func(debug_signal.pc, debug_signal.inst);)
+		IFDEF(CONFIG_WATCHPOINT, check_watchpoints();)
 	}
 }
 
