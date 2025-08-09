@@ -76,7 +76,7 @@ class WBU extends Module {
 
 	// for single cpu
 	io.in.ready := true.B
-	io.w2f.valid := io.in.valid
+	io.w2f.valid := true.B
 	io.w2d.valid := io.in.valid
 	io.w2e.valid := io.in.valid
 

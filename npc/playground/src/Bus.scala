@@ -158,15 +158,15 @@ class AXIArbiter extends Module {
 		val dataSlave = new AXI4IO()
 		val out = Flipped(new AXI4IO())
 	})
-	val a_free :: a_inst :: a_rdata :: a_wdata :: Nil = Enum(4)
+	val a_free :: a_rdata :: a_wdata :: a_inst :: Nil = Enum(4)
 	val a_state = RegInit(a_free)
 	a_state := MuxLookup(a_state, a_free)(Seq(
-		a_free -> Mux(io.instSlave.arvalid, a_inst,
-			   Mux(io.dataSlave.arvalid, a_rdata, 
-			   Mux(io.dataSlave.awvalid || io.dataSlave.wvalid, a_wdata, a_free))),
-		a_inst -> Mux(io.instSlave.rvalid && io.instSlave.rready && io.instSlave.rlast, a_free, a_inst),
+		a_free -> Mux(io.dataSlave.arvalid, a_rdata,
+			   Mux(io.dataSlave.awvalid || io.dataSlave.wvalid, a_wdata, 
+			   Mux(io.instSlave.arvalid, a_inst, a_free))),
 		a_rdata -> Mux(io.dataSlave.rvalid && io.dataSlave.rready && io.dataSlave.rlast, a_free, a_rdata),
-		a_wdata -> Mux(io.dataSlave.bvalid && io.dataSlave.bready, a_free, a_wdata)
+		a_wdata -> Mux(io.dataSlave.bvalid && io.dataSlave.bready, a_free, a_wdata),
+		a_inst -> Mux(io.instSlave.rvalid && io.instSlave.rready && io.instSlave.rlast, a_free, a_inst),
 	))
 
 	io.instSlave.setSlaveDefault()

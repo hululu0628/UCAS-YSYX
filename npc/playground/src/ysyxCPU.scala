@@ -14,7 +14,7 @@ class CPUIO extends Bundle {
 	val slave = new AXI4IO
 }
 
-class ysyxCPU extends Module{
+class ysyxCPU extends Module with StageConflict {
 	val io = IO(new CPUIO)
 	/**
 	  * Modules of processor
@@ -38,6 +38,21 @@ class ysyxCPU extends Module{
 	StageConnectSingle(wbu.io.w2f, ifu.io.writeback)
 	StageConnectSingle(wbu.io.w2d, idu.io.writeback)
 	StageConnectSingle(wbu.io.w2e, exu.io.writeback)
+
+	// Check Data Hazard
+	val isDataHazard = Wire(Bool())
+	isDataHazard := isRAW(idu.io.out.bits.decoded.inst.rs1, idu.io.out.bits.decoded.inst.rs2,
+				exu.io.decode.bits.decoded.inst.rd, exu.io.decode.bits.decoded.wenR, exu.io.decode.valid,
+				lsu.io.exu.bits.info.inst.rd, lsu.io.exu.bits.info.wenR, lsu.io.exu.valid,
+				wbu.io.in.bits.info.inst.rd, wbu.io.in.bits.info.wenR, wbu.io.in.valid)
+	idu.io.dataHazard := isDataHazard
+	// Check Branch Hazard
+	val isBrHazard = Wire(Bool())
+	isBrHazard := isBrHazard(idu.io.out.bits.decoded.exType, idu.io.in.valid,
+				exu.io.decode.bits.decoded.exType, exu.io.decode.valid,
+				lsu.io.exu.bits.info.exType, lsu.io.exu.valid)
+	ifu.io.isBrHazard := isBrHazard
+	
 	
 	if(NPCParameters.cache.enableICache) {
 		val icache = Module(new ICache())

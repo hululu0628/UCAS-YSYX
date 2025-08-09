@@ -274,6 +274,7 @@ class IDOut extends Bundle {
 
 class DecoderIO extends Bundle {
 	val in = Flipped(Decoupled(new IFUOut))
+	val dataHazard = Input(Bool())
 	val writeback = Flipped(Decoupled(new W2DOut))
 	val out = Decoupled(new IDOut)
 }
@@ -305,7 +306,8 @@ class Decoder extends Module{
 
 	// for multi-cycle cpu
 	io.in.ready := io.out.fire || !io.in.valid
-	io.out.valid := io.in.valid
+	
+	io.out.valid := io.in.valid && io.dataHazard === false.B
 
 	io.writeback.ready := true.B
 }
