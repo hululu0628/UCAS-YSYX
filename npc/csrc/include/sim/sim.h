@@ -32,5 +32,7 @@ struct debug_signal {
 	word_t inst;
 	word_t waddr;
 	word_t data;
+	bool accValid;
+	word_t accAddr;
 };
 extern struct debug_signal debug_signal;

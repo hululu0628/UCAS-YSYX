@@ -19,6 +19,8 @@ class W2EOut extends Bundle {
 	val Imm = UInt(32.W)
 	val regRdata = UInt(32.W)
 	val info = new DecodedInst
+	val accValid = Bool()
+	val accAddr = UInt(32.W)
 }
 
 class WBUIO extends Bundle {
@@ -69,6 +71,8 @@ class WBU extends Module {
 	w2e.Imm := in.result.imm
 	w2e.regRdata := in.result.rdata1
 	w2e.regWdata := resultEXU
+	w2e.accValid := in.info.exType === ExType.Store || in.info.exType === ExType.Load
+	w2e.accAddr := in.result.alu
 
 	// for single cpu
 	io.in.ready := true.B

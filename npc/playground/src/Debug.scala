@@ -12,6 +12,8 @@ class DPIDebugIO extends Bundle {
 	val wen = Input(UInt(32.W))
 	val waddr = Input(UInt(32.W))
 	val data = Input(UInt(32.W))
+	val accValid = Input(UInt(32.W))
+	val accAddr = Input(UInt(32.W))
 }
 
 class DPIDebug extends BlackBox with HasBlackBoxInline {
@@ -28,7 +30,9 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		|	input [31:0] inst,
 		|	input [31:0] wen,
 		|	input [31:0] waddr,
-		|	input [31:0] data
+		|	input [31:0] data,
+		|	input [31:0] accValid,
+		|	input [31:0] accAddr
 		|);
 		|import "DPI-C" function void set_debug(
 		|	input int reset,
@@ -38,7 +42,9 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		|	input int inst,
 		|	input int wen,
 		|	input int waddr,
-		|	input int data
+		|	input int data,
+		|	input int accValid,
+		|	input int accAddr
 		|);
 		|always @(*) begin
 		|	set_debug(
@@ -49,7 +55,9 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 		|		inst,
 		|		wen,
 		|		waddr,
-		|		data
+		|		data,
+		|		accValid,
+		|		accAddr
 		|	);
 		|end
 		|endmodule
@@ -67,7 +75,9 @@ class DPIDebug extends BlackBox with HasBlackBoxInline {
 			|	input [31:0] inst,
 			|	input [31:0] wen,
 			|	input [31:0] waddr,
-			|	input [31:0] data
+			|	input [31:0] data,
+			|	input [31:0] accValid,
+			|	input [31:0] accAddr
 			|);
 			|endmodule
 			""".stripMargin

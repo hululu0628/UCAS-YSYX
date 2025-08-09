@@ -56,7 +56,7 @@ extern "C" void ebreak_handler(unsigned char inst_ebreak)
 }
 
 extern "C" void set_debug(unsigned reset, unsigned valid, unsigned pc, unsigned npc, unsigned inst,
-	unsigned wen, unsigned waddr, unsigned data)
+	unsigned wen, unsigned waddr, unsigned data, unsigned accValid, unsigned accAddr)
 {
 	debug_signal.reset = reset;
 	debug_signal.valid = valid;
@@ -66,6 +66,8 @@ extern "C" void set_debug(unsigned reset, unsigned valid, unsigned pc, unsigned 
 	debug_signal.wen = wen;
 	debug_signal.waddr = waddr;
 	debug_signal.data = data;
+	debug_signal.accValid = accValid;
+	debug_signal.accAddr = accAddr;
 }
 
 
@@ -128,6 +130,9 @@ void reg_modify(VTop *top)
 void trace_and_difftest()
 {
 	if(debug_signal.reset)
+	{
+		difftest_skip_ref();
+	} else if(checkAccBound(debug_signal.accValid && debug_signal.valid, debug_signal.accAddr) == -1)
 	{
 		difftest_skip_ref();
 	}

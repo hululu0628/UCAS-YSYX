@@ -103,3 +103,14 @@ void paddr_write(paddr_t addr, int len, word_t data)
 	IFDEF(CONFIG_DEVICE, mmio_write(addr, len, data); difftest_skip_ref(); return;)
 	out_of_bound(addr, PMEM_LEFT, PMEM_RIGHT);
 }
+
+int checkAccBound(int valid, word_t addr)
+{
+	bool in_flash = (addr >= FLASH_START && addr < FLASH_START + FLASH_SIZE);
+	bool in_sram = (addr >= SRAM_START && addr < SRAM_START + SRAM_SIZE);
+	bool in_psram = (addr >= PSRAM_START && addr < PSRAM_START + PSRAM_SIZE);
+	bool in_sdram = (addr >= SDRAM_START && addr < SDRAM_START + SDRAM_SIZE);
+	if(valid && !in_flash && !in_sram && !in_psram && !in_sdram)
+		return -1;
+	return 0;
+}

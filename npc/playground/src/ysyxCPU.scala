@@ -70,4 +70,6 @@ class ysyxCPU extends Module{
 	debug.io.wen := wbu.io.w2e.bits.info.wenR
 	debug.io.waddr := wbu.io.w2e.bits.info.inst.rd
 	debug.io.data := wbu.io.w2e.bits.regWdata
+	debug.io.accValid := wbu.io.w2e.bits.accValid
+	debug.io.accAddr := wbu.io.w2e.bits.accAddr
 }

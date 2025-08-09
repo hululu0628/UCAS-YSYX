@@ -28,6 +28,8 @@ paddr_t host_to_guest_sdram(uint8_t *haddr);
 word_t paddr_read(paddr_t addr, int len);
 void paddr_write(paddr_t addr, int len, word_t data);
 
+int checkAccBound(int valid, word_t addr);
+
 /**
  * VADDR
  */
